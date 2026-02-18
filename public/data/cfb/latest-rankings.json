@@ -1,0 +1,10 @@
+{
+  "season": 2025,
+  "week": 14,
+  "generated_at_utc": "2026-02-18T06:00:00Z",
+  "rankings": [
+    {"rank": 1, "team": "Ohio State", "record": "12-1", "rating": 92.44, "delta": 0},
+    {"rank": 2, "team": "Texas", "record": "11-2", "rating": 90.08, "delta": 1},
+    {"rank": 3, "team": "Oregon", "record": "12-1", "rating": 89.72, "delta": -1}
+  ]
+}
