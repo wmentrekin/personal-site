@@ -32,14 +32,14 @@ function isActive(href: string): boolean {
     <style>
       :root {
         color-scheme: dark;
-        --bg: #090b10;
-        --bg-accent: #121623;
-        --card: #0f131b;
+        --bg: #080b12;
+        --bg-accent: #182742;
+        --card: #0f151f;
         --text: #e7ecf3;
         --muted: #97a2b2;
-        --line: #202737;
-        --accent: #4f8dff;
-        --accent-strong: #79abff;
+        --line: #233248;
+        --accent: #63a5ff;
+        --accent-strong: #96c4ff;
         --soft: #151c2a;
         --error-bg: #2a1418;
         --error-text: #f4a8b7;
@@ -52,7 +52,10 @@ function isActive(href: string): boolean {
       body {
         margin: 0;
         font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
-        background: var(--bg);
+        background:
+          radial-gradient(1100px 700px at 10% -15%, rgba(54, 108, 199, 0.34) 0%, transparent 52%),
+          radial-gradient(900px 620px at 90% 0%, rgba(24, 58, 121, 0.34) 0%, transparent 48%),
+          linear-gradient(180deg, #0b1220 0%, var(--bg) 48%);
         color: var(--text);
       }
 
@@ -101,7 +104,7 @@ function isActive(href: string): boolean {
 
       nav .links a.active {
         background: var(--soft);
-        color: var(--accent-strong);
+        color: var(--text);
       }
 
       main {
@@ -120,32 +123,60 @@ function isActive(href: string): boolean {
       .quick-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1.2rem;
-        margin-top: 1.4rem;
+        gap: 1.3rem;
+        margin-top: 1.2rem;
       }
 
-      .quick-card {
+      .quick-card,
+      .tile-link {
         display: block;
         text-decoration: none;
         color: var(--text);
-        background: var(--card);
+        background: linear-gradient(150deg, #111a29, #162338);
         border: 1px solid var(--line);
-        border-radius: 4px;
-        padding: 1.25rem;
-        min-height: 150px;
+        border-radius: 8px;
+        padding: 1.35rem;
+        min-height: 215px;
         box-shadow:
-          0 18px 38px rgba(0, 0, 0, 0.28),
+          0 20px 44px rgba(0, 0, 0, 0.33),
           0 1px 0 rgba(255, 255, 255, 0.03) inset;
         transition: border-color 140ms ease, transform 140ms ease;
       }
 
-      .quick-card:hover {
+      .quick-card:hover,
+      .tile-link:hover {
         border-color: var(--accent);
-        transform: translateY(-1px);
+        transform: translateY(-2px);
       }
 
-      .quick-card h2 {
+      .quick-card h2,
+      .tile-link h2 {
         margin: 0 0 0.45rem;
+      }
+
+      .tile-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 10px;
+        margin-bottom: 0.9rem;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      }
+
+      .tone-projects {
+        background: linear-gradient(145deg, #0d1b35, #20355b);
+      }
+
+      .tone-about {
+        background: linear-gradient(145deg, #1b1230, #2a1f4a);
+      }
+
+      .tone-cfb {
+        background: linear-gradient(145deg, #0f2638, #1f4e63);
+      }
+
+      .tone-election {
+        background: linear-gradient(145deg, #34151f, #4a2630);
       }
 
       .muted {
@@ -172,7 +203,7 @@ function isActive(href: string): boolean {
 
       .button.secondary {
         background: transparent;
-        color: var(--accent-strong);
+        color: var(--text);
         border: 1px solid var(--line);
       }
 
@@ -239,14 +270,6 @@ function isActive(href: string): boolean {
         margin-bottom: 0.35rem;
       }
 
-      footer {
-        margin-top: 2.7rem;
-        padding-top: 1.25rem;
-        border-top: 1px solid var(--line);
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-
       @media (max-width: 820px) {
         .grid {
           grid-template-columns: 1fr;
@@ -280,7 +303,6 @@ function isActive(href: string): boolean {
     </header>
     <main class="container">
       <slot />
-      <footer>Static-first site on Cloudflare Pages. CFB is artifact-driven for reliability.</footer>
     </main>
   </body>
 </html>

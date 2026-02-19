@@ -11,15 +11,17 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     </p>
   </section>
 
-  <section class="grid">
-    <article class="card">
+  <section class="quick-grid">
+    <a class="tile-link" href="/projects/cfb-rankings">
+      <div class="tile-icon tone-cfb"></div>
       <h2>CFB Rankings</h2>
-      <a class="button secondary" href="/projects/cfb-rankings">Open project</a>
-    </article>
+      <p class="muted">Optimization ratings project with live snapshot table, repo link, and Streamlit reference app.</p>
+    </a>
 
-    <article class="card">
+    <a class="tile-link" href="/projects/2020-election-model">
+      <div class="tile-icon tone-election"></div>
       <h2>2020 Election Model</h2>
-      <a class="button secondary" href="/projects/2020-election-model">Open project</a>
-    </article>
+      <p class="muted">Archived election model project page with repository reference.</p>
+    </a>
   </section>
 </BaseLayout>
