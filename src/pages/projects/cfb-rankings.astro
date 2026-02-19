@@ -44,25 +44,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     </table>
   </section>
 
-  <section class="grid" style="margin-top: 1rem;">
-    <article class="card">
-      <h2>Pipeline</h2>
-      <p class="muted">
-        CollegeFootballData API ingest + team metadata are loaded to Supabase PostgreSQL, transformed for model input, solved via CVXPY, and published as web artifacts through GitHub Actions.
-      </p>
-    </article>
-
-    <article class="card">
-      <h2>Methodology Summary</h2>
-      <ul class="muted">
-        <li>Margin penalties enforce winner-over-loser separation relative to adjusted margin of victory.</li>
-        <li>FCS-loss penalties strongly penalize FBS teams that lose to FCS opponents.</li>
-        <li>Loss-rate penalties discourage high ratings for teams with weak win-loss records.</li>
-        <li>Prior regularization ties early-season ratings to prior-year output, then decays by Week 7.</li>
-      </ul>
-    </article>
-  </section>
-
   <script>
     /** @typedef {{ rank: number; team: string; record: string; rating: number; delta: number }} RankingRow */
     /** @typedef {{ season: number; week: number; generated_at_utc: string; rankings: RankingRow[] }} RankingPayload */
