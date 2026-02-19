@@ -13,7 +13,8 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     </div>
   </section>
 
-  <section class="card" style="margin-top: 1rem;">
+  <div class="methodology-page">
+  <section class="card methodology-card" style="margin-top: 1rem;">
     <h2>Methodology</h2>
     <p class="muted">
       The inspiration for this ranking model came from a personal desire to objectively rank college football teams
@@ -59,7 +60,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     </p>
   </section>
 
-  <section class="card" style="margin-top: 1rem;">
+  <section class="card methodology-card" style="margin-top: 1rem;">
     <h2>Decision Variables & Parameters</h2>
 
     <h3>Sets</h3>
@@ -123,7 +124,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     </ul>
   </section>
 
-  <section class="card" style="margin-top: 1rem;">
+  <section class="card methodology-card" style="margin-top: 1rem;">
     <h2>Objective Function</h2>
     <p class="muted">
       {String.raw`\[
@@ -146,7 +147,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     </ul>
   </section>
 
-  <section class="card" style="margin-top: 1rem;">
+  <section class="card methodology-card" style="margin-top: 1rem;">
     <h2>Constraints</h2>
     <p class="muted"><strong>FBS rating bounds:</strong></p>
     <p class="muted">
@@ -163,7 +164,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     </p>
   </section>
 
-  <section class="card" style="margin-top: 1rem;">
+  <section class="card methodology-card" style="margin-top: 1rem;">
     <h2>Implementation Notes</h2>
     <ul class="muted">
       <li>{String.raw`Prior ratings are carried over from the previous season's final model output. New FBS teams receive a default prior rating of \(15\).`}</li>
@@ -179,6 +180,49 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
       </li>
     </ul>
   </section>
+  </div>
+
+  <style>
+    .methodology-page .methodology-card {
+      background: #0b1526;
+      border: 1px solid rgba(120, 153, 206, 0.42);
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.28),
+        0 1px 0 rgba(255, 255, 255, 0.04) inset;
+    }
+
+    .methodology-page h2 {
+      font-size: 1.95rem;
+      font-weight: 850;
+      letter-spacing: 0.01em;
+    }
+
+    .methodology-page h3 {
+      margin-top: 1.4rem;
+      margin-bottom: 0.55rem;
+      font-size: 1.28rem;
+      font-weight: 780;
+    }
+
+    .methodology-page .muted {
+      color: #d6e0ef;
+      font-size: 1.08rem;
+      font-weight: 560;
+      line-height: 1.86;
+    }
+
+    .methodology-page ul {
+      padding-left: 1.35rem;
+    }
+
+    .methodology-page li {
+      margin-bottom: 0.5rem;
+    }
+
+    .methodology-page mjx-container {
+      font-size: 112% !important;
+    }
+  </style>
 
   <script is:inline>
     window.MathJax = {
