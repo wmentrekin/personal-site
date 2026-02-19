@@ -1,0 +1,129 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="CFB Rankings Project | Wyatt Entrekin">
+  <section class="hero">
+    <span class="eyebrow">Project</span>
+    <h1>CFB Rankings</h1>
+    <p class="muted">
+      Optimization-based college football ratings produced weekly with automated ingestion, modeling, and publication.
+    </p>
+    <div class="button-row">
+      <a class="button secondary" href="https://github.com/wmentrekin/cfb-rankings" target="_blank" rel="noreferrer">View repo</a>
+      <a class="button" href="https://cfb-rankings-wmentrekin.streamlit.app/" target="_blank" rel="noreferrer">Open Streamlit app</a>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top: 1rem;">
+    <h2>Latest Ratings Snapshot</h2>
+    <p id="meta" class="muted">Loading rankings artifact...</p>
+    <p id="error" class="error" hidden></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Team</th>
+          <th>Record</th>
+          <th>Rating</th>
+          <th>Delta</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+
+  <section class="grid" style="margin-top: 1rem;">
+    <article class="card">
+      <h2>Current architecture</h2>
+      <p class="muted">
+        API ingest and DB storage feed a convex optimization model. Ratings are published for web consumption.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2>Roadmap</h2>
+      <p class="muted">
+        Add predictor outputs, scenario simulation, and constrained assignment components while keeping delivery stable.
+      </p>
+    </article>
+  </section>
+
+  <script>
+    /** @typedef {{ rank: number; team: string; record: string; rating: number; delta: number }} RankingRow */
+    /** @typedef {{ season: number; week: number; generated_at_utc: string; rankings: RankingRow[] }} RankingPayload */
+
+    function setError(message) {
+      const meta = document.getElementById("meta");
+      const error = document.getElementById("error");
+      if (meta instanceof HTMLParagraphElement) {
+        meta.textContent = "";
+      }
+      if (error instanceof HTMLParagraphElement) {
+        error.hidden = false;
+        error.textContent = message;
+      }
+    }
+
+    async function loadRankings() {
+      const meta = document.getElementById("meta");
+      const rows = document.getElementById("rows");
+      const error = document.getElementById("error");
+
+      if (
+        !(meta instanceof HTMLParagraphElement) ||
+        !(rows instanceof HTMLTableSectionElement) ||
+        !(error instanceof HTMLParagraphElement)
+      ) {
+        return;
+      }
+
+      error.hidden = true;
+      error.textContent = "";
+
+      let response;
+      try {
+        response = await fetch("/data/cfb/latest-rankings.json", { cache: "no-store" });
+      } catch (_err) {
+        setError("Network error while loading rankings artifact.");
+        return;
+      }
+
+      if (!response.ok) {
+        setError(`Could not load rankings artifact (HTTP ${response.status}).`);
+        return;
+      }
+
+      /** @type {RankingPayload} */
+      const payload = await response.json();
+
+      if (!payload || !Array.isArray(payload.rankings)) {
+        setError("Artifact format is invalid. Expected a rankings array.");
+        return;
+      }
+
+      if (payload.rankings.length === 0) {
+        setError("No rankings are available for this snapshot yet.");
+        return;
+      }
+
+      meta.textContent = `Season ${payload.season}, Week ${payload.week}. Updated ${payload.generated_at_utc}.`;
+      rows.innerHTML = "";
+
+      for (const row of payload.rankings) {
+        const tr = document.createElement("tr");
+        const delta = row.delta > 0 ? `+${row.delta}` : `${row.delta}`;
+        tr.innerHTML = `
+          <td>${row.rank}</td>
+          <td>${row.team}</td>
+          <td>${row.record}</td>
+          <td>${Number(row.rating).toFixed(2)}</td>
+          <td>${delta}</td>
+        `;
+        rows.appendChild(tr);
+      }
+    }
+
+    loadRankings();
+  </script>
+</BaseLayout>
