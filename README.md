@@ -15,7 +15,10 @@ npm run dev
 
 Routes:
 - `/` home page
-- `/cfb` CFB rankings page using `public/data/cfb/latest-rankings.json`
+- `/about`
+- `/projects`
+- `/projects/cfb-rankings`
+- `/projects/2020-election-model`
 
 ## Next increments
 - Connect `/cfb` to published artifact storage (R2)

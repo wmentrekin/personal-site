@@ -3,11 +3,35 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="Wyatt Entrekin | Personal Site">
-  <section class="card">
+  <section class="hero">
+    <span class="eyebrow">Data Engineering + Analytics</span>
     <h1>Personal project hub</h1>
     <p class="muted">
-      This is the base scaffold. The CFB section is isolated at <code>/cfb</code> and reads static ranking artifacts.
+      I build end-to-end analytics systems: ingestion, modeling, automation, and production-grade delivery.
+      This site is the long-term home for those projects.
     </p>
-    <a class="button" href="/cfb">Open CFB section</a>
+    <div class="button-row">
+      <a class="button" href="/projects">Browse projects</a>
+      <a class="button secondary" href="/projects/cfb-rankings">Open CFB rankings</a>
+    </div>
+  </section>
+
+  <h2 class="section-title">Featured Projects</h2>
+  <section class="grid">
+    <article class="card">
+      <h3>CFB Rankings</h3>
+      <p class="muted">
+        Convex optimization-based weekly ratings pipeline, with robust data ingestion and automated runs.
+      </p>
+      <a class="button secondary" href="/projects/cfb-rankings">Project details</a>
+    </article>
+
+    <article class="card">
+      <h3>2020 Election Model</h3>
+      <p class="muted">
+        Earlier forecasting/modeling work that informed my current approach to transparent analytical outputs.
+      </p>
+      <a class="button secondary" href="/projects/2020-election-model">Project details</a>
+    </article>
   </section>
 </BaseLayout>
