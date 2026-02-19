@@ -7,6 +7,7 @@ const aboutSections = [
     title: "Background",
     image: "/images/about/background-placeholder.svg",
     alt: "Background placeholder image",
+    text: "I was born and raised in Memphis, Tennessee, ",
     reverse: false
   },
   {
@@ -14,6 +15,7 @@ const aboutSections = [
     title: "Education at Georgia Tech",
     image: "/images/about/GT_logo.svg.png",
     alt: "Georgia Tech logo",
+    text: "In the Fall of 2018, I enrolled at Georgia Tech to pursue a degree in Industrial & Systems Engineering. During my time at Tech, I developed a strong interest in data analytics, operation research, mathematical modeling, and machine learning. During my time in school, I was lucky enough to a mutliple jobs and internships in a variety of industries, including ones at CapTech, Assurant, Code Ninjas, Printpack, and WeAdmit. I was also an active member of Delta Tau Delta Fraternity, serving as the chapter's Vice President. Before graduating in May 2023, I worked on a senior design project with Delta Airlines using process simulation to mitigate failures in the airline's baggage handling system at the Atlanta airport hub.",
     reverse: true
   },
   {
@@ -21,6 +23,7 @@ const aboutSections = [
     title: "Career",
     image: "/images/about/career-placeholder.svg",
     alt: "Career placeholder image",
+    text: "After graduating from Georgia Tech, I briefly returned home to Memphis and began working as an Industrial Engineer at GreatNeck Tools, using analytics to profile and optimize the inventory management operations and warehouse layout at the company's central distribution center. Then in January 2024, I joined Captech as a Consultant in the Data & Analytics practice. In my time at CapTech, I have primarily worked for clients in the financial services industry, building and supporting data pipelines, automating data quality and testing processes, and supporting large scale data migration efforts. Always pursuing technical and leadership growth, I also contribute internally on PoC projects, serve as a mentor for new hires, and lead Data & Analytics practice engagement at the Atlanta office. I'm currently focused on growing and learning new skills in the data engineering and data science spaces, particularly in the areas of cloud data platforms, orchestration, machine learning, streaming data, and real-time analytics.",
     reverse: false
   },
   {
@@ -28,6 +31,7 @@ const aboutSections = [
     title: "Interests",
     image: "/images/about/interests-placeholder.svg",
     alt: "Interests placeholder image",
+    text: "Add 2-5 sentences about interests outside work and how they connect to your projects.",
     reverse: true
   }
 ];
@@ -53,7 +57,7 @@ const aboutSections = [
           </figure>
           <div class="about-copy">
             <h2>{section.title}</h2>
-            <p class="muted"></p>
+            <p class="muted">{section.text}</p>
           </div>
         </article>
       ))
