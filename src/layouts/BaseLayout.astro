@@ -31,18 +31,18 @@ function isActive(href: string): boolean {
     <meta name="description" content={description} />
     <style>
       :root {
-        color-scheme: light;
-        --bg: #f7fafc;
-        --bg-accent: #e6f0ff;
-        --card: #ffffff;
-        --text: #0f172a;
-        --muted: #475569;
-        --line: #dbe4ef;
-        --accent: #0a66c2;
-        --accent-strong: #084b8f;
-        --soft: #edf3fb;
-        --error-bg: #fef2f2;
-        --error-text: #991b1b;
+        color-scheme: dark;
+        --bg: #090b10;
+        --bg-accent: #121623;
+        --card: #0f131b;
+        --text: #e7ecf3;
+        --muted: #97a2b2;
+        --line: #202737;
+        --accent: #7ea4ff;
+        --accent-strong: #9db9ff;
+        --soft: #151c2a;
+        --error-bg: #2a1418;
+        --error-text: #f4a8b7;
       }
 
       * {
@@ -51,14 +51,17 @@ function isActive(href: string): boolean {
 
       body {
         margin: 0;
-        font-family: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
-        background: radial-gradient(circle at 0% 0%, var(--bg-accent), var(--bg) 42%);
+        font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
+        background:
+          radial-gradient(1100px 700px at 0% -10%, #1a2133 0%, transparent 45%),
+          radial-gradient(900px 700px at 100% 0%, #111826 0%, transparent 40%),
+          var(--bg);
         color: var(--text);
       }
 
       header {
         border-bottom: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.93);
+        background: rgba(9, 11, 16, 0.85);
         backdrop-filter: blur(4px);
         position: sticky;
         top: 0;
@@ -109,11 +112,10 @@ function isActive(href: string): boolean {
       }
 
       .hero {
-        background: linear-gradient(115deg, #ffffff, #f2f7ff);
+        background: linear-gradient(125deg, #0f131b, #111827);
         border: 1px solid var(--line);
         border-radius: 16px;
-        padding: 1.2rem;
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+        padding: 1.3rem;
       }
 
       .hero h1 {
@@ -135,7 +137,7 @@ function isActive(href: string): boolean {
 
       .button {
         background: var(--accent);
-        color: #fff;
+        color: #0a1020;
         text-decoration: none;
         padding: 0.6rem 0.85rem;
         border-radius: 10px;
@@ -143,7 +145,7 @@ function isActive(href: string): boolean {
       }
 
       .button.secondary {
-        background: #fff;
+        background: transparent;
         color: var(--accent-strong);
         border: 1px solid var(--line);
       }
@@ -163,7 +165,6 @@ function isActive(href: string): boolean {
         border: 1px solid var(--line);
         border-radius: 14px;
         padding: 1rem;
-        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
       }
 
       .card h2,
@@ -186,7 +187,7 @@ function isActive(href: string): boolean {
 
       th {
         font-size: 0.92rem;
-        color: #1f2937;
+        color: #c8d2e2;
       }
 
       .error {
