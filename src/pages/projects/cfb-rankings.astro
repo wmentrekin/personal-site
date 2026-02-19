@@ -8,15 +8,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     <div class="link-card-row">
       <a class="link-card tone-repo" href="https://github.com/wmentrekin/cfb-rankings" target="_blank" rel="noreferrer">
-        View Repo
+        GitHub Repository
       </a>
       <a class="link-card tone-streamlit" href="https://cfb-rankings-wmentrekin.streamlit.app/" target="_blank" rel="noreferrer">
         Streamlit App
       </a>
+      <a class="link-card tone-projects" href="/projects/cfb-rankings/methodology">
+        Methodology
+      </a>
     </div>
 
     <p class="muted">
-      Optimization-based college football ratings produced weekly with automated ingestion, modeling, and publication.
+      A convex quadratic program to optimally rank college football teams based on game outcomes.
+    </p>
+    <p class="muted">
+      Updated every Sunday morning at 3:15 AM ET during the college football season.
     </p>
   </section>
 
@@ -40,17 +46,20 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
   <section class="grid" style="margin-top: 1rem;">
     <article class="card">
-      <h2>Current architecture</h2>
+      <h2>Pipeline</h2>
       <p class="muted">
-        API ingest and DB storage feed a convex optimization model. Ratings are published for web consumption.
+        CollegeFootballData API ingest + team metadata are loaded to Supabase PostgreSQL, transformed for model input, solved via CVXPY, and published as web artifacts through GitHub Actions.
       </p>
     </article>
 
     <article class="card">
-      <h2>Roadmap</h2>
-      <p class="muted">
-        Add predictor outputs, scenario simulation, and constrained assignment components while keeping delivery stable.
-      </p>
+      <h2>Methodology Summary</h2>
+      <ul class="muted">
+        <li>Margin penalties enforce winner-over-loser separation relative to adjusted margin of victory.</li>
+        <li>FCS-loss penalties strongly penalize FBS teams that lose to FCS opponents.</li>
+        <li>Loss-rate penalties discourage high ratings for teams with weak win-loss records.</li>
+        <li>Prior regularization ties early-season ratings to prior-year output, then decays by Week 7.</li>
+      </ul>
     </article>
   </section>
 
@@ -58,7 +67,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     /** @typedef {{ rank: number; team: string; record: string; rating: number; delta: number }} RankingRow */
     /** @typedef {{ season: number; week: number; generated_at_utc: string; rankings: RankingRow[] }} RankingPayload */
 
-    function setError(message) {
+    function setError(message: string) {
       const meta = document.getElementById("meta");
       const error = document.getElementById("error");
       if (meta instanceof HTMLParagraphElement) {
