@@ -111,36 +111,32 @@ function isActive(href: string): boolean {
         background: var(--soft);
       }
 
-      nav .links .projects-dropdown {
+      nav .links .projects-nav {
         position: relative;
       }
 
-      nav .links .projects-summary {
+      nav .links .projects-trigger {
         display: flex;
         align-items: center;
         gap: 0.38rem;
         color: var(--text);
+        text-decoration: none;
         font-weight: 700;
         padding: 0.45rem 0.78rem;
         border-radius: 999px;
-        cursor: pointer;
-        list-style: none;
         user-select: none;
       }
 
-      nav .links .projects-summary::-webkit-details-marker {
-        display: none;
-      }
-
-      nav .links .projects-summary::after {
+      nav .links .projects-trigger::after {
         content: "▾";
         font-size: 0.75rem;
         opacity: 0.86;
         transform: translateY(1px);
       }
 
-      nav .links .projects-dropdown.active .projects-summary,
-      nav .links .projects-dropdown[open] .projects-summary {
+      nav .links .projects-nav.active .projects-trigger,
+      nav .links .projects-nav:hover .projects-trigger,
+      nav .links .projects-nav:focus-within .projects-trigger {
         background: var(--soft);
       }
 
@@ -149,13 +145,18 @@ function isActive(href: string): boolean {
         top: calc(100% + 0.46rem);
         right: 0;
         min-width: 220px;
-        display: grid;
+        display: none;
         gap: 0.26rem;
         padding: 0.44rem;
         background: #0c1629;
         border: 1px solid var(--line);
         box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
         z-index: 35;
+      }
+
+      nav .links .projects-nav:hover .projects-menu,
+      nav .links .projects-nav:focus-within .projects-menu {
+        display: grid;
       }
 
       nav .links .projects-menu a {
@@ -410,8 +411,8 @@ function isActive(href: string): boolean {
           <a class="brand" href="/">Wyatt Entrekin</a>
           <div class="links">
             <a href="/" class={isActive("/") ? "active" : ""}>Home</a>
-            <details class={`projects-dropdown ${projectsActive ? "active" : ""}`}>
-              <summary class="projects-summary">Projects</summary>
+            <div class={`projects-nav ${projectsActive ? "active" : ""}`} tabindex="0">
+              <a href="/projects" class={`projects-trigger ${projectsActive ? "active" : ""}`}>Projects</a>
               <div class="projects-menu">
                 {
                   projectLinks.map((link) => (
@@ -419,7 +420,7 @@ function isActive(href: string): boolean {
                   ))
                 }
               </div>
-            </details>
+            </div>
             <a href="/about" class={isActive("/about") ? "active" : ""}>About</a>
           </div>
         </nav>

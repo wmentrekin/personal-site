@@ -1,16 +1,41 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+const aboutSections = [
+  {
+    id: "background",
+    title: "Background",
+    image: "/images/about/background-placeholder.svg",
+    alt: "Background placeholder image",
+    reverse: false
+  },
+  {
+    id: "education",
+    title: "Education at Georgia Tech",
+    image: "/images/about/GT_logo.svg",
+    alt: "Georgia Tech placeholder image",
+    reverse: true
+  },
+  {
+    id: "career",
+    title: "Career",
+    image: "/images/about/career-placeholder.svg",
+    alt: "Career placeholder image",
+    reverse: false
+  },
+  {
+    id: "interests",
+    title: "Interests",
+    image: "/images/about/interests-placeholder.svg",
+    alt: "Interests placeholder image",
+    reverse: true
+  }
+];
 ---
 
 <BaseLayout title="About | Wyatt Entrekin">
   <section class="hero">
     <h1>Wyatt Entrekin</h1>
-    <p class="muted">
-      I am currently a Data Engineering Consultant at CapTech.
-      I hold a BS in Industrial Engineering from the Georgia Institute of Technology, where I graduated in 2023. I especially enjoyed my coursework in operations research, machine learning, optimization, and simulation.
-      My core expertise lies in data engineering and data science. I actively pursue learning opportunities to develop my skills deeper in those areas.
-      My personal interests include sports, music, politics, travel, and language learning. I love finding ways to connect these passions with my work in data.
-    </p>
 
     <div class="link-card-row single">
       <a class="link-card tone-linkedin" href="https://www.linkedin.com/in/wmentrekin/" target="_blank" rel="noreferrer">
@@ -18,4 +43,97 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </a>
     </div>
   </section>
+
+  <section class="about-sections">
+    {
+      aboutSections.map((section) => (
+        <article class={`about-row ${section.reverse ? "reverse" : ""}`} id={section.id}>
+          <figure class="about-photo">
+            <img src={section.image} alt={section.alt} loading="lazy" />
+          </figure>
+          <div class="about-copy">
+            <h2>{section.title}</h2>
+            <p class="muted"></p>
+          </div>
+        </article>
+      ))
+    }
+  </section>
+
+  <style>
+    .about-sections {
+      display: grid;
+      gap: 1.35rem;
+      margin-top: 1.25rem;
+    }
+
+    .about-row {
+      display: grid;
+      grid-template-columns: minmax(230px, 340px) minmax(0, 1fr);
+      gap: 1.25rem;
+      align-items: stretch;
+    }
+
+    .about-row.reverse {
+      grid-template-columns: minmax(0, 1fr) minmax(230px, 340px);
+    }
+
+    .about-row.reverse .about-photo {
+      order: 2;
+    }
+
+    .about-row.reverse .about-copy {
+      order: 1;
+    }
+
+    .about-photo {
+      margin: 0;
+      border: 1px solid rgba(133, 168, 221, 0.3);
+      box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.28),
+        0 1px 0 rgba(255, 255, 255, 0.05) inset;
+      overflow: hidden;
+      min-height: 220px;
+    }
+
+    .about-photo img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .about-copy {
+      border: 1px solid rgba(133, 168, 221, 0.22);
+      background: linear-gradient(160deg, rgba(14, 25, 44, 0.82), rgba(9, 18, 33, 0.9));
+      padding: 1rem 1.15rem;
+    }
+
+    .about-copy h2 {
+      margin-top: 0;
+      margin-bottom: 0.7rem;
+      font-size: 1.35rem;
+    }
+
+    .about-copy p {
+      min-height: 7rem;
+      margin: 0;
+    }
+
+    @media (max-width: 920px) {
+      .about-row,
+      .about-row.reverse {
+        grid-template-columns: 1fr;
+      }
+
+      .about-row.reverse .about-photo,
+      .about-row.reverse .about-copy {
+        order: initial;
+      }
+
+      .about-photo {
+        min-height: 200px;
+      }
+    }
+  </style>
 </BaseLayout>
