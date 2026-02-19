@@ -10,11 +10,11 @@ const {
 } = Astro.props;
 
 const pathname = Astro.url.pathname;
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/projects", label: "Projects" },
-  { href: "/about", label: "About" }
+const projectLinks = [
+  { href: "/projects/cfb-rankings", label: "CFB Rankings" },
+  { href: "/projects/2020-election-model", label: "2020 Election Model" }
 ];
+const projectsActive = pathname === "/projects" || pathname.startsWith("/projects/");
 
 function isActive(href: string): boolean {
   if (href === "/") return pathname === "/";
@@ -111,6 +111,63 @@ function isActive(href: string): boolean {
         background: var(--soft);
       }
 
+      nav .links .projects-dropdown {
+        position: relative;
+      }
+
+      nav .links .projects-summary {
+        display: flex;
+        align-items: center;
+        gap: 0.38rem;
+        color: var(--text);
+        font-weight: 700;
+        padding: 0.45rem 0.78rem;
+        border-radius: 999px;
+        cursor: pointer;
+        list-style: none;
+        user-select: none;
+      }
+
+      nav .links .projects-summary::-webkit-details-marker {
+        display: none;
+      }
+
+      nav .links .projects-summary::after {
+        content: "▾";
+        font-size: 0.75rem;
+        opacity: 0.86;
+        transform: translateY(1px);
+      }
+
+      nav .links .projects-dropdown.active .projects-summary,
+      nav .links .projects-dropdown[open] .projects-summary {
+        background: var(--soft);
+      }
+
+      nav .links .projects-menu {
+        position: absolute;
+        top: calc(100% + 0.46rem);
+        right: 0;
+        min-width: 220px;
+        display: grid;
+        gap: 0.26rem;
+        padding: 0.44rem;
+        background: #0c1629;
+        border: 1px solid var(--line);
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
+        z-index: 35;
+      }
+
+      nav .links .projects-menu a {
+        border-radius: 0;
+        padding: 0.54rem 0.64rem;
+        white-space: nowrap;
+      }
+
+      nav .links .projects-menu a:hover {
+        background: rgba(40, 62, 99, 0.36);
+      }
+
       main {
         padding-block: 2.4rem 3rem;
       }
@@ -201,6 +258,12 @@ function isActive(href: string): boolean {
         nav {
           align-items: flex-start;
           flex-direction: column;
+        }
+
+        nav .links .projects-menu {
+          position: static;
+          min-width: 0;
+          margin-top: 0.36rem;
         }
       }
     </style>
@@ -346,11 +409,18 @@ function isActive(href: string): boolean {
         <nav>
           <a class="brand" href="/">Wyatt Entrekin</a>
           <div class="links">
-            {
-              navLinks.map((link) => (
-                <a href={link.href} class={isActive(link.href) ? "active" : ""}>{link.label}</a>
-              ))
-            }
+            <a href="/" class={isActive("/") ? "active" : ""}>Home</a>
+            <details class={`projects-dropdown ${projectsActive ? "active" : ""}`}>
+              <summary class="projects-summary">Projects</summary>
+              <div class="projects-menu">
+                {
+                  projectLinks.map((link) => (
+                    <a href={link.href} class={isActive(link.href) ? "active" : ""}>{link.label}</a>
+                  ))
+                }
+              </div>
+            </details>
+            <a href="/about" class={isActive("/about") ? "active" : ""}>About</a>
           </div>
         </nav>
       </div>
