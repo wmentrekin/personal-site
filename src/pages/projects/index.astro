@@ -3,19 +3,244 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="Projects | Wyatt Entrekin">
-  <section class="hero">
-    <h1>Projects</h1>
+  <section class="projects-shell">
+    <section class="projects-hero">
+      <div class="hero-copy">
+        <p class="hero-kicker">Case Studies</p>
+        <h1>Projects</h1>
+        <p>
+          A portfolio of analytics projects with end-to-end delivery, from model design through production
+          publication.
+        </p>
+      </div>
+      <div class="hero-tags">
+        <span>Optimization</span>
+        <span>Data Engineering</span>
+        <span>Modeling</span>
+        <span>Automation</span>
+      </div>
+    </section>
+
+    <section class="project-list">
+      <article class="project-card">
+        <header class="project-head">
+          <div>
+            <h2>CFB Rankings</h2>
+            <p class="project-sub">Convex optimization + automated weekly publication</p>
+          </div>
+          <span class="status active">Active</span>
+        </header>
+        <p class="project-body">
+          Objective college football rankings built from game outcomes using a convex quadratic program, backed by
+          an automated ingestion/model/publication pipeline and a public UI.
+        </p>
+        <div class="project-meta">
+          <span>CVXPY</span>
+          <span>Supabase</span>
+          <span>GitHub Actions</span>
+          <span>Astro</span>
+        </div>
+        <div class="project-actions">
+          <a href="/projects/cfb-rankings">View project</a>
+          <a href="/projects/cfb-rankings/methodology">Methodology</a>
+        </div>
+      </article>
+
+      <article class="project-card">
+        <header class="project-head">
+          <div>
+            <h2>2020 Election Model</h2>
+            <p class="project-sub">Polling-based forecasting project archive</p>
+          </div>
+          <span class="status archived">Archived</span>
+        </header>
+        <p class="project-body">
+          Statistical prediction workflow developed around polling inputs and election scenarios. Maintained as an
+          archive project in this portfolio.
+        </p>
+        <div class="project-meta">
+          <span>Forecasting</span>
+          <span>Statistics</span>
+          <span>Python</span>
+        </div>
+        <div class="project-actions">
+          <a href="/projects/2020-election-model">View project</a>
+          <a href="https://github.com/wmentrekin/2020election" target="_blank" rel="noreferrer">Repo</a>
+        </div>
+      </article>
+    </section>
   </section>
 
-  <section class="quick-grid">
-    <a class="tile-link tone-cfb" href="/projects/cfb-rankings">
-      <h2>CFB Rankings</h2>
-      <h3>a convex quadratic program to optimally rank college football teams based on objective game outcomes</h3>
-    </a>
+  <style>
+    .projects-shell {
+      display: grid;
+      gap: 1.1rem;
+    }
 
-    <a class="tile-link tone-election" href="/projects/2020-election-model">
-      <h2>2020 Election Model</h2>
-      <h3>a polling-based statistical predictive model for the 2020 United States presidential election</h3>
-    </a>
-  </section>
+    .projects-hero {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 1rem;
+      align-items: stretch;
+      background: linear-gradient(160deg, rgba(255, 251, 248, 0.92), rgba(251, 240, 236, 0.9));
+      border: 1px solid rgba(176, 132, 127, 0.3);
+      border-radius: 14px;
+      padding: 1.1rem;
+      box-shadow:
+        0 14px 32px rgba(82, 48, 45, 0.11),
+        0 1px 0 rgba(255, 255, 255, 0.84) inset;
+    }
+
+    .hero-kicker {
+      margin: 0;
+      color: var(--accent);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .hero-copy h1 {
+      margin: 0.45rem 0 0.6rem;
+      font-size: clamp(1.75rem, 2.8vw, 2.25rem);
+      line-height: 1.15;
+    }
+
+    .hero-copy p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.72;
+      max-width: 58ch;
+    }
+
+    .hero-tags {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.55rem;
+      align-content: center;
+    }
+
+    .hero-tags span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      border-radius: 10px;
+      background: rgba(244, 224, 218, 0.65);
+      border: 1px solid rgba(167, 115, 110, 0.35);
+      color: #5b3e3d;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .project-list {
+      display: grid;
+      gap: 0.95rem;
+    }
+
+    .project-card {
+      background: linear-gradient(160deg, rgba(255, 251, 248, 0.92), rgba(250, 239, 235, 0.88));
+      border: 1px solid rgba(176, 132, 127, 0.3);
+      border-radius: 14px;
+      box-shadow:
+        0 14px 30px rgba(82, 48, 45, 0.12),
+        0 1px 0 rgba(255, 255, 255, 0.85) inset;
+      padding: 1rem 1.05rem;
+    }
+
+    .project-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: flex-start;
+      margin-bottom: 0.55rem;
+    }
+
+    .project-head h2 {
+      margin: 0;
+      font-size: 1.28rem;
+    }
+
+    .project-sub {
+      margin: 0.36rem 0 0;
+      color: var(--muted);
+      font-size: 0.93rem;
+      line-height: 1.45;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      min-width: 76px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .status.active {
+      background: rgba(236, 211, 206, 0.8);
+      border-color: rgba(158, 98, 94, 0.4);
+      color: #6f2f2d;
+    }
+
+    .status.archived {
+      background: rgba(228, 213, 208, 0.72);
+      border-color: rgba(136, 106, 103, 0.34);
+      color: #6a5553;
+    }
+
+    .project-body {
+      margin: 0.2rem 0 0;
+      color: var(--muted);
+      line-height: 1.72;
+    }
+
+    .project-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.78rem;
+    }
+
+    .project-meta span {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 0.28rem 0.58rem;
+      font-size: 0.77rem;
+      font-weight: 650;
+      color: #5e4745;
+      background: rgba(246, 228, 223, 0.72);
+      border: 1px solid rgba(170, 123, 117, 0.28);
+    }
+
+    .project-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    .project-actions a {
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .project-actions a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 900px) {
+      .projects-hero {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </BaseLayout>

@@ -3,12 +3,246 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="Wyatt Entrekin">
-  <section class="quick-grid">
-    <a class="quick-card tone-projects" href="/projects">
-      <h2>Projects</h2>
-    </a>
-    <a class="quick-card tone-about" href="/about">
-      <h2>About</h2>
-    </a>
+  <section class="home-shell">
+    <section class="home-hero">
+      <div class="hero-copy">
+        <p class="hero-kicker">Data Engineer</p>
+        <h1>Building analytics systems that move from idea to production.</h1>
+        <p class="hero-text">
+          I design and deliver data products across ingestion, modeling, automation, and delivery with a focus on
+          reliability and clarity.
+        </p>
+        <div class="hero-actions">
+          <a class="hero-btn primary" href="/projects">View Projects</a>
+          <a class="hero-btn" href="/about">About Me</a>
+        </div>
+      </div>
+
+      <aside class="hero-panel">
+        <h2>Current Focus</h2>
+        <p>Optimization-driven sports analytics</p>
+        <p>Cloud-native data pipelines and QA automation</p>
+        <p>Applied ML and simulation for forecasting</p>
+      </aside>
+    </section>
+
+    <section class="home-feature-grid">
+      <article class="feature-card primary-feature">
+        <p class="feature-label">Featured Work</p>
+        <h2>CFB Rankings</h2>
+        <p>
+          Convex optimization model + automated pipeline + public delivery layer for weekly college football ratings.
+        </p>
+        <a class="feature-link" href="/projects/cfb-rankings">Open Project</a>
+      </article>
+
+      <article class="feature-card">
+        <p class="feature-label">Profile</p>
+        <h2>Who I Am</h2>
+        <p>
+          Industrial engineering background, data engineering career path, and a portfolio focused on transparent,
+          model-driven systems.
+        </p>
+        <a class="feature-link" href="/about">Read About</a>
+      </article>
+    </section>
+
+    <section class="home-nav-grid">
+      <a class="nav-card" href="/projects">
+        <h3>Projects</h3>
+        <p>Explore active and archived analytics projects.</p>
+      </a>
+      <a class="nav-card" href="/about">
+        <h3>About</h3>
+        <p>Background, education, career, and personal interests.</p>
+      </a>
+    </section>
   </section>
+
+  <style>
+    .home-shell {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .home-hero {
+      display: grid;
+      grid-template-columns: 1.55fr 1fr;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .hero-copy,
+    .hero-panel {
+      background: linear-gradient(160deg, rgba(255, 251, 248, 0.92), rgba(251, 240, 236, 0.9));
+      border: 1px solid rgba(176, 132, 127, 0.32);
+      border-radius: 14px;
+      box-shadow:
+        0 14px 32px rgba(82, 48, 45, 0.12),
+        0 1px 0 rgba(255, 255, 255, 0.84) inset;
+      padding: 1.2rem;
+    }
+
+    .hero-kicker {
+      margin: 0;
+      color: var(--accent);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .hero-copy h1 {
+      margin: 0.5rem 0 0.75rem;
+      font-size: clamp(1.8rem, 3vw, 2.45rem);
+      line-height: 1.16;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-text {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+      max-width: 60ch;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
+    .hero-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: var(--text);
+      background: rgba(245, 224, 219, 0.66);
+      border: 1px solid rgba(163, 108, 103, 0.4);
+      border-radius: 10px;
+      min-height: 40px;
+      padding: 0.5rem 0.85rem;
+      font-weight: 700;
+      transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+
+    .hero-btn.primary {
+      background: linear-gradient(145deg, #9f4b47, #7e3633);
+      border-color: rgba(125, 55, 52, 0.5);
+      color: #fff7f5;
+    }
+
+    .hero-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(92, 54, 52, 0.18);
+    }
+
+    .hero-panel h2 {
+      margin: 0;
+      font-size: 1.08rem;
+    }
+
+    .hero-panel p {
+      margin: 0.75rem 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(176, 132, 127, 0.24);
+    }
+
+    .home-feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .feature-card {
+      background: linear-gradient(160deg, rgba(255, 250, 247, 0.9), rgba(249, 237, 232, 0.86));
+      border: 1px solid rgba(176, 132, 127, 0.28);
+      border-radius: 14px;
+      padding: 1rem 1.05rem;
+      box-shadow:
+        0 14px 30px rgba(82, 48, 45, 0.11),
+        0 1px 0 rgba(255, 255, 255, 0.82) inset;
+    }
+
+    .primary-feature {
+      background: linear-gradient(160deg, rgba(255, 243, 240, 0.96), rgba(241, 219, 216, 0.92));
+    }
+
+    .feature-label {
+      margin: 0;
+      color: #7f5a58;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    .feature-card h2 {
+      margin: 0.45rem 0 0.55rem;
+      font-size: 1.28rem;
+    }
+
+    .feature-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .feature-link {
+      display: inline-block;
+      margin-top: 0.72rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .feature-link:hover {
+      text-decoration: underline;
+    }
+
+    .home-nav-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .nav-card {
+      text-decoration: none;
+      color: var(--text);
+      background: linear-gradient(160deg, rgba(255, 251, 248, 0.86), rgba(250, 239, 235, 0.8));
+      border: 1px solid rgba(176, 132, 127, 0.24);
+      border-radius: 14px;
+      padding: 1rem;
+      transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+    }
+
+    .nav-card h3 {
+      margin: 0;
+      font-size: 1.06rem;
+    }
+
+    .nav-card p {
+      margin: 0.45rem 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .nav-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(142, 61, 58, 0.44);
+      box-shadow: 0 14px 28px rgba(92, 54, 52, 0.14);
+    }
+
+    @media (max-width: 960px) {
+      .home-hero,
+      .home-feature-grid,
+      .home-nav-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </BaseLayout>
