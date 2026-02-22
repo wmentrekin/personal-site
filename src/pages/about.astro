@@ -54,76 +54,219 @@ const aboutSections = [
 ---
 
 <BaseLayout title="About | Wyatt Entrekin">
-  <section class="hero">
-    <h1>Wyatt Entrekin</h1>
+  <section class="about-shell">
+    <section class="about-intro">
+      <div class="intro-main">
+        <p class="intro-kicker">About</p>
+        <h1>Wyatt Entrekin</h1>
+        <p class="muted">
+          Data engineer with an industrial engineering foundation, focused on building reliable analytics systems from
+          ingest through modeled outputs and production delivery.
+        </p>
+        <div class="intro-actions">
+          <a class="intro-btn primary" href="/projects">View Projects</a>
+          <a class="intro-btn" href="https://www.linkedin.com/in/wmentrekin/" target="_blank" rel="noreferrer">LinkedIn</a>
+        </div>
+      </div>
 
-    <div class="link-card-row single">
-      <a class="link-card tone-linkedin" href="https://www.linkedin.com/in/wmentrekin/" target="_blank" rel="noreferrer">
-        LinkedIn
-      </a>
-    </div>
-  </section>
+      <aside class="intro-panel">
+        <h2>Snapshot</h2>
+        <p><strong>Location:</strong> Atlanta, GA</p>
+        <p><strong>Education:</strong> Georgia Tech, Industrial & Systems Engineering</p>
+        <p><strong>Current Role:</strong> Consultant, Data & Analytics</p>
+        <p><strong>Focus Areas:</strong> Data Engineering, Optimization, ML Systems</p>
+      </aside>
+    </section>
 
-  <section class="about-sections">
-    {
-      aboutSections.map((section) => (
-        <article class={`about-row ${section.reverse ? "reverse" : ""}`} id={section.id}>
-          <figure class="about-photo">
-            <img src={section.image} alt={section.alt} loading="lazy" />
-          </figure>
-          <div class="about-copy">
-            <h2>{section.title}</h2>
-            {
-              section.text.map((paragraph) => (
-                <p class="muted">{paragraph}</p>
-              ))
-            }
-          </div>
-        </article>
-      ))
-    }
+    <nav class="story-nav" aria-label="About sections">
+      {
+        aboutSections.map((section) => (
+          <a href={`#${section.id}`}>{section.title}</a>
+        ))
+      }
+    </nav>
+
+    <section class="about-story">
+      {
+        aboutSections.map((section, index) => (
+          <article class={`story-row ${section.reverse ? "reverse" : ""}`} id={section.id}>
+            <figure class="story-media">
+              <img src={section.image} alt={section.alt} loading="lazy" />
+            </figure>
+            <div class="story-copy">
+              <p class="story-index">{String(index + 1).padStart(2, "0")}</p>
+              <h2>{section.title}</h2>
+              {
+                section.text.map((paragraph) => (
+                  <p class="muted">{paragraph}</p>
+                ))
+              }
+            </div>
+          </article>
+        ))
+      }
+    </section>
   </section>
 
   <style>
-    .about-sections {
+    .about-shell {
       display: grid;
-      gap: 1.35rem;
-      margin-top: 1.25rem;
+      gap: 1.1rem;
     }
 
-    .about-row {
+    .about-intro {
       display: grid;
-      grid-template-columns: minmax(230px, 340px) minmax(0, 1fr);
-      gap: 1.25rem;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 1rem;
       align-items: stretch;
     }
 
-    .about-row.reverse {
-      grid-template-columns: minmax(0, 1fr) minmax(230px, 340px);
+    .intro-main,
+    .intro-panel {
+      background: linear-gradient(160deg, rgba(255, 251, 248, 0.92), rgba(251, 240, 236, 0.9));
+      border: 1px solid rgba(176, 132, 127, 0.3);
+      border-radius: 14px;
+      box-shadow:
+        0 14px 32px rgba(82, 48, 45, 0.11),
+        0 1px 0 rgba(255, 255, 255, 0.84) inset;
+      padding: 1.1rem;
     }
 
-    .about-row.reverse .about-photo {
+    .intro-kicker {
+      margin: 0;
+      color: var(--accent);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .intro-main h1 {
+      margin: 0.45rem 0 0.68rem;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+
+    .intro-main p {
+      margin: 0;
+      line-height: 1.75;
+      max-width: 58ch;
+    }
+
+    .intro-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
+    .intro-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0.5rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid rgba(160, 101, 97, 0.42);
+      text-decoration: none;
+      font-weight: 700;
+      color: var(--text);
+      background: rgba(245, 224, 219, 0.66);
+      transition: transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .intro-btn.primary {
+      background: linear-gradient(145deg, #9f4b47, #7e3633);
+      color: #fff7f5;
+      border-color: rgba(125, 55, 52, 0.5);
+    }
+
+    .intro-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(92, 54, 52, 0.17);
+    }
+
+    .intro-panel h2 {
+      margin: 0;
+      font-size: 1.08rem;
+    }
+
+    .intro-panel p {
+      margin: 0.72rem 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+      padding-top: 0.72rem;
+      border-top: 1px solid rgba(176, 132, 127, 0.24);
+    }
+
+    .story-nav {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.62rem;
+    }
+
+    .story-nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      text-decoration: none;
+      color: #5f4644;
+      background: rgba(244, 224, 218, 0.6);
+      border: 1px solid rgba(166, 115, 110, 0.35);
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      transition: transform 130ms ease, border-color 130ms ease, box-shadow 130ms ease;
+    }
+
+    .story-nav a:hover {
+      transform: translateY(-1px);
+      border-color: rgba(142, 61, 58, 0.48);
+      box-shadow: 0 8px 18px rgba(92, 54, 52, 0.14);
+    }
+
+    .about-story {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .story-row {
+      display: grid;
+      grid-template-columns: minmax(240px, 330px) minmax(0, 1fr);
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .story-row.reverse {
+      grid-template-columns: minmax(0, 1fr) minmax(240px, 330px);
+    }
+
+    .story-row.reverse .story-media {
       order: 2;
     }
 
-    .about-row.reverse .about-copy {
+    .story-row.reverse .story-copy {
       order: 1;
     }
 
-    .about-photo {
+    .story-media {
       margin: 0;
-      border: 1px solid rgba(133, 168, 221, 0.3);
+      border: 1px solid rgba(176, 132, 127, 0.32);
       box-shadow:
-        0 14px 34px rgba(0, 0, 0, 0.28),
-        0 1px 0 rgba(255, 255, 255, 0.05) inset;
-      background: #081427;
+        0 14px 28px rgba(82, 48, 45, 0.13),
+        0 1px 0 rgba(255, 255, 255, 0.78) inset;
+      border-radius: 14px;
+      background: #f7ece8;
       overflow: hidden;
       min-height: 220px;
       display: grid;
       place-items: center;
     }
 
-    .about-photo img {
+    .story-media img {
       display: block;
       width: 100%;
       height: 100%;
@@ -131,39 +274,59 @@ const aboutSections = [
       object-position: center;
     }
 
-    .about-copy {
-      border: 1px solid rgba(133, 168, 221, 0.22);
-      background: linear-gradient(160deg, rgba(14, 25, 44, 0.82), rgba(9, 18, 33, 0.9));
-      padding: 1rem 1.15rem;
+    .story-copy {
+      border: 1px solid rgba(176, 132, 127, 0.26);
+      background: linear-gradient(160deg, rgba(255, 251, 248, 0.92), rgba(250, 239, 235, 0.88));
+      box-shadow:
+        0 14px 30px rgba(82, 48, 45, 0.11),
+        0 1px 0 rgba(255, 255, 255, 0.82) inset;
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
     }
 
-    .about-copy h2 {
-      margin-top: 0;
-      margin-bottom: 0.7rem;
+    .story-index {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .story-copy h2 {
+      margin: 0.36rem 0 0.64rem;
       font-size: 1.35rem;
+      line-height: 1.24;
     }
 
-    .about-copy p {
+    .story-copy p {
       margin: 0 0 0.9rem;
       line-height: 1.8;
     }
 
-    .about-copy p:last-child {
+    .story-copy p:last-child {
       margin-bottom: 0;
     }
 
+    @media (max-width: 960px) {
+      .about-intro,
+      .story-nav {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 920px) {
-      .about-row,
-      .about-row.reverse {
+      .story-row,
+      .story-row.reverse {
         grid-template-columns: 1fr;
       }
 
-      .about-row.reverse .about-photo,
-      .about-row.reverse .about-copy {
+      .story-row.reverse .story-media,
+      .story-row.reverse .story-copy {
         order: initial;
       }
 
-      .about-photo {
+      .story-media {
         min-height: 200px;
       }
     }
