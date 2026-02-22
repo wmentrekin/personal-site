@@ -3,13 +3,205 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="2020 Election Model | Wyatt Entrekin">
-  <section class="hero">
-    <h1>2020 Election Model</h1>
+  <section class="project-shell">
+    <section class="project-hero">
+      <div class="hero-copy">
+        <p class="hero-kicker">Archive Project</p>
+        <h1>2020 Election Model</h1>
+        <p class="hero-text">
+          An earlier forecasting project built around polling data, state-level assumptions, and scenario-based
+          evaluation.
+        </p>
+        <div class="hero-tags">
+          <span>Forecasting</span>
+          <span>Statistics</span>
+          <span>Python</span>
+        </div>
+      </div>
+      <aside class="hero-aside">
+        <h2>Project status</h2>
+        <p>This project is maintained as an archive and reference point for earlier model development work.</p>
+        <p>Code remains publicly available for transparency and reproducibility review.</p>
+      </aside>
+    </section>
 
     <div class="link-card-row single">
       <a class="link-card tone-repo" href="https://github.com/wmentrekin/2020election" target="_blank" rel="noreferrer">
-        View Repo
+        View Repository
       </a>
     </div>
+
+    <section class="info-grid">
+      <article class="info-card">
+        <h2>Scope</h2>
+        <p class="muted">
+          The model focused on translating polling signals into election outcomes and presenting interpretable scenario
+          outputs.
+        </p>
+      </article>
+      <article class="info-card">
+        <h2>What it emphasized</h2>
+        <ul>
+          <li>State-level input aggregation</li>
+          <li>Probabilistic interpretation of close races</li>
+          <li>Transparent assumptions and repeatable runs</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="info-card">
+      <h2>Retrospective</h2>
+      <p class="muted">
+        This project helped establish foundations for later analytics work: clearer data contracts, stronger automation
+        habits, and better separation between model generation and delivery.
+      </p>
+    </section>
+
+    <section class="info-grid">
+      <article class="info-card">
+        <h2>Technical stack</h2>
+        <ul>
+          <li>Python-based data and modeling workflow</li>
+          <li>Polling and election input preprocessing</li>
+          <li>Result summarization for publication</li>
+        </ul>
+      </article>
+      <article class="info-card">
+        <h2>Portfolio context</h2>
+        <p class="muted">
+          This archive complements your active sports analytics work and shows how your modeling approach evolved over
+          time.
+        </p>
+        <a class="method-link" href="/projects">Back to all projects</a>
+      </article>
+    </section>
   </section>
+
+  <style>
+    .project-shell {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .project-hero {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 1rem;
+    }
+
+    .hero-copy,
+    .hero-aside,
+    .info-card {
+      background: linear-gradient(160deg, rgba(255, 251, 248, 0.92), rgba(250, 239, 235, 0.88));
+      border: 1px solid rgba(176, 132, 127, 0.3);
+      border-radius: 14px;
+      padding: 1.05rem;
+      box-shadow:
+        0 14px 30px rgba(82, 48, 45, 0.12),
+        0 1px 0 rgba(255, 255, 255, 0.85) inset;
+    }
+
+    .hero-kicker {
+      margin: 0;
+      color: var(--accent);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-size: 0.74rem;
+      font-weight: 750;
+    }
+
+    .hero-copy h1 {
+      margin: 0.45rem 0 0.55rem;
+      font-size: clamp(1.8rem, 2.9vw, 2.4rem);
+      line-height: 1.14;
+    }
+
+    .hero-text {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.72;
+      max-width: 62ch;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.48rem;
+      margin-top: 0.9rem;
+    }
+
+    .hero-tags span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      border-radius: 999px;
+      padding: 0.25rem 0.62rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #5d3f3d;
+      background: rgba(241, 216, 215, 0.86);
+      border: 1px solid rgba(164, 110, 105, 0.34);
+    }
+
+    .hero-aside h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .hero-aside p {
+      margin: 0.72rem 0 0;
+      color: var(--muted);
+      line-height: 1.68;
+      padding-top: 0.72rem;
+      border-top: 1px solid rgba(176, 132, 127, 0.26);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .info-card h2 {
+      margin: 0 0 0.6rem;
+      font-size: 1.22rem;
+    }
+
+    .info-card p {
+      margin: 0;
+    }
+
+    .info-card ul {
+      margin: 0;
+      padding-left: 1.25rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .info-card li + li {
+      margin-top: 0.35rem;
+    }
+
+    .method-link {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 0.78rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .method-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 940px) {
+      .project-hero,
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </BaseLayout>
