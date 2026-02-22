@@ -3,9 +3,14 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="CFB Rankings Methodology | Wyatt Entrekin">
-  <section class="hero">
+  <section class="method-hero">
+    <p class="method-kicker">Technical Documentation</p>
     <h1>CFB Rankings Methodology</h1>
-    <div class="link-card-row">
+    <p class="method-intro">
+      Full specification of the optimization model, objective terms, parameters, constraints, and implementation
+      notes.
+    </p>
+    <div class="link-card-row link-row-soft">
       <a class="link-card tone-projects" href="/projects/cfb-rankings">Back to Rankings</a>
       <a class="link-card tone-repo" href="https://github.com/wmentrekin/cfb-rankings" target="_blank" rel="noreferrer">
         GitHub Repository
@@ -13,244 +18,377 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     </div>
   </section>
 
-  <div class="methodology-page">
-  <section class="methodology-section" style="margin-top: 1rem;">
-    <h2>Methodology</h2>
-    <p class="muted">
-      The inspiration for this ranking model came from a personal desire to objectively rank college football teams
-      solely based on game outcomes.
-    </p>
-    <p class="muted">
-      Year after year, I find that college football discourse is filled with subjective opinions about which teams are
-      better or worse, often influenced by biases, media narratives, and historical prestige. I am tired of hearing
-      debates about hypothetical matchups when we are lucky enough as fans to witness so many real games each season.
-    </p>
-    <p class="muted">
-      Thus, I was inspired to spend time developing a model that ranked teams solely based on game outcomes, without
-      the influence of subjective factors such as recruiting rankings, preseason expectations, or traditional power
-      ratings. I chose to implement this using a constraint optimization approach, specifically a convex quadratic
-      programming model, because I had not seen many existing models that took this approach in a transparent and
-      mathematically rigorous way. At the core, this model is very simple, it tries to assign ratings to teams such
-      that:
-    </p>
-    <ul class="muted">
-      <li>
-        Teams that win games have higher ratings than the teams they beat relative to a factor of the margin of
-        victory, adjusted for home/away/neutral site.
-      </li>
-      <li>Teams that lose to FCS opponents are penalized severely.</li>
-      <li>
-        In order to avoid arbitrary early-season rankings, teams' ratings are tied more closely to their prior-season
-        performance early in the season, until enough games are played to connect enough teams through common
-        opponents. Imagine a network graph where teams are nodes and games are edges; as more edges are added, the
-        relative positions of nodes become clearer.
-      </li>
-      <li>It minimizes total ranking inconsistency subject to logical constraints about game results.</li>
-    </ul>
-    <p class="muted">
-      Additionally, this model has been a great exercise for me to apply my optimization and mathematical modeling
-      knowledge from my undergraduate background in industrial engineering and operations research, my cloud computing
-      and automation experience from working professionally as a data engineer, and my passion for college football.
-    </p>
-    <p class="muted">
-      Unlike some computer rankings, my code and methodology are fully open and transparent for anyone to review,
-      critique, and improve upon, so please feel free to reach out to me if you have any suggestions, thoughts, or
-      questions. I plan on continuing to refine and improve this model over time and adding more features to this app
-      as well. I hope you find this model as interesting and useful as I have building it.
-    </p>
-  </section>
+  <section class="method-doc">
+    <nav class="method-toc" aria-label="Methodology sections">
+      <p class="toc-title">On this page</p>
+      <a href="#overview">Methodology</a>
+      <a href="#decision-variables">Decision Variables & Parameters</a>
+      <a href="#objective-function">Objective Function</a>
+      <a href="#constraints">Constraints</a>
+      <a href="#implementation-notes">Implementation Notes</a>
+    </nav>
 
-  <section class="methodology-section" style="margin-top: 1rem;">
-    <h2>Decision Variables & Parameters</h2>
-
-    <h3>Sets</h3>
-    <ul class="muted">
-      <li>{String.raw`\(\mathcal{T}\): set of all FBS teams`}</li>
-      <li>{String.raw`\(\mathcal{G}\): set of all games \((i,j,k)\) where team \(i \in \mathcal{T}\) played team \(j \in \mathcal{T}\) in their \(k\)th matchup`}</li>
-      <li>{String.raw`\(\mathcal{F}\): set of FBS teams that lost to FCS opponents`}</li>
-      <li>{String.raw`\(\mathcal{M}\): set of margins of victory \(\forall (i,j,k) \in \mathcal{G}\)`}</li>
-    </ul>
-
-    <h3>Variables</h3>
-    <ul class="muted">
-      <li>{String.raw`\(r_i \in \mathbb{R}_+\): rating for team \(i\), \(\forall i \in \mathcal{T}\)`}</li>
-      <li>{String.raw`\(r_{\text{fcs}} \in \mathbb{R}_+\): rating for the dummy FCS team`}</li>
-    </ul>
-
-    <h3>Parameters</h3>
-    <ul class="muted">
-      <li>{String.raw`\(\lambda(w)\): Prior regularization weight where`}</li>
-    </ul>
-    <p class="muted">
-      {String.raw`\[
-      \lambda(w) = \begin{cases}
-      \frac{7-w}{700} & \text{if } w < 7 \\
-      0 & \text{if } w \geq 7
-      \end{cases}
-      \]`}
-    </p>
-    <p class="muted">where \(w\) is the week number.</p>
-    <ul class="muted">
-      <li>{String.raw`\(\gamma_{\text{margin}} = 0.05\): Small margin penalty coefficient`}</li>
-      <li>{String.raw`\(\gamma_{\text{loss}} = 0.5\): FBS Loss penalty coefficient`}</li>
-      <li>{String.raw`\(\gamma_{\text{fcs}} = 5.0\): FCS Loss penalty coefficient`}</li>
-      <li>{String.raw`\(r_{\text{min}} = 0.01\): Lower bound for FBS team rating`}</li>
-      <li>{String.raw`\(r_{\text{max}} = 100\): Upper bound for FBS team rating`}</li>
-      <li>{String.raw`\(r_{\text{fcs-min}} = 0.01\): Lower bound for FCS team rating`}</li>
-      <li>{String.raw`\(r_{\text{fcs-max}} = 15\): Upper bound for FCS team rating`}</li>
-      <li>
-        {String.raw`\(\text{prior}_i\): prior rating for team \(i\) from previous season's final rankings (default \(1\) for new FBS teams), model for prior is same as this model, but run on prior season's data`}
-      </li>
-    </ul>
-
-    <h3>Margin Scaling Parameters</h3>
-    <ul class="muted">
-      <li>{String.raw`\(\alpha\): Scaling factor for home/away/neutral site adjustments where`}</li>
-    </ul>
-    <p class="muted">
-      {String.raw`\[
-      \alpha = \begin{cases}
-      1.0 & \text{neutral site} \\
-      0.8 & \text{home team win} \\
-      1.2 & \text{away team win}
-      \end{cases}
-      \]`}
-    </p>
-    <ul class="muted">
-      <li>{String.raw`\(g_{\text{median}} = 7.0\): Rating points that the median margin should represent`}</li>
-      <li>{String.raw`\(g_{\text{max}} = 20.0\): Maximum rating gap any margin can demand`}</li>
-      <li>{String.raw`\(h_{\text{margin}} = \frac{g_{\text{median}}}{\sqrt{\text{median}(M)}}\): Scaling factor for margins`}</li>
-      <li>{String.raw`\(m_{i,j,k} = \alpha_{i,j,k} \cdot \min(h_{\text{margin}} \cdot \sqrt{\text{M}_{i,j,k}}, g_{\text{max}})\): Adjusted margin of victory for game \((i,j,k)\)`}</li>
-    </ul>
-  </section>
-
-  <section class="methodology-section" style="margin-top: 1rem;">
-    <h2>Objective Function</h2>
-    <p class="muted">
-      {String.raw`\[
-      \begin{aligned}
-      \text{minimize} \quad & \sum_{(i,j,k) \in \mathcal{G}} \gamma_{\text{margin}} \cdot [\max(0, r_{\text{loser}} + m_{i,j,k} - r_{\text{winner}})]^2 & [\text{Margin Penalty}] \\
-      & + \sum_{(i,j,k) \in \mathcal{F}} \gamma_{\text{fcs}} \cdot [\max(0, r_{\text{i}} + m_{i,j,k} - r_{\text{fcs}})]^2 & [\text{FCS Margin Penalty}] \\
-      & + \sum_{i \in \mathcal{T}} \gamma_{\text{loss}} \cdot (r_i \cdot \frac{\text{losses}_i}{\text{wins}_i + \text{losses}_i})^2 & [\text{Loss Rate Penalty}] \\
-      & + \sum_{i \in \mathcal{T}} \lambda \cdot (r_i - \text{prior}_i)^2 & [\text{Prior Regularization}]
-      \end{aligned}
-      \]`}
-    </p>
-    <ul class="muted">
-      <li>
-        Margin penalties give a quadratic penalty for any game where the rating difference does not sufficiently
-        explain the margin of victory. The margin is:
-        <ul class="subpoints">
-          <li>Scaled by the square root to reduce the impact of extreme margins</li>
-          <li>{String.raw`Multiplied by \(h_{\text{margin}}\) to normalize around the median margin`}</li>
-          <li>{String.raw`Capped at \(g_{\text{max}}\) to prevent blowouts from dominating`}</li>
-          <li>{String.raw`Finally adjusted by \(\alpha_{i,j,k}\) for home/away/neutral site effects`}</li>
+    <article class="method-content">
+      <section id="overview" class="method-section">
+        <h2>Methodology</h2>
+        <p>
+          The inspiration for this ranking model came from a personal desire to objectively rank college football teams
+          solely based on game outcomes.
+        </p>
+        <p>
+          Year after year, I find that college football discourse is filled with subjective opinions about which teams
+          are better or worse, often influenced by biases, media narratives, and historical prestige. I am tired of
+          hearing debates about hypothetical matchups when we are lucky enough as fans to witness so many real games
+          each season.
+        </p>
+        <p>
+          Thus, I was inspired to spend time developing a model that ranked teams solely based on game outcomes,
+          without the influence of subjective factors such as recruiting rankings, preseason expectations, or
+          traditional power ratings. I chose to implement this using a constraint optimization approach, specifically a
+          convex quadratic programming model, because I had not seen many existing models that took this approach in a
+          transparent and mathematically rigorous way. At the core, this model is very simple, it tries to assign
+          ratings to teams such that:
+        </p>
+        <ul>
+          <li>
+            Teams that win games have higher ratings than the teams they beat relative to a factor of the margin of
+            victory, adjusted for home/away/neutral site.
+          </li>
+          <li>Teams that lose to FCS opponents are penalized severely.</li>
+          <li>
+            In order to avoid arbitrary early-season rankings, teams' ratings are tied more closely to their
+            prior-season performance early in the season, until enough games are played to connect enough teams through
+            common opponents. Imagine a network graph where teams are nodes and games are edges; as more edges are
+            added, the relative positions of nodes become clearer.
+          </li>
+          <li>It minimizes total ranking inconsistency subject to logical constraints about game results.</li>
         </ul>
-      </li>
-      <li>Loss rate penalties discourage teams with poor win-loss records from having high ratings.</li>
-      <li>Prior regularization ties team ratings to their prior season's ratings early in the season when data is sparse.</li>
-    </ul>
-  </section>
+        <p>
+          Additionally, this model has been a great exercise for me to apply my optimization and mathematical modeling
+          knowledge from my undergraduate background in industrial engineering and operations research, my cloud
+          computing and automation experience from working professionally as a data engineer, and my passion for
+          college football.
+        </p>
+        <p>
+          Unlike some computer rankings, my code and methodology are fully open and transparent for anyone to review,
+          critique, and improve upon, so please feel free to reach out to me if you have any suggestions, thoughts, or
+          questions. I plan on continuing to refine and improve this model over time and adding more features to this
+          app as well. I hope you find this model as interesting and useful as I have building it.
+        </p>
+      </section>
 
-  <section class="methodology-section" style="margin-top: 1rem;">
-    <h2>Constraints</h2>
-    <p class="muted"><strong>FBS rating bounds:</strong></p>
-    <p class="muted">
-      {String.raw`\[
-      r_{\text{min}} \leq r_i \leq r_{\text{max}} \quad \forall i \in \mathcal{T}
-      \]`}
-    </p>
+      <section id="decision-variables" class="method-section">
+        <h2>Decision Variables & Parameters</h2>
 
-    <p class="muted"><strong>FCS rating bounds:</strong></p>
-    <p class="muted">
-      {String.raw`\[
-      r_{\text{fcs-min}} \leq r_{\text{fcs}} \leq r_{\text{fcs-max}}
-      \]`}
-    </p>
-  </section>
+        <h3>Sets</h3>
+        <ul>
+          <li>{String.raw`\(\mathcal{T}\): set of all FBS teams`}</li>
+          <li>{String.raw`\(\mathcal{G}\): set of all games \((i,j,k)\) where team \(i \in \mathcal{T}\) played team \(j \in \mathcal{T}\) in their \(k\)th matchup`}</li>
+          <li>{String.raw`\(\mathcal{F}\): set of FBS teams that lost to FCS opponents`}</li>
+          <li>{String.raw`\(\mathcal{M}\): set of margins of victory \(\forall (i,j,k) \in \mathcal{G}\)`}</li>
+        </ul>
 
-  <section class="methodology-section" style="margin-top: 1rem;">
-    <h2>Implementation Notes</h2>
-    <ul class="muted">
-      <li>{String.raw`Prior ratings are carried over from the previous season's final model output. New FBS teams receive a default prior rating of \(15\).`}</li>
-      <li>{String.raw`The \(\lambda\) parameter enforces prior-season influence, linearly dropping to \(0\) from Week \(1\) to Week \(7\), eventually to rely entirely on current season results.`}</li>
-      <li>{String.raw`FCS losses are handled via a dummy FCS team whose rating is constrained between \(r_{\text{fcs-min}}\) and \(r_{\text{fcs-max}}\). This allows the model to penalize FBS teams losing to FCS opponents without needing to explicitly rate every FCS team.`}</li>
-      <li>Margin penalties encourage appropriate rating separation based on game margins.</li>
-      <li>Loss rate penalties discourage high ratings for teams with poor win-loss records.</li>
-      <li>Prior regularization prevents extreme ratings early in the season when data is sparse.</li>
-      <li>{String.raw`Home/away adjustments use \(\alpha\) multipliers to account for game location advantage.`}</li>
-      <li>
-        The optimization is solved using <a href="https://www.cvxpy.org/" target="_blank" rel="noreferrer">CVXPY</a>
-        with default convex solvers, returning team ratings sorted in descending order.
-      </li>
-    </ul>
+        <h3>Variables</h3>
+        <ul>
+          <li>{String.raw`\(r_i \in \mathbb{R}_+\): rating for team \(i\), \(\forall i \in \mathcal{T}\)`}</li>
+          <li>{String.raw`\(r_{\text{fcs}} \in \mathbb{R}_+\): rating for the dummy FCS team`}</li>
+        </ul>
+
+        <h3>Parameters</h3>
+        <ul>
+          <li>{String.raw`\(\lambda(w)\): Prior regularization weight where`}</li>
+        </ul>
+        <div class="equation-block">
+          {String.raw`\[
+          \lambda(w) = \begin{cases}
+          \frac{7-w}{700} & \text{if } w < 7 \\
+          0 & \text{if } w \geq 7
+          \end{cases}
+          \]`}
+        </div>
+        <p>where \(w\) is the week number.</p>
+        <ul>
+          <li>{String.raw`\(\gamma_{\text{margin}} = 0.05\): Small margin penalty coefficient`}</li>
+          <li>{String.raw`\(\gamma_{\text{loss}} = 0.5\): FBS Loss penalty coefficient`}</li>
+          <li>{String.raw`\(\gamma_{\text{fcs}} = 5.0\): FCS Loss penalty coefficient`}</li>
+          <li>{String.raw`\(r_{\text{min}} = 0.01\): Lower bound for FBS team rating`}</li>
+          <li>{String.raw`\(r_{\text{max}} = 100\): Upper bound for FBS team rating`}</li>
+          <li>{String.raw`\(r_{\text{fcs-min}} = 0.01\): Lower bound for FCS team rating`}</li>
+          <li>{String.raw`\(r_{\text{fcs-max}} = 15\): Upper bound for FCS team rating`}</li>
+          <li>
+            {String.raw`\(\text{prior}_i\): prior rating for team \(i\) from previous season's final rankings (default \(1\) for new FBS teams), model for prior is same as this model, but run on prior season's data`}
+          </li>
+        </ul>
+
+        <h3>Margin Scaling Parameters</h3>
+        <ul>
+          <li>{String.raw`\(\alpha\): Scaling factor for home/away/neutral site adjustments where`}</li>
+        </ul>
+        <div class="equation-block">
+          {String.raw`\[
+          \alpha = \begin{cases}
+          1.0 & \text{neutral site} \\
+          0.8 & \text{home team win} \\
+          1.2 & \text{away team win}
+          \end{cases}
+          \]`}
+        </div>
+        <ul>
+          <li>{String.raw`\(g_{\text{median}} = 7.0\): Rating points that the median margin should represent`}</li>
+          <li>{String.raw`\(g_{\text{max}} = 20.0\): Maximum rating gap any margin can demand`}</li>
+          <li>{String.raw`\(h_{\text{margin}} = \frac{g_{\text{median}}}{\sqrt{\text{median}(M)}}\): Scaling factor for margins`}</li>
+          <li>{String.raw`\(m_{i,j,k} = \alpha_{i,j,k} \cdot \min(h_{\text{margin}} \cdot \sqrt{\text{M}_{i,j,k}}, g_{\text{max}})\): Adjusted margin of victory for game \((i,j,k)\)`}</li>
+        </ul>
+      </section>
+
+      <section id="objective-function" class="method-section">
+        <h2>Objective Function</h2>
+        <div class="equation-block">
+          {String.raw`\[
+          \begin{aligned}
+          \text{minimize} \quad & \sum_{(i,j,k) \in \mathcal{G}} \gamma_{\text{margin}} \cdot [\max(0, r_{\text{loser}} + m_{i,j,k} - r_{\text{winner}})]^2 & [\text{Margin Penalty}] \\
+          & + \sum_{(i,j,k) \in \mathcal{F}} \gamma_{\text{fcs}} \cdot [\max(0, r_{\text{i}} + m_{i,j,k} - r_{\text{fcs}})]^2 & [\text{FCS Margin Penalty}] \\
+          & + \sum_{i \in \mathcal{T}} \gamma_{\text{loss}} \cdot (r_i \cdot \frac{\text{losses}_i}{\text{wins}_i + \text{losses}_i})^2 & [\text{Loss Rate Penalty}] \\
+          & + \sum_{i \in \mathcal{T}} \lambda \cdot (r_i - \text{prior}_i)^2 & [\text{Prior Regularization}]
+          \end{aligned}
+          \]`}
+        </div>
+        <ul>
+          <li>
+            Margin penalties give a quadratic penalty for any game where the rating difference does not sufficiently
+            explain the margin of victory. The margin is:
+            <ul class="subpoints">
+              <li>Scaled by the square root to reduce the impact of extreme margins</li>
+              <li>{String.raw`Multiplied by \(h_{\text{margin}}\) to normalize around the median margin`}</li>
+              <li>{String.raw`Capped at \(g_{\text{max}}\) to prevent blowouts from dominating`}</li>
+              <li>{String.raw`Finally adjusted by \(\alpha_{i,j,k}\) for home/away/neutral site effects`}</li>
+            </ul>
+          </li>
+          <li>Loss rate penalties discourage teams with poor win-loss records from having high ratings.</li>
+          <li>
+            Prior regularization ties team ratings to their prior season's ratings early in the season when data is
+            sparse.
+          </li>
+        </ul>
+      </section>
+
+      <section id="constraints" class="method-section">
+        <h2>Constraints</h2>
+        <p><strong>FBS rating bounds:</strong></p>
+        <div class="equation-block">
+          {String.raw`\[
+          r_{\text{min}} \leq r_i \leq r_{\text{max}} \quad \forall i \in \mathcal{T}
+          \]`}
+        </div>
+
+        <p><strong>FCS rating bounds:</strong></p>
+        <div class="equation-block">
+          {String.raw`\[
+          r_{\text{fcs-min}} \leq r_{\text{fcs}} \leq r_{\text{fcs-max}}
+          \]`}
+        </div>
+      </section>
+
+      <section id="implementation-notes" class="method-section">
+        <h2>Implementation Notes</h2>
+        <ul>
+          <li>{String.raw`Prior ratings are carried over from the previous season's final model output. New FBS teams receive a default prior rating of \(15\).`}</li>
+          <li>{String.raw`The \(\lambda\) parameter enforces prior-season influence, linearly dropping to \(0\) from Week \(1\) to Week \(7\), eventually to rely entirely on current season results.`}</li>
+          <li>{String.raw`FCS losses are handled via a dummy FCS team whose rating is constrained between \(r_{\text{fcs-min}}\) and \(r_{\text{fcs-max}}\). This allows the model to penalize FBS teams losing to FCS opponents without needing to explicitly rate every FCS team.`}</li>
+          <li>Margin penalties encourage appropriate rating separation based on game margins.</li>
+          <li>Loss rate penalties discourage high ratings for teams with poor win-loss records.</li>
+          <li>Prior regularization prevents extreme ratings early in the season when data is sparse.</li>
+          <li>{String.raw`Home/away adjustments use \(\alpha\) multipliers to account for game location advantage.`}</li>
+          <li>
+            The optimization is solved using <a href="https://www.cvxpy.org/" target="_blank" rel="noreferrer">CVXPY</a>
+            with default convex solvers, returning team ratings sorted in descending order.
+          </li>
+        </ul>
+      </section>
+    </article>
   </section>
-  </div>
 
   <style>
-    .methodology-page .methodology-section {
-      margin-top: 1rem;
+    .method-hero {
+      margin-bottom: 1rem;
     }
 
-    .methodology-page h2 {
-      font-size: 2.05rem;
-      font-weight: 900;
-      letter-spacing: 0.01em;
+    .method-kicker {
+      margin: 0;
+      color: var(--accent);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-size: 0.74rem;
+      font-weight: 750;
     }
 
-    .methodology-page h3 {
-      margin-top: 1.4rem;
-      margin-bottom: 0.55rem;
-      font-size: 1.38rem;
-      font-weight: 820;
-      color: #f2f7ff;
+    .method-hero h1 {
+      margin: 0.45rem 0 0.55rem;
+      font-size: clamp(1.9rem, 3vw, 2.5rem);
+      line-height: 1.14;
     }
 
-    .methodology-page .muted {
-      color: #f4f7ff;
-      font-size: 1.14rem;
-      font-weight: 620;
-      line-height: 1.92;
-      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.42);
+    .method-intro {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.72;
+      max-width: 68ch;
     }
 
-    .methodology-page p.muted,
-    .methodology-page ul.muted {
-      background: linear-gradient(180deg, rgba(5, 13, 28, 0.58), rgba(6, 15, 30, 0.5));
-      padding: 0.72rem 0.92rem;
-      margin: 0.7rem 0;
-      border-left: 2px solid rgba(142, 184, 255, 0.42);
+    .link-row-soft .link-card {
+      border-radius: 12px;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      font-size: 0.92rem;
+      min-height: 56px;
     }
 
-    .methodology-page ul.muted {
-      padding-left: 2.15rem;
-      list-style-position: outside;
+    .method-doc {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 1.3rem;
+      align-items: start;
     }
 
-    .methodology-page li {
-      margin-bottom: 0.5rem;
+    .method-toc {
+      position: sticky;
+      top: 5.8rem;
+      align-self: start;
+      background: linear-gradient(160deg, rgba(255, 251, 248, 0.9), rgba(251, 241, 236, 0.86));
+      border: 1px solid rgba(176, 132, 127, 0.28);
+      border-radius: 12px;
+      padding: 0.85rem;
+      box-shadow:
+        0 10px 22px rgba(82, 48, 45, 0.1),
+        0 1px 0 rgba(255, 255, 255, 0.8) inset;
     }
 
-    .methodology-page ul.subpoints {
-      margin-top: 0.5rem;
-      margin-bottom: 0.1rem;
-      padding-left: 1.5rem;
+    .toc-title {
+      margin: 0 0 0.45rem;
+      color: #6f4b49;
+      font-size: 0.74rem;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .method-toc a {
+      display: block;
+      margin-top: 0.2rem;
+      padding: 0.34rem 0.42rem;
+      border-radius: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 650;
+      line-height: 1.3;
+    }
+
+    .method-toc a:hover {
+      background: rgba(239, 216, 215, 0.65);
+      color: #512f2e;
+    }
+
+    .method-content {
+      min-width: 0;
+      max-width: 82ch;
+    }
+
+    .method-section + .method-section {
+      margin-top: 2.2rem;
+      padding-top: 1.3rem;
+      border-top: 1px solid rgba(176, 132, 127, 0.3);
+    }
+
+    .method-section h2 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2vw, 1.8rem);
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      scroll-margin-top: 6.8rem;
+    }
+
+    .method-section h3 {
+      margin: 1.1rem 0 0.45rem;
+      font-size: 1.08rem;
+      color: #5f3e3d;
+      scroll-margin-top: 6.8rem;
+    }
+
+    .method-content p,
+    .method-content ul {
+      color: #4d3938;
+      font-size: 1.01rem;
+      line-height: 1.82;
+    }
+
+    .method-content p {
+      margin: 0.7rem 0 0;
+    }
+
+    .method-content ul {
+      margin: 0.45rem 0 0.2rem;
+      padding-left: 1.28rem;
+    }
+
+    .method-content li {
+      margin-bottom: 0.44rem;
+    }
+
+    .method-content ul.subpoints {
+      margin-top: 0.48rem;
+      padding-left: 1.15rem;
       list-style-type: disc;
-      background: none;
-      border: 0;
     }
 
-    .methodology-page ul.subpoints li {
-      margin-bottom: 0.38rem;
+    .equation-block {
+      margin: 0.76rem 0 0.95rem;
+      padding: 0.72rem 0.82rem;
+      background: rgba(255, 248, 244, 0.9);
+      border-left: 3px solid rgba(142, 61, 58, 0.45);
+      border-radius: 8px;
+      overflow-x: auto;
     }
 
-    .methodology-page a {
-      color: #a3d2ff;
+    .method-content a {
+      color: var(--accent);
+      text-decoration: none;
       font-weight: 700;
     }
 
-    .methodology-page mjx-container {
-      font-size: 120% !important;
+    .method-content a:hover {
+      text-decoration: underline;
+    }
+
+    .method-content mjx-container {
+      font-size: 112% !important;
+    }
+
+    @media (max-width: 980px) {
+      .method-doc {
+        grid-template-columns: 1fr;
+      }
+
+      .method-toc {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.26rem 0.34rem;
+      }
+
+      .toc-title {
+        grid-column: 1 / -1;
+      }
+
+      .method-content {
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .method-toc {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 

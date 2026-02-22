@@ -25,7 +25,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       </aside>
     </section>
 
-    <div class="link-card-row single">
+    <div class="link-card-row link-row-soft single">
       <a class="link-card tone-repo" href="https://github.com/wmentrekin/2020election" target="_blank" rel="noreferrer">
         View Repository
       </a>
@@ -81,6 +81,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .project-shell {
       display: grid;
       gap: 1rem;
+    }
+
+    .link-row-soft .link-card {
+      border-radius: 12px;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      font-size: 0.92rem;
+      min-height: 56px;
     }
 
     .project-hero {

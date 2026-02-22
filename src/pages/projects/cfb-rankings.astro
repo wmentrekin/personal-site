@@ -25,14 +25,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       </aside>
     </section>
 
-    <div class="link-card-row">
+    <div class="link-card-row link-row-soft">
       <a class="link-card tone-repo" href="https://github.com/wmentrekin/cfb-rankings" target="_blank" rel="noreferrer">
         GitHub Repository
       </a>
       <a class="link-card tone-streamlit" href="https://cfb-rankings-wmentrekin.streamlit.app/" target="_blank" rel="noreferrer">
         Streamlit App
       </a>
-      <a class="link-card tone-projects" href="/projects/cfb-rankings/methodology">
+      <a class="link-card tone-method" href="/projects/cfb-rankings/methodology">
         Methodology
       </a>
     </div>
@@ -217,6 +217,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .project-shell {
       display: grid;
       gap: 1rem;
+    }
+
+    .link-row-soft .link-card {
+      border-radius: 12px;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      font-size: 0.92rem;
+      min-height: 56px;
     }
 
     .project-hero {
