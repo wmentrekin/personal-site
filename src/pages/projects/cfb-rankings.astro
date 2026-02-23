@@ -9,19 +9,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <p class="hero-kicker">Active Project</p>
         <h1>CFB Rankings</h1>
         <p class="hero-text">
-          Optimization-based college football ratings produced weekly with automated ingestion, modeling, and public
-          delivery.
+          a convex quadratic program to optimally rank college football teams based on game outcomes
         </p>
         <div class="hero-tags">
-          <span>Convex QP</span>
-          <span>Pipeline Automation</span>
-          <span>Static Artifact Delivery</span>
+          <span>Optimization</span>
+          <span>Mathematical Programming</span>
+          <span>Sports Analytics</span>
+          <span>Python</span>
+          <span>Supabase</span>
+          <span>GitHub Actions</span>
         </div>
       </div>
       <aside class="hero-aside">
-        <h2>Release cadence</h2>
-        <p>New rankings are generated each Sunday morning during the season and published for web consumption.</p>
-        <p>Offseason reliability is handled through static artifacts so the page remains available if services pause.</p>
+        <h2>Release Cadence</h2>
+        <p>Weekly rankings updated every Sunday morning at 3:15 AM ET during the college football season</p>
+        <p>Offseason enhancements are underway!</p>
       </aside>
     </section>
 
@@ -29,40 +31,39 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       <a class="link-card tone-repo" href="https://github.com/wmentrekin/cfb-rankings" target="_blank" rel="noreferrer">
         GitHub Repository
       </a>
-      <a class="link-card tone-streamlit" href="https://cfb-rankings-wmentrekin.streamlit.app/" target="_blank" rel="noreferrer">
-        Streamlit App
+      <a class="link-card tone-repo" href="https://cfb-rankings-wmentrekin.streamlit.app/" target="_blank" rel="noreferrer">
+        Original Streamlit App
       </a>
-      <a class="link-card tone-method" href="/projects/cfb-rankings/methodology">
+      <a class="link-card tone-repo" href="/projects/cfb-rankings/methodology">
         Methodology
       </a>
     </div>
 
     <section class="info-grid">
       <article class="info-card">
-        <h2>Current architecture</h2>
+        <h2>Current Architecture</h2>
         <ul>
           <li>CollegeFootballData API ingest for teams and games</li>
-          <li>Relational storage of bronze and silver datasets</li>
+          <li>Supabase for relational storage of teams, games, and rankings</li>
           <li>Convex optimization model run for weekly team ratings</li>
-          <li>Gold artifact publication for static website consumption</li>
         </ul>
       </article>
 
       <article class="info-card">
-        <h2>Model summary</h2>
+        <h2>Model Summary</h2>
         <ul>
-          <li>Ratings bounded between 0 and 100</li>
-          <li>Squared-hinge soft margin penalty by winner, loser, and adjusted game margin</li>
+          <li>Team ratings bounded between 0 and 100</li>
+          <li>Soft margin penalty scaled by home/away/neutral and adjusted game margin</li>
           <li>Loss-rate penalty to dampen high ratings for poor records</li>
           <li>Early-season prior regularization that decays by week</li>
-          <li>Extra FCS-loss objective penalty for FBS teams</li>
+          <li>Extra penalty for losses to FCS teams</li>
         </ul>
       </article>
     </section>
 
     <section class="info-card snapshot-card">
       <div class="snapshot-head">
-        <h2>Latest ratings snapshot</h2>
+        <h2>Latest Ratings Snapshot [PLACEHOLDER UNTIL RANKINGS ARTIFACT MIGRATION]</h2>
         <p id="meta" class="snapshot-meta">Loading rankings artifact...</p>
       </div>
       <p id="error" class="error" hidden></p>
@@ -85,21 +86,22 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     <section class="info-grid">
       <article class="info-card">
-        <h2>Roadmap</h2>
+        <h2>EnhancementRoadmap</h2>
         <ul>
-          <li>Integrate ML outcome probabilities and weekly simulation outputs</li>
-          <li>Add bowl-assignment optimization with explicit constraints</li>
-          <li>Expand conference-level composites and scenario tools</li>
+          <li>Migrate rankings storage from Supabase table to R2 artifact storage</li>
+          <li>Implement ML-based outcome probability estimation</li>
+          <li>Modify QP for conference rankings</li>
+          <li>Add Playoff & Bowl Projection using a composite of QP rankings, ML probabilities, and CP assignment</li>
         </ul>
       </article>
 
-      <article class="info-card">
+      <article class="info-card snapshot-card">
         <h2>Methodology details</h2>
         <p class="muted">
-          Full objective terms, parameters, constraints, and implementation notes are documented on the methodology
-          page.
+          full mathematical writeup of objective terms, parameters, constraints, and implementation notes are documented on the methodology
+          page
         </p>
-        <a class="method-link" href="/projects/cfb-rankings/methodology">Read methodology</a>
+        <a class="method-link" href="/projects/cfb-rankings/methodology">Read Methodology</a>
       </article>
     </section>
   </section>
