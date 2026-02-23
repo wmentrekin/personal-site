@@ -1,16 +1,57 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { readFileSync } from "node:fs";
+
+const closestMarginsRaw = readFileSync(
+  new URL("../../../public/data/2020-election/tables/closest_margins.html", import.meta.url),
+  "utf-8"
+);
+const flipsRaw = readFileSync(new URL("../../../public/data/2020-election/tables/flips.html", import.meta.url), "utf-8");
+const lopsidedMarginsRaw = readFileSync(
+  new URL("../../../public/data/2020-election/tables/lopsided_margins.html", import.meta.url),
+  "utf-8"
+);
+const resultsRaw = readFileSync(new URL("../../../public/data/2020-election/tables/results.html", import.meta.url), "utf-8");
+const tossupsRaw = readFileSync(new URL("../../../public/data/2020-election/tables/tossups.html", import.meta.url), "utf-8");
+const winProbRaw = readFileSync(new URL("../../../public/data/2020-election/tables/win_prob.html", import.meta.url), "utf-8");
+
+function extractTable(html: string): string {
+  const lower = html.toLowerCase();
+  const start = lower.indexOf("<table");
+  const end = lower.lastIndexOf("</table>");
+
+  if (start === -1 || end === -1) {
+    return "";
+  }
+
+  return html.slice(start, end + "</table>".length);
+}
+
+const tables = {
+  closestMargins: extractTable(closestMarginsRaw),
+  flips: extractTable(flipsRaw),
+  lopsidedMargins: extractTable(lopsidedMarginsRaw),
+  results: extractTable(resultsRaw),
+  tossups: extractTable(tossupsRaw),
+  winProb: extractTable(winProbRaw)
+};
 ---
 
 <BaseLayout title="2020 Election Model | Wyatt Entrekin">
   <section class="project-shell">
+    <section class="archive-banner">
+      <p>
+        <strong>Archived project:</strong> This page preserves the original 2020 election model content and outputs
+        for historical reference.
+      </p>
+    </section>
+
     <section class="project-hero">
       <div class="hero-copy">
         <p class="hero-kicker">Archive Project</p>
         <h1>2020 Election Model</h1>
         <p class="hero-text">
-          An earlier forecasting project built around polling data, state-level assumptions, and scenario-based
-          evaluation.
+          A state-by-state statistical predictive model for the 2020 United States presidential election.
         </p>
         <div class="hero-tags">
           <span>Forecasting</span>
@@ -21,59 +62,187 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       <aside class="hero-aside">
         <h2>Project status</h2>
         <p>This project is maintained as an archive and reference point for earlier model development work.</p>
-        <p>Code remains publicly available for transparency and reproducibility review.</p>
+        <p>Original narrative wording is retained here as a historical snapshot of the project.</p>
       </aside>
     </section>
 
-    <div class="link-card-row link-row-soft single">
+    <div class="link-card-row link-row-soft">
       <a class="link-card tone-repo" href="https://github.com/wmentrekin/2020election" target="_blank" rel="noreferrer">
         View Repository
       </a>
+      <a class="link-card tone-linkedin" href="https://www.linkedin.com/in/wentrekin/" target="_blank" rel="noreferrer">
+        LinkedIn
+      </a>
+      <a class="link-card tone-projects" href="/projects">
+        Back to Projects
+      </a>
     </div>
 
-    <section class="info-grid">
-      <article class="info-card">
-        <h2>Scope</h2>
-        <p class="muted">
-          The model focused on translating polling signals into election outcomes and presenting interpretable scenario
-          outputs.
-        </p>
-      </article>
-      <article class="info-card">
-        <h2>What it emphasized</h2>
-        <ul>
-          <li>State-level input aggregation</li>
-          <li>Probabilistic interpretation of close races</li>
-          <li>Transparent assumptions and repeatable runs</li>
-        </ul>
-      </article>
+    <section class="section-links">
+      <a href="#methods">Methods</a>
+      <a href="#results">Results</a>
+      <a href="#insights">Insights</a>
     </section>
 
     <section class="info-card">
-      <h2>Retrospective</h2>
+      <h2>Introduction</h2>
       <p class="muted">
-        This project helped establish foundations for later analytics work: clearer data contracts, stronger automation
-        habits, and better separation between model generation and delivery.
+        Hi, I'm Wyatt Entrekin, a 3rd-year Industrial Engineering student at the Georgia Institute of Technology with
+        a strong interest in data analysis and a fascination with electoral politics. I created this election model as
+        the result of a desire to develop my programming skills and a near obsession with the topic. Below, you will
+        see the results of the model, an explanation of the methods I used to produce the data you're looking at, and
+        some interesting insights I gathered from these results. If you have any questions, wish to connect
+        professionally, or are interested in learning more about the project, feel free to email me at
+        <strong>wmentrekin@gmail.com</strong>, connect with me on
+        <strong><a href="https://www.linkedin.com/in/wentrekin/" target="_blank" rel="noreferrer">LinkedIn</a></strong>,
+        or check out the code on
+        <strong><a href="https://github.com/wmentrekin/2020election" target="_blank" rel="noreferrer">GitHub</a></strong>.
       </p>
     </section>
 
-    <section class="info-grid">
-      <article class="info-card">
-        <h2>Technical stack</h2>
-        <ul>
-          <li>Python-based data and modeling workflow</li>
-          <li>Polling and election input preprocessing</li>
-          <li>Result summarization for publication</li>
-        </ul>
-      </article>
-      <article class="info-card">
-        <h2>Portfolio context</h2>
+    <section class="info-card" id="methods">
+      <h2>Methods</h2>
+      <p class="muted">
+        <strong>Disclaimer</strong>: This model is not an official prediction. I am in no way attesting to its
+        potential accuracy or claiming it to be correct. The point of this project was to be a learning exercise for
+        me as well as an outlet for an interest of mine. I am not in any way a professional election forecaster.
+        Nonetheless, I hope this peaks your interest.
+      </p>
+      <p class="muted">
+        When I first decided to begin working on this model in August, I wanted to challenge myself to learn more
+        about different Python libraries, such as Scipy, Numpy, Pandas, and Matplotlib and to see if I could come up
+        with anything accurate. I utilized my prior skills in webscraping and data manipulation while using new
+        knowledge in statistics and data visualization. The entire model is written in Python.
+      </p>
+      <p class="muted">
+        This model essentially uses election data from 2016 and polling for this current election cycle to create a
+        rough forecast of the 2020 election. I gathered data about all 50 states and the District of Columbia from
+        <a href="https://www.census.gov/" target="_blank" rel="noreferrer">the census website</a>, 2016 election data
+        from <a href="https://www.fec.gov/" target="_blank" rel="noreferrer">the FEC website</a>, 2020 election
+        polling data from <a href="https://www.270towin.com/" target="_blank" rel="noreferrer">270 to win</a>, and
+        pollster ratings and bias from <a href="https://fivethirtyeight.com/" target="_blank" rel="noreferrer">538</a>.
+      </p>
+      <p class="muted">
+        After the data was gathered and cleaned, I had three classes of objects: States, Polls, and Pollsters. I
+        wanted to use the data I gathered about each of these objects, to implement this model. The model thus breaks
+        down into these parts: correcting polls based on the grade and historical bias of their pollsters, aggregating
+        polls in each state into a singular rating with a vote share for both candidates and margin of error based on
+        the combined margins of all the polls (for states with no polling data, this rating was simply based on the
+        2016 election results, as states with no polling data are not assumed to be competitive or change much in
+        their results from the prior election cycle), combining the prior election results and the ratings for each
+        state into distributions of possible vote share for each candidate in each state, simulating 10,000 races in
+        each state, and visualizing the data with the map and graphs you see below.
+      </p>
+    </section>
+
+    <section class="info-card" id="results">
+      <h2>Results</h2>
+
+      <article class="result-card">
+        <h3>Average Margin of Victory</h3>
         <p class="muted">
-          This archive complements your active sports analytics work and shows how your modeling approach evolved over
-          time.
+          In the model, there are 10,000 scenarios that were run. This map visualizes the average margin of victory
+          of either candidate in each state on a color scale. States in blue are projected to be won by former Vice
+          President Joe Biden, whereas states in red are projected to be won by incumbent President Donald Trump. The
+          darker the color of the state, the larger the margin expected for the winning candidate.
         </p>
-        <a class="method-link" href="/projects">Back to all projects</a>
+        <img
+          src="/images/projects/2020-election-model/map.png"
+          alt="Average Margin of Victory map from the 2020 election model"
+          width="800"
+          height="536"
+          loading="lazy"
+        />
       </article>
+
+      <div class="results-grid">
+        <article class="result-card">
+          <h3>Closest Projected Margins of Victory</h3>
+          <p class="muted">The table below shows states where the winner is projected to win by less than 10% of the vote.</p>
+          <div class="table-wrap" set:html={tables.closestMargins}></div>
+        </article>
+
+        <article class="result-card">
+          <h3>Most Lopsided Projected Margins of Victory</h3>
+          <p class="muted">The table below shows states where the winner is projected to win by more than 25% of the vote.</p>
+          <div class="table-wrap" set:html={tables.lopsidedMargins}></div>
+        </article>
+
+        <article class="result-card">
+          <h3>Projected Tossup States</h3>
+          <p class="muted">The table below shows states where both candidates have at least a 40% chance of winning.</p>
+          <div class="table-wrap" set:html={tables.tossups}></div>
+        </article>
+
+        <article class="result-card">
+          <h3>Projected Flipped States</h3>
+          <p class="muted">
+            This table below shows states where the projected winner in 2020 is from a different party than the one
+            which won in 2016.
+          </p>
+          <div class="table-wrap" set:html={tables.flips}></div>
+        </article>
+
+        <article class="result-card full">
+          <h3>Full Results</h3>
+          <p class="muted">
+            The table below shows the full results of the model in all 50 states and the District of Columbia. Below
+            you can see, for each state, the projected vote share for either candidate, the chance of victory, and the
+            projected vote margin from the model.
+          </p>
+          <div class="table-wrap wide" set:html={tables.results}></div>
+        </article>
+
+        <article class="result-card full">
+          <h3>Win Probabilities &amp; Expected Electoral Votes</h3>
+          <p class="muted">
+            The table below represents the expected value of electoral votes and chance of winning the electoral
+            college for either candidate. The expected value of electoral votes was found by multiplying both
+            candidates' probabilities of winning in every state by the electoral votes of every state. The chances of
+            victory are simply a proportion of the scenarios in my model in which either candidate wins the electoral
+            college.
+          </p>
+          <div class="table-wrap" set:html={tables.winProb}></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="info-card" id="insights">
+      <h2>Insights</h2>
+      <p class="muted">
+        The first interesting result that I noted while getting the first results of this model were how some states
+        have very slim projected margins while the candidate favored to win had very high chances of victory. For
+        example, Donald Trump is expected to win South Carolina and Alaska by margins of less than 10%, yet has more
+        than 80% chance of victory in both states. Likewise, Joe Biden is expected to win both Minnesota and Virginia
+        by margins of less than 5%, yet has more than 90% chance of victory in both states. This is probably a result
+        of the polling data in these states having low variance and error.
+      </p>
+      <p class="muted">
+        Next, I noticed that the model only predicts four true toss-up states: North Carolina, Arizona, Ohio, and
+        Georgia, all of which Donald Trump won in 2016. While candidates campaign all over the country, many of the
+        states they visit are, at least statistically, already likely to vote a certain way. This reflects in the
+        projected flipped states as well, where all of them are expected to flip from Trump to Biden, with Biden
+        projected to win by larger margins than Trump won them in 2016, with the exception of Arizona and North
+        Carolina, which out of these states, are the more traditionally Republican states.
+      </p>
+      <p class="muted">
+        Lastly, my model gives Joe Biden an almost guaranteed victory in the electoral college. While many models and
+        pundits show Biden as the favorite, I am wary of the results of my own model. In general, I believe that my
+        results don't paint an unrealistic picture, but that some of the numbers can be potentially misleading. The
+        goal was not to definitively predict the winner of the election, but rather to project the chances of victory
+        and vote shares in each state. Nonetheless, Joe Biden wins in almost every scenario. I believe that my model's
+        victory chances don't necessarily represent an accurate number, but that they do reflect the narrow path to
+        victory for the incumbent president. While Joe Biden has many paths to the presidency (winning in the Rust
+        Belt, the South, or the Southwest), Trump's chance rely heavily on repeating as closely his victory in 2016,
+        which relied heavily on slim margins in key states. While this model gives the president decent chances in
+        states he needs to win, such as Wisconsin, Michigan, Pennsylvania, and Florida, there are not many scenarios
+        where my model has him winning all or enough of them to secure a victory. It shows that Biden can win either
+        by close margins or in a landslide, but that if Trump wins, it will be a narrow victory. My model, regardless
+        of how accurate it turns out to be, shows that this election is not unlike 2016, in that this is the
+        Democrats' election to lose and that Donald Trump needs to perform in a very specific way to win another term.
+        Overall, most of the simulations project Joe Biden winning with around 310-340 electoral votes to Donald
+        Trump's 200-230 electoral votes.
+      </p>
     </section>
   </section>
 
@@ -81,6 +250,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .project-shell {
       display: grid;
       gap: 1rem;
+    }
+
+    .archive-banner {
+      background: rgba(247, 224, 220, 0.88);
+      border: 1px solid rgba(160, 101, 97, 0.42);
+      border-radius: 12px;
+      padding: 0.7rem 0.85rem;
+      box-shadow:
+        0 8px 22px rgba(82, 48, 45, 0.11),
+        0 1px 0 rgba(255, 255, 255, 0.7) inset;
+    }
+
+    .archive-banner p {
+      margin: 0;
+      color: #5b3d3b;
+      line-height: 1.58;
+      font-size: 0.95rem;
     }
 
     .link-row-soft .link-card {
@@ -181,6 +367,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       margin: 0;
     }
 
+    .info-card p + p {
+      margin-top: 0.72rem;
+    }
+
     .info-card ul {
       margin: 0;
       padding-left: 1.25rem;
@@ -192,22 +382,120 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       margin-top: 0.35rem;
     }
 
-    .method-link {
-      display: inline-flex;
-      align-items: center;
-      margin-top: 0.78rem;
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 700;
+    .section-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
     }
 
-    .method-link:hover {
+    .section-links a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0.26rem 0.58rem;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #5c3b39;
+      background: rgba(241, 216, 215, 0.76);
+      border: 1px solid rgba(164, 110, 105, 0.34);
+    }
+
+    .section-links a:hover {
+      background: rgba(234, 204, 201, 0.8);
+    }
+
+    .info-card a,
+    .result-card a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .info-card a:hover,
+    .result-card a:hover {
       text-decoration: underline;
+    }
+
+    .result-card + .result-card {
+      margin-top: 0.95rem;
+    }
+
+    .result-card h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.04rem;
+    }
+
+    .result-card img {
+      display: block;
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+      margin-top: 0.85rem;
+      border-radius: 10px;
+      border: 1px solid rgba(176, 132, 127, 0.32);
+      box-shadow:
+        0 10px 24px rgba(82, 48, 45, 0.14),
+        0 1px 0 rgba(255, 255, 255, 0.78) inset;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .result-card {
+      background: rgba(255, 252, 250, 0.66);
+      border: 1px solid rgba(176, 132, 127, 0.26);
+      border-radius: 12px;
+      padding: 0.82rem;
+    }
+
+    .result-card.full {
+      grid-column: 1 / -1;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 0.65rem;
+      border-radius: 8px;
+      border: 1px solid rgba(176, 132, 127, 0.28);
+      background: rgba(255, 249, 246, 0.66);
+    }
+
+    .table-wrap :global(table) {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 420px;
+    }
+
+    .table-wrap.wide :global(table) {
+      min-width: 760px;
+    }
+
+    .table-wrap :global(td) {
+      font-size: 0.86rem;
+      padding: 0.52rem 0.6rem;
+      border-bottom: 1px solid rgba(176, 132, 127, 0.28);
+      color: #4e3938;
+      white-space: nowrap;
+    }
+
+    .table-wrap :global(tr:first-child td) {
+      font-weight: 700;
+      color: #5c3b39;
+      background: rgba(241, 216, 215, 0.48);
     }
 
     @media (max-width: 940px) {
       .project-hero,
       .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .results-grid {
         grid-template-columns: 1fr;
       }
     }
