@@ -9,15 +9,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <p class="hero-kicker">Case Studies</p>
         <h1>Projects</h1>
         <p>
-          A portfolio of analytics projects with end-to-end delivery, from model design through production
+          A portfolio of my personal analytics projects with end-to-end delivery, from model design through production
           publication.
         </p>
       </div>
       <div class="hero-tags">
-        <span>Optimization</span>
         <span>Data Engineering</span>
-        <span>Modeling</span>
-        <span>Automation</span>
+        <span>Operations Research</span>
+        <span>Statistics</span>
+        <span>Analytics</span>
       </div>
     </section>
 
@@ -26,23 +26,26 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <header class="project-head">
           <div>
             <h2>CFB Rankings</h2>
-            <p class="project-sub">Convex optimization + automated weekly publication</p>
+            <p class="project-sub">Convex Quadratic Optimization</p>
           </div>
           <span class="status active">Active</span>
         </header>
         <p class="project-body">
-          Objective college football rankings built from game outcomes using a convex quadratic program, backed by
-          an automated ingestion/model/publication pipeline and a public UI.
+          a convex quadratic program to optimally rank college football teams based on game outcomes
         </p>
         <div class="project-meta">
-          <span>CVXPY</span>
+          <span>Optimization</span>
+          <span>Mathematical Programming</span>
+          <span>Sports Analytics</span>
+          <span>Python</span>
           <span>Supabase</span>
           <span>GitHub Actions</span>
-          <span>Astro</span>
         </div>
         <div class="project-actions">
-          <a href="/projects/cfb-rankings">View project</a>
+          <a href="/projects/cfb-rankings">View Project</a>
+          <a href="https://github.com/wmentrekin/cfb-rankings" target="_blank" rel="noreferrer">Repository</a>
           <a href="/projects/cfb-rankings/methodology">Methodology</a>
+          <a href="https://cfb-rankings-wmentrekin.streamlit.app/" target="_blank" rel="noreferrer">Original Site</a>
         </div>
       </article>
 
@@ -50,22 +53,24 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <header class="project-head">
           <div>
             <h2>2020 Election Model</h2>
-            <p class="project-sub">Polling-based forecasting project archive</p>
+            <p class="project-sub">Polling-Based Election Forecast - Archived Project</p>
           </div>
           <span class="status archived">Archived</span>
         </header>
         <p class="project-body">
-          Statistical prediction workflow developed around polling inputs and election scenarios. Maintained as an
+          a state-by-state statistical predictive model for the 2020 United States presidential election. maintained as an
           archive project in this portfolio.
         </p>
         <div class="project-meta">
+          <span>Python</span>
           <span>Forecasting</span>
           <span>Statistics</span>
-          <span>Python</span>
+          <span>Election Modeling</span>
         </div>
         <div class="project-actions">
-          <a href="/projects/2020-election-model">View project</a>
-          <a href="https://github.com/wmentrekin/2020election" target="_blank" rel="noreferrer">Repo</a>
+          <a href="/projects/2020-election-model">View Project</a>
+          <a href="https://github.com/wmentrekin/2020election" target="_blank" rel="noreferrer">Repository</a>
+          <a href="https://wmentrekin.github.io/2020election/" target="_blank" rel="noreferrer">Original Site</a>
         </div>
       </article>
     </section>
