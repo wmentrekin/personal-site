@@ -1,4 +1,6 @@
 ---
+import { ViewTransitions } from "astro:transitions";
+
 interface Props {
   title: string;
   description?: string;
@@ -6,7 +8,7 @@ interface Props {
 
 const {
   title,
-  description = "Data engineering and analytics projects by Wyatt Entrekin."
+  description = "Sports analytics, data engineering, and technical portfolio work by Wyatt Entrekin."
 } = Astro.props;
 
 const pathname = Astro.url.pathname;
@@ -29,24 +31,48 @@ function isActive(href: string): boolean {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <ViewTransitions />
 
     <style>
       :root {
-        color-scheme: light;
-        --bg-deep: #f4ece8;
-        --bg-top: #fbf7f4;
-        --surface: #fffcfa;
-        --text: #2e1f1f;
-        --muted: #705858;
-        --line: rgba(137, 100, 94, 0.28);
-        --soft: rgba(239, 216, 215, 0.84);
-        --glass: rgba(255, 247, 244, 0.7);
-        --glass-strong: rgba(254, 246, 242, 0.92);
-        --accent: #8e3d3a;
-        --accent-soft: #f1d8d7;
-        --card-line: rgba(176, 132, 127, 0.28);
-        --error-bg: #fff0f0;
-        --error-text: #9f2e2e;
+        color-scheme: dark;
+        --font-body: "Inter", "Segoe UI", sans-serif;
+        --font-display: "Inter Tight", "Inter", "Segoe UI", sans-serif;
+        --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+        --bg-0: #0a0f14;
+        --bg-1: #101720;
+        --bg-2: #16212d;
+        --surface: rgba(16, 23, 32, 0.82);
+        --surface-strong: rgba(19, 28, 39, 0.94);
+        --surface-soft: rgba(255, 255, 255, 0.03);
+        --text: #f3f7fb;
+        --text-soft: #d8e2ed;
+        --muted: #96a9bc;
+        --line: rgba(173, 196, 221, 0.14);
+        --line-strong: rgba(173, 196, 221, 0.24);
+        --accent: #7dd3fc;
+        --accent-football: #a3e635;
+        --accent-basketball: #fb923c;
+        --accent-baseball: #60a5fa;
+        --accent-method: #facc15;
+        --accent-archive: #94a3b8;
+        --error-bg: rgba(123, 24, 24, 0.16);
+        --error-text: #f6b1b1;
+        --shadow-card:
+          0 18px 42px rgba(0, 0, 0, 0.32),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        --shadow-hover:
+          0 24px 56px rgba(0, 0, 0, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        --radius-sm: 16px;
+        --radius-md: 20px;
+        --radius-lg: 24px;
       }
 
       * {
@@ -57,31 +83,36 @@ function isActive(href: string): boolean {
       body {
         margin: 0;
         min-height: 100%;
+        scroll-behavior: smooth;
       }
 
       body {
-        font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
+        font-family: var(--font-body);
         color: var(--text);
         background:
-          radial-gradient(1100px 660px at 8% -10%, rgba(177, 94, 88, 0.17) 0%, transparent 64%),
-          radial-gradient(900px 620px at 90% -3%, rgba(206, 150, 113, 0.14) 0%, transparent 62%),
-          linear-gradient(180deg, var(--bg-top) 0%, #f7efe9 52%, var(--bg-deep) 100%);
+          radial-gradient(circle at top left, rgba(125, 211, 252, 0.12), transparent 28%),
+          radial-gradient(circle at 80% 10%, rgba(163, 230, 53, 0.08), transparent 24%),
+          linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 55%, #070b10 100%);
         background-attachment: fixed;
       }
 
+      a {
+        color: inherit;
+      }
+
       header {
-        border-bottom: 1px solid rgba(178, 137, 132, 0.32);
-        background: linear-gradient(180deg, rgba(255, 250, 247, 0.86), rgba(253, 246, 242, 0.78));
-        backdrop-filter: blur(14px) saturate(125%);
         position: sticky;
         top: 0;
-        z-index: 20;
+        z-index: 30;
+        border-bottom: 1px solid var(--line);
+        background: rgba(10, 15, 20, 0.72);
+        backdrop-filter: blur(18px) saturate(135%);
       }
 
       .container {
-        max-width: 1080px;
+        max-width: 1200px;
         margin: 0 auto;
-        padding: 1.25rem;
+        padding: 0 1.4rem;
       }
 
       nav {
@@ -89,44 +120,81 @@ function isActive(href: string): boolean {
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
+        min-height: 4.7rem;
       }
 
       .brand {
-        font-weight: 800;
-        text-decoration: none;
         color: var(--text);
-        letter-spacing: 0.2px;
+        text-decoration: none;
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
       }
 
       nav .links {
         display: flex;
+        align-items: center;
+        gap: 0.2rem;
         flex-wrap: wrap;
-        gap: 0.5rem;
       }
 
-      nav .links a {
-        color: var(--text);
-        text-decoration: none;
-        font-weight: 700;
-        padding: 0.45rem 0.78rem;
+      nav .links a,
+      nav .links .projects-trigger {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.5rem;
+        padding: 0.35rem 0.82rem;
         border-radius: 999px;
         border: 1px solid transparent;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.94rem;
+        font-weight: 500;
         transition:
-          background-color 150ms ease,
-          border-color 150ms ease,
-          box-shadow 150ms ease,
-          color 150ms ease;
+          color 180ms ease,
+          background-color 180ms ease,
+          border-color 180ms ease,
+          transform 180ms ease;
       }
 
-      nav .links a:hover {
-        background: rgba(225, 194, 190, 0.5);
-        border-color: rgba(168, 117, 112, 0.44);
+      nav .links a::after,
+      nav .links .projects-trigger::before {
+        content: "";
+        position: absolute;
+        left: 0.85rem;
+        right: 0.85rem;
+        bottom: 0.42rem;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, currentColor, transparent);
+        transform: scaleX(0.2);
+        opacity: 0;
+        transition: transform 180ms ease, opacity 180ms ease;
       }
 
-      nav .links a.active {
-        background: var(--soft);
-        border-color: rgba(160, 101, 97, 0.46);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      nav .links a:hover,
+      nav .links .projects-trigger:hover,
+      nav .links .projects-nav:focus-within .projects-trigger {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.06);
+      }
+
+      nav .links a:hover::after,
+      nav .links a.active::after,
+      nav .links .projects-trigger:hover::before,
+      nav .links .projects-nav:focus-within .projects-trigger::before,
+      nav .links .projects-nav.active .projects-trigger::before {
+        opacity: 1;
+        transform: scaleX(1);
+      }
+
+      nav .links a.active,
+      nav .links .projects-nav.active .projects-trigger {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.08);
       }
 
       nav .links .projects-nav {
@@ -134,55 +202,27 @@ function isActive(href: string): boolean {
       }
 
       nav .links .projects-trigger {
-        display: flex;
-        align-items: center;
-        gap: 0.38rem;
-        color: var(--text);
-        text-decoration: none;
-        font-weight: 700;
-        padding: 0.45rem 0.78rem;
-        border-radius: 999px;
-        border: 1px solid transparent;
         user-select: none;
-        transition:
-          background-color 150ms ease,
-          border-color 150ms ease,
-          box-shadow 150ms ease,
-          color 150ms ease;
       }
 
       nav .links .projects-trigger::after {
         content: "▾";
-        font-size: 0.75rem;
-        opacity: 0.86;
-        transform: translateY(1px);
-      }
-
-      nav .links .projects-nav.active .projects-trigger,
-      nav .links .projects-nav:hover .projects-trigger,
-      nav .links .projects-nav:focus-within .projects-trigger {
-        background: var(--soft);
-        border-color: rgba(160, 101, 97, 0.46);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        margin-left: 0.42rem;
+        font-size: 0.72rem;
+        opacity: 0.7;
       }
 
       nav .links .projects-menu {
         position: absolute;
-        top: 100%;
+        top: calc(100% + 0.35rem);
         right: 0;
-        min-width: 220px;
         display: none;
-        gap: 0.26rem;
+        min-width: 15rem;
         padding: 0.5rem;
-        margin-top: 0;
-        background: var(--glass-strong);
-        border: 1px solid rgba(170, 124, 119, 0.46);
-        box-shadow:
-          0 18px 38px rgba(74, 42, 39, 0.2),
-          0 1px 0 rgba(255, 255, 255, 0.72) inset;
-        backdrop-filter: blur(12px) saturate(130%);
-        border-radius: 12px;
-        z-index: 35;
+        border: 1px solid var(--line-strong);
+        border-radius: 18px;
+        background: rgba(12, 18, 25, 0.96);
+        box-shadow: var(--shadow-card);
       }
 
       nav .links .projects-nav:hover .projects-menu,
@@ -191,81 +231,42 @@ function isActive(href: string): boolean {
       }
 
       nav .links .projects-menu a {
-        border-radius: 8px;
-        padding: 0.54rem 0.64rem;
-        white-space: nowrap;
-      }
-
-      nav .links .projects-menu a:hover {
-        background: rgba(228, 199, 194, 0.64);
-      }
-
-      nav .links .projects-menu a.active {
-        background: rgba(236, 207, 203, 0.8);
-        border-color: rgba(155, 94, 90, 0.48);
-      }
-
-      nav .links .projects-nav:focus-within {
-        outline: none;
-      }
-
-      nav .links .projects-nav:focus-within .projects-trigger {
-        color: #2e1f1f;
+        border-radius: 12px;
       }
 
       main {
-        padding-block: 2.4rem 3rem;
-      }
-
-      .hero {
-        padding: 0.2rem 0 0.5rem;
-      }
-
-      .hero h1 {
-        margin-top: 0;
-        margin-bottom: 0.7rem;
+        padding-block: 3.5rem 5rem;
       }
 
       .muted {
         color: var(--muted);
-        line-height: 1.7;
-      }
-
-      .section-title {
-        margin: 2rem 0 0.9rem;
+        line-height: 1.75;
       }
 
       .grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1.2rem;
+        gap: 1.4rem;
       }
 
       .card {
-        background: linear-gradient(160deg, rgba(255, 252, 250, 0.96), rgba(252, 245, 241, 0.94));
-        border: 1px solid var(--card-line);
-        border-radius: 0;
-        padding: 1.2rem;
-        box-shadow:
-          0 16px 34px rgba(82, 48, 45, 0.12),
-          0 1px 0 rgba(255, 255, 255, 0.78) inset;
+        background: linear-gradient(160deg, rgba(19, 28, 39, 0.92), rgba(11, 18, 26, 0.98));
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        padding: 1.35rem;
+        box-shadow: var(--shadow-card);
       }
 
       .card h2,
       .card h3 {
         margin-top: 0;
-        margin-bottom: 0.6rem;
+        margin-bottom: 0.7rem;
       }
 
       .card ul,
       .card ol {
         margin: 0.7rem 0;
-        padding-left: 1.45rem;
-        list-style-position: outside;
-      }
-
-      .card li {
-        margin-bottom: 0.45rem;
+        padding-left: 1.3rem;
       }
 
       table {
@@ -276,23 +277,56 @@ function isActive(href: string): boolean {
       th,
       td {
         text-align: left;
-        padding: 0.72rem;
+        padding: 0.78rem;
         border-bottom: 1px solid var(--line);
       }
 
       th {
-        font-size: 0.92rem;
-        color: #6f5552;
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
       }
 
       .error {
         background: var(--error-bg);
         color: var(--error-text);
-        border: 1px solid #efb0b0;
-        border-radius: 10px;
-        padding: 0.65rem 0.75rem;
+        border: 1px solid rgba(246, 177, 177, 0.22);
+        border-radius: 14px;
+        padding: 0.8rem 0.9rem;
         margin: 0.75rem 0;
         font-weight: 600;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        transition: opacity 520ms ease, transform 520ms ease;
+        will-change: opacity, transform;
+      }
+
+      .reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html,
+        body {
+          scroll-behavior: auto;
+        }
+
+        .reveal {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+
+        * {
+          animation: none !important;
+          transition-duration: 0.01ms !important;
+        }
       }
 
       @media (max-width: 820px) {
@@ -303,6 +337,7 @@ function isActive(href: string): boolean {
         nav {
           align-items: flex-start;
           flex-direction: column;
+          padding-block: 0.9rem;
         }
 
         nav .links .projects-menu {
@@ -327,79 +362,88 @@ function isActive(href: string): boolean {
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        min-height: 16rem;
+        padding: 1.6rem;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+          linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+        box-shadow: var(--shadow-card);
+        color: var(--text);
         text-align: center;
         text-decoration: none;
-        color: var(--text);
-        border: 1px solid var(--card-line);
-        border-radius: 0;
-        padding: 1.5rem;
-        min-height: 260px;
-        box-shadow:
-          0 20px 40px rgba(82, 48, 45, 0.14),
-          0 1px 0 rgba(255, 255, 255, 0.84) inset;
-        transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
       }
 
       .quick-card:hover,
-      .tile-link:hover {
-        border-color: rgba(142, 61, 58, 0.58);
-        transform: translateY(-3px);
-        box-shadow:
-          0 26px 52px rgba(92, 54, 52, 0.2),
-          0 1px 0 rgba(255, 255, 255, 0.9) inset;
+      .tile-link:hover,
+      .link-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-hover);
       }
 
       .quick-card h2,
       .tile-link h2 {
         margin: 0;
-        font-size: 1.5rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.11em;
-        line-height: 1.2;
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        text-transform: none;
       }
 
       .tile-link h3 {
-        margin: 0.55rem 0 0;
+        margin: 0.65rem 0 0;
+        max-width: 30rem;
+        color: var(--muted);
         font-size: 1rem;
-        font-weight: 560;
-        line-height: 1.45;
-        letter-spacing: 0.01em;
-        text-transform: none;
-        color: #6d5855;
-        max-width: 34ch;
+        font-weight: 500;
+        line-height: 1.65;
       }
 
       .tone-projects {
-        background: linear-gradient(150deg, #fff4f2, #f2d9d8 58%, #ecd0cf);
+        background:
+          linear-gradient(160deg, rgba(125, 211, 252, 0.08), rgba(19, 28, 39, 0.96)),
+          linear-gradient(160deg, rgba(19, 28, 39, 0.96), rgba(11, 18, 26, 0.98));
       }
 
       .tone-about {
-        background: linear-gradient(150deg, #fff7f5, #efddcf 60%, #e6d2c6);
+        background:
+          linear-gradient(160deg, rgba(250, 204, 21, 0.08), rgba(19, 28, 39, 0.96)),
+          linear-gradient(160deg, rgba(19, 28, 39, 0.96), rgba(11, 18, 26, 0.98));
       }
 
       .tone-cfb {
-        background: linear-gradient(150deg, #fff5f3, #f0d1cc 60%, #e4bdb8);
+        background:
+          linear-gradient(160deg, rgba(163, 230, 53, 0.08), rgba(19, 28, 39, 0.96)),
+          linear-gradient(160deg, rgba(19, 28, 39, 0.96), rgba(11, 18, 26, 0.98));
       }
 
       .tone-election {
-        background: linear-gradient(150deg, #fdf6f5, #ebd4d2 60%, #dec5c3);
+        background:
+          linear-gradient(160deg, rgba(148, 163, 184, 0.1), rgba(19, 28, 39, 0.96)),
+          linear-gradient(160deg, rgba(19, 28, 39, 0.96), rgba(11, 18, 26, 0.98));
       }
 
       .tone-linkedin {
-        background: linear-gradient(145deg, #8e3d3a, #733130 62%, #5a2524);
+        background:
+          linear-gradient(145deg, rgba(125, 211, 252, 0.2), rgba(22, 33, 45, 0.98) 62%, rgba(10, 15, 20, 1));
       }
 
       .tone-repo {
-        background: linear-gradient(145deg, #9f4b47, #843d39 62%, #6d302d);
+        background:
+          linear-gradient(145deg, rgba(96, 165, 250, 0.2), rgba(22, 33, 45, 0.98) 62%, rgba(10, 15, 20, 1));
       }
 
       .tone-streamlit {
-        background: linear-gradient(145deg, #a75a49, #8f493c 62%, #773a31);
+        background:
+          linear-gradient(145deg, rgba(251, 146, 60, 0.18), rgba(22, 33, 45, 0.98) 62%, rgba(10, 15, 20, 1));
       }
 
       .tone-method {
-        background: linear-gradient(145deg, #95514b, #7a413c 62%, #64342f);
+        background:
+          linear-gradient(145deg, rgba(250, 204, 21, 0.18), rgba(22, 33, 45, 0.98) 62%, rgba(10, 15, 20, 1));
       }
 
       .link-card-row {
@@ -410,34 +454,25 @@ function isActive(href: string): boolean {
       }
 
       .link-card-row.single {
-        max-width: 300px;
+        max-width: 20rem;
       }
 
       .link-card {
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 62px;
-        border-radius: 0;
-        border: 1px solid var(--card-line);
-        box-shadow:
-          0 12px 30px rgba(96, 58, 55, 0.2),
-          0 1px 0 rgba(255, 255, 255, 0.18) inset;
-        color: #fff8f7;
+        min-height: 4rem;
+        padding: 0.6rem 0.9rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow-card);
+        color: var(--text);
         text-decoration: none;
-        font-size: 0.8rem;
-        font-weight: 800;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
-      }
-
-      .link-card:hover {
-        border-color: rgba(120, 57, 53, 0.6);
-        transform: translateY(-2px);
-        box-shadow:
-          0 20px 42px rgba(98, 56, 53, 0.24),
-          0 1px 0 rgba(255, 255, 255, 0.24) inset;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
       }
 
       @media (max-width: 820px) {
@@ -447,7 +482,7 @@ function isActive(href: string): boolean {
 
         .quick-card,
         .tile-link {
-          min-height: 210px;
+          min-height: 13rem;
         }
       }
     </style>
@@ -460,7 +495,7 @@ function isActive(href: string): boolean {
           <div class="links">
             <a href="/" class={isActive("/") ? "active" : ""}>Home</a>
             <div class={`projects-nav ${projectsActive ? "active" : ""}`} tabindex="0">
-              <a href="/projects" class={`projects-trigger ${projectsActive ? "active" : ""}`}>Projects</a>
+              <a href="/projects" class="projects-trigger">Projects</a>
               <div class="projects-menu">
                 {
                   projectLinks.map((link) => (
@@ -477,5 +512,32 @@ function isActive(href: string): boolean {
     <main class="container">
       <slot />
     </main>
+
+    <script is:inline>
+      const initReveal = () => {
+        const items = document.querySelectorAll(".reveal");
+        if (!("IntersectionObserver" in window)) {
+          items.forEach((item) => item.classList.add("is-visible"));
+          return;
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("is-visible");
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.14, rootMargin: "0px 0px -10% 0px" }
+        );
+
+        items.forEach((item) => observer.observe(item));
+      };
+
+      document.addEventListener("astro:page-load", initReveal);
+      initReveal();
+    </script>
   </body>
 </html>
