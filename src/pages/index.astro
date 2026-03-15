@@ -7,13 +7,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <div class="home-frame">
       <section class="intro-card reveal">
         <div class="intro-copy">
-          <p class="eyebrow">Wyatt Entrekin</p>
-          <h1>Hi, I&apos;m Wyatt.</h1>
+          <p class="eyebrow">Welcome</p>
           <p class="intro-text">
-            I&apos;m a Data Engineer with a passion for analytics, optimization, and building reliable technical systems.
+            Hello, I&apos;m <strong>Wyatt Entrekin</strong>, a Data Engineer with a passion for analytics.
           </p>
           <p class="intro-text">
-            This site is a home for sports analytics projects, methodology writeups, and engineering-focused case studies.
+            This site is a home for my personal projects, mainly surrounding data engineering and sports analytics.
           </p>
         </div>
 
@@ -59,57 +58,68 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             </svg>
           </a>
           <a href="https://hevy.com/profile" target="_blank" rel="noreferrer">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M3 10.25h3.25V7h2.2v10h-2.2v-3.55H3V10.25Zm17.75 0H15.7v3.2h5.05v-3.2Zm-7.25 0h-2.2V7h2.2v10Zm4.45-3.25h2.2V17h-2.2V7Z"
-                fill="currentColor"
-              ></path>
-            </svg>
+            <img
+              src="https://www.hevyapp.com/wp-content/uploads/logo-hevy-black.svg"
+              alt="Hevy"
+              loading="lazy"
+            />
           </a>
         </div>
 
         <p class="focus-line">
           <span>Focus</span>
-          Data Engineering, Operations Research, Analytics
+          Data Engineering, Operations Research, Analytics, Data Science
+        </p>
+
+        <p class="location-line">
+          <span>Location</span>
+          Atlanta, GA
+        </p>
+
+        <p class="education-line">
+          <span>Education</span>
+          Georgia Institute of Technology, BS in Industrial Engineering
+        </p>
+
+        <p class="interests-line">
+          <span>Interests</span>
+          Fitness, Food, Travel, Sports, Language Learning, History
         </p>
       </section>
 
       <section class="link-grid">
-        <a class="link-tile tone-football reveal" href="/projects/cfb-rankings">
+        <a class="link-tile tone-football wide reveal" href="/projects/cfb-rankings">
           <p class="eyebrow accent-football">Featured</p>
-          <h2>CFB Rankings</h2>
-          <p>Weekly college football ratings.</p>
-        </a>
-
-        <a class="link-tile tone-method reveal" href="/projects/cfb-rankings/methodology">
-          <p class="eyebrow accent-method">Documentation</p>
-          <h2>Methodology</h2>
-          <p>Model assumptions and equations.</p>
+          <h2>College Football Rankings</h2>
+          <p>ranking college football teams using convex optimization</p>
         </a>
 
         <a class="link-tile tone-projects reveal" href="/projects">
           <p class="eyebrow">Index</p>
-          <h2>All Projects</h2>
-          <p>Portfolio index and archive.</p>
+          <h2>Project Hub</h2>
+          <p>all my projects</p>
         </a>
 
         <a class="link-tile tone-about reveal" href="/about">
           <p class="eyebrow">Profile</p>
           <h2>About</h2>
-          <p>Background and experience.</p>
+          <p>more about me</p>
         </a>
+      </section>
 
-        <a class="link-tile tone-election reveal" href="/projects/2020-election-model">
-          <p class="eyebrow accent-archive">Archive</p>
-          <h2>2020 Election Model</h2>
-          <p>Forecasting project archive.</p>
-        </a>
-
-        <a class="link-tile tone-repo reveal" href="https://github.com/wmentrekin" target="_blank" rel="noreferrer">
-          <p class="eyebrow">External</p>
-          <h2>GitHub</h2>
-          <p>Source code and repositories.</p>
-        </a>
+      <section class="placeholder-row">
+        <article class="placeholder-tile reveal">
+          <p class="eyebrow">Placeholder</p>
+        </article>
+        <article class="placeholder-tile reveal">
+          <p class="eyebrow">Placeholder</p>
+        </article>
+        <article class="placeholder-tile reveal">
+          <p class="eyebrow">Placeholder</p>
+        </article>
+        <article class="placeholder-tile reveal">
+          <p class="eyebrow">Placeholder</p>
+        </article>
       </section>
     </div>
   </section>
@@ -125,7 +135,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     .home-frame {
       display: grid;
       grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-      grid-template-rows: repeat(3, minmax(0, 1fr));
+      grid-template-rows: auto auto;
       gap: 1rem;
       min-height: calc(100svh - 4.5rem);
     }
@@ -219,6 +229,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       flex: 0 0 auto;
     }
 
+    .social-row img {
+      width: 1rem;
+      height: 1rem;
+      flex: 0 0 auto;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+
     .social-row a:hover {
       transform: translateY(-2px);
       border-color: rgba(125, 211, 252, 0.34);
@@ -244,9 +262,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     .link-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: subgrid;
-      grid-row: span 3;
       gap: 1rem;
+    }
+
+    .link-tile.wide {
+      grid-column: 1 / -1;
     }
 
     .link-tile {
@@ -294,6 +314,28 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       line-height: 1.55;
     }
 
+    .placeholder-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .placeholder-tile {
+      min-height: 7.5rem;
+      padding: 1rem;
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.015);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+      display: grid;
+      align-content: start;
+    }
+
+    .placeholder-tile .eyebrow {
+      color: rgba(150, 169, 188, 0.7);
+    }
+
     @media (max-width: 1080px) {
       .home-stage {
         min-height: auto;
@@ -307,8 +349,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
 
       .link-grid {
-        grid-template-rows: auto;
-        grid-row: auto;
+        grid-template-columns: 1fr;
+      }
+
+      .link-tile.wide {
+        grid-column: auto;
+      }
+
+      .placeholder-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -318,6 +367,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
 
       .link-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .placeholder-row {
         grid-template-columns: 1fr;
       }
     }
