@@ -4,12 +4,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 <BaseLayout title="CFB Rankings Project | Wyatt Entrekin">
   <section class="project-shell">
-    <section class="project-hero">
+    <section class="project-hero reveal">
       <div class="hero-copy">
         <p class="hero-kicker">Active Project</p>
         <h1>CFB Rankings</h1>
         <p class="hero-text">
-          a convex quadratic program to optimally rank college football teams based on game outcomes
+          A convex quadratic program to optimally rank college football teams based on game outcomes.
         </p>
         <div class="hero-tags">
           <span>Optimization</span>
@@ -21,26 +21,31 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         </div>
       </div>
       <aside class="hero-aside">
-        <h2>Release Cadence</h2>
-        <p>Weekly rankings updated every Sunday morning at 3:15 AM ET during the college football season</p>
-        <p>Offseason enhancements are underway!</p>
+        <div>
+          <span>Release cadence</span>
+          <strong>Weekly rankings updated every Sunday morning at 3:15 AM ET during the college football season</strong>
+        </div>
+        <div>
+          <span>Status</span>
+          <strong>Offseason enhancements are underway</strong>
+        </div>
       </aside>
     </section>
 
-    <div class="link-card-row link-row-soft">
+    <div class="link-card-row">
       <a class="link-card tone-repo" href="https://github.com/wmentrekin/cfb-rankings" target="_blank" rel="noreferrer">
         GitHub Repository
       </a>
-      <a class="link-card tone-repo" href="https://cfb-rankings-wmentrekin.streamlit.app/" target="_blank" rel="noreferrer">
+      <a class="link-card tone-streamlit" href="https://cfb-rankings-wmentrekin.streamlit.app/" target="_blank" rel="noreferrer">
         Original Streamlit App
       </a>
-      <a class="link-card tone-repo" href="/projects/cfb-rankings/methodology">
+      <a class="link-card tone-method" href="/projects/cfb-rankings/methodology">
         Methodology
       </a>
     </div>
 
     <section class="info-grid">
-      <article class="info-card">
+      <article class="info-card reveal">
         <h2>Current Architecture</h2>
         <ul>
           <li>CollegeFootballData API ingest for teams and games</li>
@@ -49,11 +54,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         </ul>
       </article>
 
-      <article class="info-card">
+      <article class="info-card reveal">
         <h2>Model Summary</h2>
         <ul>
           <li>Team ratings bounded between 0 and 100</li>
-          <li>Soft margin penalty scaled by home/away/neutral and adjusted game margin</li>
+          <li>Soft margin penalty scaled by home, away, neutral, and adjusted game margin</li>
           <li>Loss-rate penalty to dampen high ratings for poor records</li>
           <li>Early-season prior regularization that decays by week</li>
           <li>Extra penalty for losses to FCS teams</li>
@@ -61,9 +66,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       </article>
     </section>
 
-    <section class="info-card snapshot-card">
+    <section class="info-card snapshot-card reveal">
       <div class="snapshot-head">
-        <h2>Latest Ratings Snapshot [PLACEHOLDER UNTIL RANKINGS ARTIFACT MIGRATION]</h2>
+        <div>
+          <p class="section-label">Analytics Surface</p>
+          <h2>Latest Ratings Snapshot</h2>
+        </div>
         <p id="meta" class="snapshot-meta">Loading rankings artifact...</p>
       </div>
       <p id="error" class="error" hidden></p>
@@ -85,21 +93,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     </section>
 
     <section class="info-grid">
-      <article class="info-card">
+      <article class="info-card reveal">
         <h2>Enhancement Roadmap</h2>
         <ul>
           <li>Migrate rankings storage from Supabase table to R2 artifact storage</li>
           <li>Implement ML-based outcome probability estimation</li>
           <li>Modify QP for conference rankings</li>
-          <li>Add Playoff & Bowl Projection using a composite of QP rankings, ML probabilities, and CP assignment</li>
+          <li>Add playoff and bowl projection using QP rankings, ML probabilities, and CP assignment</li>
         </ul>
       </article>
 
-      <article class="info-card snapshot-card">
+      <article class="info-card reveal">
         <h2>Methodology Details</h2>
         <p class="muted">
-          full mathematical writeup of objective terms, parameters, constraints, and implementation notes are documented on the methodology
-          page
+          Full mathematical writeup of objective terms, parameters, constraints, and implementation notes are
+          documented on the methodology page.
         </p>
         <a class="method-link" href="/projects/cfb-rankings/methodology">Read Methodology</a>
       </article>
@@ -200,7 +208,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         addCell(tableRow, String(row.rank ?? ""), "rank-cell");
         addCell(tableRow, String(row.team ?? ""), "team-cell");
-        addCell(tableRow, String(row.record ?? ""), "");
+        addCell(tableRow, String(row.record ?? ""));
         addCell(tableRow, Number.isFinite(rating) ? rating.toFixed(2) : "", "rating-cell");
         addCell(
           tableRow,
@@ -218,101 +226,118 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   <style>
     .project-shell {
       display: grid;
-      gap: 1rem;
-    }
-
-    .link-row-soft .link-card {
-      border-radius: 12px;
-      text-transform: none;
-      letter-spacing: 0.02em;
-      font-size: 0.92rem;
-      min-height: 56px;
+      gap: 1.4rem;
     }
 
     .project-hero {
       display: grid;
-      grid-template-columns: 1.5fr 1fr;
-      gap: 1rem;
+      grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.8fr);
+      gap: 1.4rem;
     }
 
     .hero-copy,
     .hero-aside,
     .info-card {
-      background: linear-gradient(160deg, rgba(255, 251, 248, 0.92), rgba(250, 239, 235, 0.88));
-      border: 1px solid rgba(176, 132, 127, 0.3);
-      border-radius: 14px;
-      padding: 1.05rem;
-      box-shadow:
-        0 14px 30px rgba(82, 48, 45, 0.12),
-        0 1px 0 rgba(255, 255, 255, 0.85) inset;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+      box-shadow: var(--shadow-card);
     }
 
-    .hero-kicker {
+    .hero-copy {
+      padding: 1.4rem;
+    }
+
+    .hero-kicker,
+    .section-label {
       margin: 0;
-      color: var(--accent);
-      letter-spacing: 0.07em;
+      color: var(--accent-football);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      font-size: 0.74rem;
-      font-weight: 750;
     }
 
     .hero-copy h1 {
-      margin: 0.45rem 0 0.55rem;
-      font-size: clamp(1.8rem, 2.9vw, 2.4rem);
-      line-height: 1.14;
+      margin: 0.5rem 0 0.7rem;
+      font-family: var(--font-display);
+      font-size: clamp(2.6rem, 5vw, 4.8rem);
+      line-height: 0.94;
+      letter-spacing: -0.05em;
     }
 
     .hero-text {
       margin: 0;
+      max-width: 40rem;
       color: var(--muted);
-      line-height: 1.72;
-      max-width: 62ch;
+      font-size: 1.04rem;
+      line-height: 1.8;
     }
 
     .hero-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.48rem;
-      margin-top: 0.9rem;
+      gap: 0.55rem;
+      margin-top: 1rem;
     }
 
-    .hero-tags span {
+    .hero-tags span,
+    .hero-aside span {
       display: inline-flex;
       align-items: center;
-      min-height: 30px;
+      min-height: 1.95rem;
+      padding: 0.16rem 0.65rem;
       border-radius: 999px;
-      padding: 0.25rem 0.62rem;
-      font-size: 0.76rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-soft);
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: #5d3f3d;
-      background: rgba(241, 216, 215, 0.86);
-      border: 1px solid rgba(164, 110, 105, 0.34);
     }
 
-    .hero-aside h2 {
+    .hero-aside {
+      display: grid;
+      gap: 1rem;
+      padding: 1.15rem;
+    }
+
+    .hero-aside div {
+      padding-top: 0.2rem;
+    }
+
+    .hero-aside strong {
+      display: block;
+      margin-top: 0.75rem;
+      color: var(--text-soft);
+      line-height: 1.75;
+      font-size: 0.98rem;
+    }
+
+    .link-card-row {
       margin: 0;
-      font-size: 1.05rem;
-    }
-
-    .hero-aside p {
-      margin: 0.72rem 0 0;
-      color: var(--muted);
-      line-height: 1.68;
-      padding-top: 0.72rem;
-      border-top: 1px solid rgba(176, 132, 127, 0.26);
     }
 
     .info-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
+      gap: 1.4rem;
+    }
+
+    .info-card {
+      padding: 1.3rem;
     }
 
     .info-card h2 {
-      margin: 0 0 0.6rem;
-      font-size: 1.22rem;
+      margin: 0 0 0.7rem;
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
     }
 
     .info-card p {
@@ -321,107 +346,106 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .info-card ul {
       margin: 0;
-      padding-left: 1.25rem;
+      padding-left: 1.2rem;
       color: var(--muted);
-      line-height: 1.7;
+      line-height: 1.8;
     }
 
     .info-card li + li {
-      margin-top: 0.35rem;
+      margin-top: 0.38rem;
     }
 
     .snapshot-card {
-      padding: 1rem 1.05rem 1.1rem;
+      padding: 1.3rem;
     }
 
     .snapshot-head {
       display: flex;
-      flex-wrap: wrap;
       justify-content: space-between;
-      gap: 0.6rem;
-      margin-bottom: 0.6rem;
-      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      align-items: end;
+      margin-bottom: 0.8rem;
     }
 
     .snapshot-head h2 {
-      margin: 0;
+      margin-top: 0.5rem;
     }
 
     .snapshot-meta {
       margin: 0;
       color: var(--muted);
-      font-size: 0.92rem;
-      font-weight: 600;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
     }
 
     .table-wrap {
-      width: 100%;
       overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.02);
     }
 
     table {
-      min-width: 560px;
+      min-width: 35rem;
     }
 
-    th {
-      color: #6a4f4d;
-      font-size: 0.84rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    td {
-      color: #3a2a2a;
-      font-weight: 560;
+    td:not(:nth-child(2)) {
+      font-family: var(--font-mono);
     }
 
     .rank-cell {
-      width: 60px;
-      font-weight: 760;
-      color: #5e3c3a;
-    }
-
-    .team-cell {
+      color: var(--accent-football);
       font-weight: 700;
     }
 
-    .rating-cell {
-      font-variant-numeric: tabular-nums;
-      font-weight: 700;
-    }
-
+    .team-cell,
+    .rating-cell,
     .delta-pos,
     .delta-neg,
     .delta-flat {
-      font-weight: 700;
+      font-weight: 600;
     }
 
     .delta-pos {
-      color: #7e3834;
+      color: #c8fb61;
     }
 
     .delta-neg {
-      color: #6a5a57;
+      color: #f3c28f;
     }
 
     .delta-flat {
-      color: #6f5552;
+      color: var(--muted);
     }
 
     .method-link {
       display: inline-flex;
-      align-items: center;
-      margin-top: 0.78rem;
-      color: var(--accent);
+      margin-top: 0.9rem;
+      color: var(--text);
       text-decoration: none;
-      font-weight: 700;
+      font-weight: 600;
+      position: relative;
     }
 
-    .method-link:hover {
-      text-decoration: underline;
+    .method-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -0.12rem;
+      width: 100%;
+      height: 1px;
+      background: currentColor;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 180ms ease;
     }
 
-    @media (max-width: 940px) {
+    .method-link:hover::after {
+      transform: scaleX(1);
+    }
+
+    @media (max-width: 960px) {
       .project-hero,
       .info-grid {
         grid-template-columns: 1fr;

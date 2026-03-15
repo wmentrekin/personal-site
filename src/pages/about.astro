@@ -1,4 +1,5 @@
 ---
+import SectionBlock from "../components/SectionBlock.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
 const aboutSections = [
@@ -55,193 +56,222 @@ const aboutSections = [
 
 <BaseLayout title="About | Wyatt Entrekin">
   <section class="about-shell">
-    <section class="about-intro">
-      <div class="intro-main">
-        <p class="intro-kicker">About</p>
-        <h1>Wyatt Entrekin</h1>
-        <p class="muted">
-          Data engineer with an industrial engineering foundation, focused on building reliable analytics systems from
-          ingest through modeled outputs and production delivery.
+    <section class="about-hero reveal">
+      <div class="hero-copy">
+        <p class="hero-kicker">About</p>
+        <h1>Engineering background, data delivery mindset, and sports analytics as the proving ground.</h1>
+        <p class="hero-text">
+          My portfolio work is shaped by the same things I care about professionally: clear systems, reliable
+          execution, and technical communication that explains how the result was actually produced.
         </p>
-        <div class="intro-actions">
-          <a class="intro-btn primary" href="/projects">View Projects</a>
-          <a class="intro-btn" href="https://www.linkedin.com/in/wmentrekin/" target="_blank" rel="noreferrer">LinkedIn</a>
+        <div class="hero-actions">
+          <a class="hero-link primary" href="/projects">View Projects</a>
+          <a class="hero-link" href="https://www.linkedin.com/in/wmentrekin/" target="_blank" rel="noreferrer">LinkedIn</a>
         </div>
       </div>
 
-      <aside class="intro-panel">
-        <h2>Snapshot</h2>
-        <p><strong>Location:</strong> Atlanta, GA</p>
-        <p><strong>Education:</strong> Georgia Tech, Industrial & Systems Engineering</p>
-        <p><strong>Current Role:</strong> Consultant, Data & Analytics</p>
-        <p><strong>Focus Areas:</strong> Data Engineering, Optimization, ML Systems</p>
+      <aside class="hero-rail">
+        <div class="rail-card">
+          <span>Location</span>
+          <strong>Atlanta, GA</strong>
+        </div>
+        <div class="rail-card">
+          <span>Education</span>
+          <strong>Georgia Tech, Industrial &amp; Systems Engineering</strong>
+        </div>
+        <div class="rail-card">
+          <span>Current Role</span>
+          <strong>Consultant, Data &amp; Analytics</strong>
+        </div>
+        <div class="rail-card">
+          <span>Focus</span>
+          <strong>Data engineering, optimization, ML systems</strong>
+        </div>
       </aside>
     </section>
 
-    <nav class="story-nav" aria-label="About sections">
-      {
-        aboutSections.map((section) => (
-          <a href={`#${section.id}`}>{section.title}</a>
-        ))
-      }
+    <nav class="story-nav reveal" aria-label="About sections">
+      {aboutSections.map((section, index) => (
+        <a href={`#${section.id}`}>
+          <span>{String(index + 1).padStart(2, "0")}</span>
+          {section.title}
+        </a>
+      ))}
     </nav>
 
-    <section class="about-story">
-      {
-        aboutSections.map((section, index) => (
-          <article class={`story-row ${section.reverse ? "reverse" : ""}`} id={section.id}>
+    <SectionBlock
+      eyebrow="Story"
+      title="A chronological view of how the technical portfolio came together."
+      intro="The project work on this site sits on top of a broader background in industrial engineering, consulting, and applied analytics. These sections keep that context visible without turning the page into a resume dump."
+    >
+      <section class="about-story">
+        {aboutSections.map((section, index) => (
+          <article class={`story-row reveal ${section.reverse ? "reverse" : ""}`} id={section.id}>
             <figure class="story-media">
               <img src={section.image} alt={section.alt} loading="lazy" />
             </figure>
             <div class="story-copy">
               <p class="story-index">{String(index + 1).padStart(2, "0")}</p>
               <h2>{section.title}</h2>
-              {
-                section.text.map((paragraph) => (
-                  <p class="muted">{paragraph}</p>
-                ))
-              }
+              {section.text.map((paragraph) => (
+                <p class="muted">{paragraph}</p>
+              ))}
             </div>
           </article>
-        ))
-      }
-    </section>
+        ))}
+      </section>
+    </SectionBlock>
   </section>
 
   <style>
     .about-shell {
       display: grid;
-      gap: 1.1rem;
+      gap: 4.5rem;
     }
 
-    .about-intro {
+    .about-hero {
       display: grid;
-      grid-template-columns: 1.6fr 1fr;
-      gap: 1rem;
-      align-items: stretch;
+      grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.9fr);
+      gap: 1.5rem;
+      align-items: end;
     }
 
-    .intro-main,
-    .intro-panel {
-      background: linear-gradient(160deg, rgba(255, 251, 248, 0.92), rgba(251, 240, 236, 0.9));
-      border: 1px solid rgba(176, 132, 127, 0.3);
-      border-radius: 14px;
-      box-shadow:
-        0 14px 32px rgba(82, 48, 45, 0.11),
-        0 1px 0 rgba(255, 255, 255, 0.84) inset;
-      padding: 1.1rem;
-    }
-
-    .intro-kicker {
-      margin: 0;
+    .hero-kicker {
+      margin: 0 0 0.8rem;
       color: var(--accent);
-      letter-spacing: 0.07em;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      font-size: 0.75rem;
-      font-weight: 700;
     }
 
-    .intro-main h1 {
-      margin: 0.45rem 0 0.68rem;
-      font-size: clamp(1.8rem, 3vw, 2.4rem);
-      line-height: 1.15;
-      letter-spacing: -0.01em;
-    }
-
-    .intro-main p {
+    .hero-copy h1 {
       margin: 0;
-      line-height: 1.75;
-      max-width: 58ch;
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 6vw, 5.25rem);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+      max-width: 12ch;
+      text-wrap: balance;
     }
 
-    .intro-actions {
+    .hero-text {
+      margin: 1.1rem 0 0;
+      max-width: 42rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.85;
+    }
+
+    .hero-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.65rem;
-      margin-top: 1rem;
+      gap: 0.9rem;
+      margin-top: 1.25rem;
     }
 
-    .intro-btn {
+    .hero-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 40px;
-      padding: 0.5rem 0.85rem;
-      border-radius: 10px;
-      border: 1px solid rgba(160, 101, 97, 0.42);
-      text-decoration: none;
-      font-weight: 700;
+      min-height: 3.1rem;
+      padding: 0.7rem 1.15rem;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255, 255, 255, 0.03);
       color: var(--text);
-      background: rgba(245, 224, 219, 0.66);
-      transition: transform 140ms ease, box-shadow 140ms ease;
+      text-decoration: none;
+      font-weight: 600;
+      transition: transform 180ms ease, border-color 180ms ease;
     }
 
-    .intro-btn.primary {
-      background: linear-gradient(145deg, #9f4b47, #7e3633);
-      color: #fff7f5;
-      border-color: rgba(125, 55, 52, 0.5);
+    .hero-link.primary {
+      background: linear-gradient(135deg, rgba(125, 211, 252, 0.22), rgba(96, 165, 250, 0.12));
+      border-color: rgba(125, 211, 252, 0.24);
     }
 
-    .intro-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px rgba(92, 54, 52, 0.17);
+    .hero-link:hover {
+      transform: translateY(-2px);
+      border-color: rgba(125, 211, 252, 0.34);
     }
 
-    .intro-panel h2 {
-      margin: 0;
-      font-size: 1.08rem;
+    .hero-rail {
+      display: grid;
+      gap: 1rem;
     }
 
-    .intro-panel p {
-      margin: 0.72rem 0 0;
+    .rail-card {
+      padding: 1rem 1.1rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+      box-shadow: var(--shadow-card);
+    }
+
+    .rail-card span {
+      display: block;
+      margin-bottom: 0.35rem;
       color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .rail-card strong {
+      color: var(--text-soft);
       line-height: 1.65;
-      padding-top: 0.72rem;
-      border-top: 1px solid rgba(176, 132, 127, 0.24);
     }
 
     .story-nav {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.62rem;
+      gap: 0.75rem;
     }
 
     .story-nav a {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      justify-content: center;
-      min-height: 38px;
+      gap: 0.7rem;
+      min-height: 3.4rem;
+      padding: 0.8rem 0.95rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-soft);
       text-decoration: none;
-      color: #5f4644;
-      background: rgba(244, 224, 218, 0.6);
-      border: 1px solid rgba(166, 115, 110, 0.35);
-      border-radius: 10px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-      transition: transform 130ms ease, border-color 130ms ease, box-shadow 130ms ease;
+      font-weight: 600;
+      transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+    }
+
+    .story-nav a span {
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
     }
 
     .story-nav a:hover {
-      transform: translateY(-1px);
-      border-color: rgba(142, 61, 58, 0.48);
-      box-shadow: 0 8px 18px rgba(92, 54, 52, 0.14);
+      transform: translateY(-2px);
+      border-color: rgba(125, 211, 252, 0.24);
+      background: rgba(255, 255, 255, 0.05);
     }
 
     .about-story {
       display: grid;
-      gap: 1rem;
+      gap: 1.4rem;
     }
 
     .story-row {
       display: grid;
-      grid-template-columns: minmax(240px, 330px) minmax(0, 1fr);
-      gap: 1rem;
+      grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr);
+      gap: 1.4rem;
       align-items: stretch;
     }
 
     .story-row.reverse {
-      grid-template-columns: minmax(0, 1fr) minmax(240px, 330px);
+      grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
     }
 
     .story-row.reverse .story-media {
@@ -254,16 +284,17 @@ const aboutSections = [
 
     .story-media {
       margin: 0;
-      border: 1px solid rgba(176, 132, 127, 0.32);
-      box-shadow:
-        0 14px 28px rgba(82, 48, 45, 0.13),
-        0 1px 0 rgba(255, 255, 255, 0.78) inset;
-      border-radius: 14px;
-      background: #f7ece8;
-      overflow: hidden;
-      min-height: 220px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+      box-shadow: var(--shadow-card);
+      min-height: 15rem;
+      padding: 1rem;
       display: grid;
       place-items: center;
+      overflow: hidden;
     }
 
     .story-media img {
@@ -275,47 +306,44 @@ const aboutSections = [
     }
 
     .story-copy {
-      border: 1px solid rgba(176, 132, 127, 0.26);
-      background: linear-gradient(160deg, rgba(255, 251, 248, 0.92), rgba(250, 239, 235, 0.88));
-      box-shadow:
-        0 14px 30px rgba(82, 48, 45, 0.11),
-        0 1px 0 rgba(255, 255, 255, 0.82) inset;
-      border-radius: 14px;
-      padding: 1rem 1.1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 1.35rem;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+      box-shadow: var(--shadow-card);
     }
 
     .story-index {
       margin: 0;
       color: var(--accent);
+      font-family: var(--font-mono);
       font-size: 0.78rem;
-      font-weight: 750;
-      letter-spacing: 0.08em;
+      font-weight: 600;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
     }
 
     .story-copy h2 {
-      margin: 0.36rem 0 0.64rem;
-      font-size: 1.35rem;
-      line-height: 1.24;
+      margin: 0.45rem 0 0.85rem;
+      font-family: var(--font-display);
+      font-size: 1.9rem;
+      line-height: 1;
+      letter-spacing: -0.04em;
     }
 
     .story-copy p {
-      margin: 0 0 0.9rem;
-      line-height: 1.8;
+      margin: 0 0 0.95rem;
     }
 
     .story-copy p:last-child {
       margin-bottom: 0;
     }
 
-    @media (max-width: 960px) {
-      .about-intro,
-      .story-nav {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 920px) {
+    @media (max-width: 980px) {
+      .about-hero,
+      .story-nav,
       .story-row,
       .story-row.reverse {
         grid-template-columns: 1fr;
@@ -324,10 +352,6 @@ const aboutSections = [
       .story-row.reverse .story-media,
       .story-row.reverse .story-copy {
         order: initial;
-      }
-
-      .story-media {
-        min-height: 200px;
       }
     }
   </style>
