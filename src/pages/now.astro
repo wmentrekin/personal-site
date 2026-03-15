@@ -1,0 +1,180 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const lastUpdated = "March 15, 2026";
+
+// Add a new entry here whenever you want to log a fresh update.
+const entries = [
+  {
+    date: "March 15, 2026",
+    title: "Building out the portfolio foundation",
+    summary:
+      "I am tightening the personal site so it can act as a stable home for sports analytics work, technical writing, and future dashboards.",
+    items: [
+      "Refining the homepage and page templates so the site feels compact and easier to navigate.",
+      "Cleaning up the project pages, especially the college football rankings work and its methodology writeup.",
+      "Keeping room for new long-form analytics projects once the first version of the site feels stable."
+    ]
+  }
+];
+---
+
+<BaseLayout
+  title="Now | Wyatt Entrekin"
+  description="What Wyatt Entrekin is focused on now across data engineering, analytics, and current projects."
+>
+  <section class="now-shell">
+    <section class="now-hero reveal">
+      <p class="hero-kicker">Now</p>
+      <h1>A current snapshot of what I&apos;m focused on.</h1>
+      <p class="hero-text">
+        This page is a lightweight running log rather than a full archive. I update it when priorities shift,
+        projects change, or something becomes worth noting.
+      </p>
+      <p class="hero-meta">Last updated {lastUpdated}</p>
+    </section>
+
+    <section class="grid reveal">
+      <article class="card guide-card">
+        <span>What belongs here</span>
+        <p class="muted">
+          Current work, active interests, and anything that explains where my time and attention are going right
+          now.
+        </p>
+      </article>
+      <article class="card guide-card">
+        <span>How I&apos;ll use it</span>
+        <p class="muted">
+          Each new update can be added as another entry near the top of the file, keeping the newest note first.
+        </p>
+      </article>
+    </section>
+
+    <section class="entry-list">
+      {entries.map((entry) => (
+        <article class="entry-card reveal">
+          <p class="entry-date">{entry.date}</p>
+          <h2>{entry.title}</h2>
+          <p class="entry-summary">{entry.summary}</p>
+          <ul>
+            {entry.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </section>
+  </section>
+
+  <style>
+    .now-shell {
+      display: grid;
+      gap: 1.5rem;
+      max-width: 56rem;
+      margin: 0 auto;
+    }
+
+    .now-hero {
+      display: grid;
+      gap: 0.75rem;
+      padding: 0.3rem 0 0.1rem;
+    }
+
+    .hero-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .now-hero h1 {
+      margin: 0;
+      max-width: 12ch;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+      text-wrap: balance;
+    }
+
+    .hero-text,
+    .hero-meta {
+      margin: 0;
+    }
+
+    .hero-text {
+      max-width: 40rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .hero-meta {
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .guide-card span,
+    .entry-date {
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .guide-card p {
+      margin: 0.5rem 0 0;
+    }
+
+    .entry-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .entry-card {
+      padding: 1.3rem 1.35rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+      box-shadow: var(--shadow-card);
+    }
+
+    .entry-card h2 {
+      margin: 0.35rem 0 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.35rem, 2vw, 1.7rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .entry-summary {
+      margin: 0.8rem 0 0;
+      color: var(--text-soft);
+      line-height: 1.7;
+    }
+
+    .entry-card ul {
+      margin: 0.9rem 0 0;
+      padding-left: 1.15rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .entry-card li + li {
+      margin-top: 0.4rem;
+    }
+
+    @media (max-width: 820px) {
+      .now-shell {
+        gap: 1.15rem;
+      }
+    }
+  </style>
+</BaseLayout>
