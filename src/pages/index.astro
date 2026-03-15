@@ -8,27 +8,49 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <section class="intro-card reveal">
         <div class="intro-copy">
           <p class="eyebrow">Wyatt Entrekin</p>
-          <h1>Sports analytics and data engineering portfolio.</h1>
+          <h1>Hi, I&apos;m Wyatt.</h1>
           <p class="intro-text">
-            I build technical projects around rankings, optimization, data pipelines, and methodology.
+            I&apos;m a Data Engineer with a passion for analytics, optimization, and building reliable technical systems.
           </p>
           <p class="intro-text">
-            The work here is meant to be concise, inspectable, and useful.
+            This site is a home for sports analytics projects, methodology writeups, and engineering-focused case studies.
           </p>
         </div>
 
         <div class="social-row">
-          <a href="/projects">Projects</a>
-          <a href="/about">About</a>
-          <a href="https://github.com/wmentrekin" target="_blank" rel="noreferrer">GitHub</a>
-          <a href="https://www.linkedin.com/in/wentrekin/" target="_blank" rel="noreferrer">LinkedIn</a>
-          <a href="mailto:wmentrekin@gmail.com">Email</a>
+          <a href="https://github.com/wmentrekin" target="_blank" rel="noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 2C6.48 2 2 6.58 2 12.24c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-1.05-.01-1.9-2.78.62-3.37-1.21-3.37-1.21-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.55-1.14-4.55-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.86c.85 0 1.71.12 2.51.35 1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.33 4.8-4.56 5.05.36.32.68.95.68 1.92 0 1.39-.01 2.5-.01 2.84 0 .27.18.59.69.49A10.13 10.13 0 0 0 22 12.24C22 6.58 17.52 2 12 2Z"
+                fill="currentColor"
+              ></path>
+            </svg>
+            GitHub
+          </a>
+          <a href="https://www.linkedin.com/in/wentrekin/" target="_blank" rel="noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M6.94 8.5a1.56 1.56 0 1 1 0-3.12 1.56 1.56 0 0 1 0 3.12Zm1.3 2.12H5.65V19h2.59v-8.38ZM12.37 10.62H9.8V19h2.56v-4.4c0-2.32 3-2.51 3 0V19H18v-5.32c0-4.14-4.56-3.99-5.63-1.95v-1.11Z"
+                fill="currentColor"
+              ></path>
+            </svg>
+            LinkedIn
+          </a>
+          <a href="mailto:wmentrekin@gmail.com">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M3.27 5.5A2.25 2.25 0 0 1 5.5 4h13a2.25 2.25 0 0 1 2.23 1.5L12 12.18 3.27 5.5Zm-.27 1.9V18.5A2.5 2.5 0 0 0 5.5 21h13a2.5 2.5 0 0 0 2.5-2.5V7.4l-8.33 6.36a1.1 1.1 0 0 1-1.34 0L3 7.4Z"
+                fill="currentColor"
+              ></path>
+            </svg>
+            Email
+          </a>
         </div>
 
         <div class="meta-strip">
           <div>
             <span>Focus</span>
-            <strong>Optimization, pipelines, technical writing</strong>
+            <strong>Data Engineering, Operations Research, Analytics</strong>
           </div>
           <div>
             <span>Based in</span>
@@ -136,18 +158,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       margin: 0.35rem 0 0;
       max-width: 8.5ch;
       font-family: var(--font-display);
-      font-size: clamp(2.6rem, 5vw, 4.5rem);
-      line-height: 0.93;
+      font-size: clamp(1.9rem, 3vw, 3rem);
+      line-height: 0.98;
       letter-spacing: -0.06em;
       text-wrap: balance;
     }
 
     .intro-text {
-      margin: 0.8rem 0 0;
+      margin: 0.55rem 0 0;
       max-width: 31rem;
       color: var(--muted);
-      font-size: 0.98rem;
-      line-height: 1.68;
+      font-size: 0.94rem;
+      line-height: 1.6;
     }
 
     .social-row {
@@ -160,6 +182,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 0.45rem;
       min-height: 2.5rem;
       padding: 0.5rem 0.85rem;
       border-radius: 999px;
@@ -170,6 +193,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       font-size: 0.9rem;
       font-weight: 600;
       transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+    }
+
+    .social-row svg {
+      width: 0.95rem;
+      height: 0.95rem;
+      flex: 0 0 auto;
     }
 
     .social-row a:hover {
