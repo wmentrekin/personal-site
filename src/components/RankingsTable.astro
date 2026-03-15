@@ -1,0 +1,77 @@
+---
+interface Props {
+  headers: string[];
+  rows: Array<Array<string | number>>;
+}
+
+const { headers, rows } = Astro.props;
+---
+
+<div class="rankings-shell">
+  <table>
+    <thead>
+      <tr>
+        {headers.map((header) => <th>{header}</th>)}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row) => (
+        <tr>
+          {row.map((cell, index) => (
+            <td class={index === 0 ? "rank-col" : ""}>{cell}</td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .rankings-shell {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  table {
+    width: 100%;
+    min-width: 34rem;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 0.88rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: rgba(10, 15, 20, 0.96);
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  td {
+    color: var(--text-soft);
+    font-size: 0.95rem;
+  }
+
+  td:not(:nth-child(2)) {
+    font-family: var(--font-mono);
+  }
+
+  .rank-col {
+    color: var(--accent-football);
+    font-weight: 700;
+  }
+
+  tbody tr:hover {
+    background: rgba(125, 211, 252, 0.04);
+  }
+</style>

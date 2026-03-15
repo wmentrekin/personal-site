@@ -1,0 +1,104 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  source?: string;
+  updatedAt?: string;
+}
+
+const { title, subtitle, source, updatedAt } = Astro.props;
+---
+
+<section class="chart-frame reveal">
+  <header class="chart-head">
+    <div>
+      <h3>{title}</h3>
+      {subtitle && <p>{subtitle}</p>}
+    </div>
+    {(source || updatedAt) && (
+      <dl class="chart-meta">
+        {source && (
+          <div>
+            <dt>Source</dt>
+            <dd>{source}</dd>
+          </div>
+        )}
+        {updatedAt && (
+          <div>
+            <dt>Updated</dt>
+            <dd>{updatedAt}</dd>
+          </div>
+        )}
+      </dl>
+    )}
+  </header>
+  <div class="chart-body">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .chart-frame {
+    display: grid;
+    gap: 1rem;
+    padding: 1.3rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
+      linear-gradient(160deg, rgba(18, 27, 38, 0.96), rgba(11, 18, 26, 0.98));
+    box-shadow: var(--shadow-card);
+  }
+
+  .chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .chart-head h3 {
+    margin: 0;
+    font-size: 1.18rem;
+    letter-spacing: -0.02em;
+  }
+
+  .chart-head p {
+    margin: 0.4rem 0 0;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .chart-meta {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0;
+    text-align: right;
+  }
+
+  .chart-meta dt {
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .chart-meta dd {
+    margin: 0.18rem 0 0;
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 720px) {
+    .chart-head {
+      grid-template-columns: 1fr;
+      display: grid;
+    }
+
+    .chart-meta {
+      text-align: left;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,0 +1,169 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  summary: string;
+  eyebrow?: string;
+  status?: string;
+  tone?: "football" | "basketball" | "article" | "archive";
+  tags?: string[];
+}
+
+const {
+  href,
+  title,
+  summary,
+  eyebrow,
+  status,
+  tone = "football",
+  tags = []
+} = Astro.props;
+---
+
+<article class={`project-card reveal tone-${tone}`}>
+  <div class="card-top">
+    <div class="card-copy">
+      {eyebrow && <p class="card-eyebrow">{eyebrow}</p>}
+      <h3><a href={href}>{title}</a></h3>
+    </div>
+    {status && <span class="status-pill">{status}</span>}
+  </div>
+
+  <p class="card-summary">{summary}</p>
+
+  {tags.length > 0 && (
+    <ul class="tag-row" aria-label={`${title} tags`}>
+      {tags.map((tag) => <li>{tag}</li>)}
+    </ul>
+  )}
+
+  <div class="card-actions">
+    <a class="card-link" href={href}>Open</a>
+    <slot name="actions" />
+  </div>
+</article>
+
+<style>
+  .project-card {
+    display: grid;
+    gap: 1.1rem;
+    min-height: 100%;
+    padding: 1.4rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+      linear-gradient(160deg, rgba(19, 30, 42, 0.96), rgba(13, 22, 31, 0.98));
+    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .project-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  }
+
+  .project-card::after {
+    content: "";
+    position: absolute;
+    inset: -4rem -3rem auto auto;
+    width: 10rem;
+    height: 10rem;
+    border-radius: 999px;
+    opacity: 0.18;
+    filter: blur(16px);
+    background: var(--tone, var(--accent));
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .card-eyebrow {
+    margin: 0 0 0.45rem;
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+  }
+
+  h3 a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .card-summary {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tag-row li,
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.9rem;
+    padding: 0.15rem 0.62rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-soft);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+  }
+
+  .card-link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .tone-football {
+    --tone: var(--accent-football);
+  }
+
+  .tone-basketball {
+    --tone: var(--accent-basketball);
+  }
+
+  .tone-article {
+    --tone: var(--accent-method);
+  }
+
+  .tone-archive {
+    --tone: var(--accent-archive);
+  }
+</style>
