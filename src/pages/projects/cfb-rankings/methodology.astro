@@ -8,8 +8,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
       <p class="method-kicker">Technical Documentation</p>
       <h1>CFB Rankings Methodology</h1>
       <p class="method-intro">
-        Full specification of the optimization model, objective terms, parameters, constraints, and implementation
-        notes.
+        Objective terms, constraints, parameters, and implementation notes.
       </p>
       <div class="link-card-row">
         <a class="link-card tone-projects" href="/projects/cfb-rankings">Back to Rankings</a>
@@ -210,11 +209,11 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
   <style>
     .method-shell {
       display: grid;
-      gap: 1.6rem;
+      gap: 1.1rem;
     }
 
     .method-hero {
-      max-width: 52rem;
+      max-width: 42rem;
     }
 
     .method-kicker {
@@ -228,19 +227,19 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     }
 
     .method-hero h1 {
-      margin: 0.6rem 0 0.7rem;
+      margin: 0.45rem 0 0.5rem;
       font-family: var(--font-display);
-      font-size: clamp(3rem, 5vw, 5rem);
-      line-height: 0.94;
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
+      line-height: 0.96;
       letter-spacing: -0.06em;
     }
 
     .method-intro {
       margin: 0;
       color: var(--muted);
-      font-size: 1.05rem;
-      line-height: 1.8;
-      max-width: 42rem;
+      font-size: 0.98rem;
+      line-height: 1.7;
+      max-width: 30rem;
     }
 
     .method-doc {
@@ -405,5 +404,15 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
       }
     };
   </script>
-  <script is:inline async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script is:inline>
+    const typesetMath = () => {
+      if (window.MathJax?.typesetPromise) {
+        window.MathJax.typesetPromise();
+      }
+    };
+
+    document.addEventListener("astro:page-load", typesetMath);
+    window.addEventListener("load", typesetMath);
+  </script>
+  <script is:inline async data-astro-rerun src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </BaseLayout>

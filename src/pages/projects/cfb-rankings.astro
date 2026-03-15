@@ -1,5 +1,18 @@
 ---
+import { readFileSync } from "node:fs";
+
+import RankingsTable from "../../components/RankingsTable.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const rankingsPath = new URL("../../../public/data/cfb/latest-rankings.json", import.meta.url);
+const rankingsPayload = JSON.parse(readFileSync(rankingsPath, "utf-8"));
+const rows = rankingsPayload.rankings.map((team: Record<string, string | number>) => [
+  team.rank,
+  team.team,
+  team.record,
+  Number(team.rating).toFixed(2),
+  Number(team.delta) > 0 ? `+${team.delta}` : `${team.delta}`
+]);
 ---
 
 <BaseLayout title="CFB Rankings Project | Wyatt Entrekin">
@@ -8,235 +21,76 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       <div class="hero-copy">
         <p class="hero-kicker">Active Project</p>
         <h1>CFB Rankings</h1>
-        <p class="hero-text">
-          A convex quadratic program to optimally rank college football teams based on game outcomes.
-        </p>
+        <p class="hero-text">Optimization-based college football ratings published as a static artifact.</p>
         <div class="hero-tags">
           <span>Optimization</span>
-          <span>Mathematical Programming</span>
           <span>Sports Analytics</span>
           <span>Python</span>
-          <span>Supabase</span>
-          <span>GitHub Actions</span>
+          <span>Static Delivery</span>
         </div>
       </div>
       <aside class="hero-aside">
         <div>
-          <span>Release cadence</span>
-          <strong>Weekly rankings updated every Sunday morning at 3:15 AM ET during the college football season</strong>
+          <span>Snapshot</span>
+          <strong>Season {rankingsPayload.season}, Week {rankingsPayload.week}</strong>
         </div>
         <div>
-          <span>Status</span>
-          <strong>Offseason enhancements are underway</strong>
+          <span>Updated</span>
+          <strong>{rankingsPayload.generated_at_utc}</strong>
         </div>
       </aside>
     </section>
 
-    <div class="link-card-row">
+    <div class="link-card-row compact-links">
+      <a class="link-card tone-method" href="/projects/cfb-rankings/methodology">Methodology</a>
       <a class="link-card tone-repo" href="https://github.com/wmentrekin/cfb-rankings" target="_blank" rel="noreferrer">
         GitHub Repository
       </a>
       <a class="link-card tone-streamlit" href="https://cfb-rankings-wmentrekin.streamlit.app/" target="_blank" rel="noreferrer">
         Original Streamlit App
       </a>
-      <a class="link-card tone-method" href="/projects/cfb-rankings/methodology">
-        Methodology
-      </a>
     </div>
 
-    <section class="info-grid">
-      <article class="info-card reveal">
-        <h2>Current Architecture</h2>
-        <ul>
-          <li>CollegeFootballData API ingest for teams and games</li>
-          <li>Supabase for relational storage of teams, games, and rankings</li>
-          <li>Convex optimization model run for weekly team ratings</li>
-        </ul>
-      </article>
-
-      <article class="info-card reveal">
-        <h2>Model Summary</h2>
-        <ul>
-          <li>Team ratings bounded between 0 and 100</li>
-          <li>Soft margin penalty scaled by home, away, neutral, and adjusted game margin</li>
-          <li>Loss-rate penalty to dampen high ratings for poor records</li>
-          <li>Early-season prior regularization that decays by week</li>
-          <li>Extra penalty for losses to FCS teams</li>
-        </ul>
-      </article>
-    </section>
-
-    <section class="info-card snapshot-card reveal">
-      <div class="snapshot-head">
+    <section class="rankings-panel reveal">
+      <div class="panel-head">
         <div>
-          <p class="section-label">Analytics Surface</p>
+          <p class="section-label">Current Rankings</p>
           <h2>Latest Ratings Snapshot</h2>
         </div>
-        <p id="meta" class="snapshot-meta">Loading rankings artifact...</p>
+        <p class="panel-meta">{rankingsPayload.generated_at_utc}</p>
       </div>
-      <p id="error" class="error" hidden></p>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Team</th>
-              <th>Record</th>
-              <th>Rating</th>
-              <th>Delta</th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
+      <RankingsTable headers={["Rank", "Team", "Record", "Rating", "Delta"]} rows={rows} />
     </section>
 
     <section class="info-grid">
       <article class="info-card reveal">
-        <h2>Enhancement Roadmap</h2>
-        <ul>
-          <li>Migrate rankings storage from Supabase table to R2 artifact storage</li>
-          <li>Implement ML-based outcome probability estimation</li>
-          <li>Modify QP for conference rankings</li>
-          <li>Add playoff and bowl projection using QP rankings, ML probabilities, and CP assignment</li>
-        </ul>
+        <h2>Project Notes</h2>
+        <p class="muted">
+          Rankings are produced weekly during the season. The current direction is to keep the public surface simple
+          and move the model, architecture, and implementation details into the methodology page.
+        </p>
+        <a class="method-link" href="/projects/cfb-rankings/methodology">Open methodology</a>
       </article>
 
       <article class="info-card reveal">
-        <h2>Methodology Details</h2>
-        <p class="muted">
-          Full mathematical writeup of objective terms, parameters, constraints, and implementation notes are
-          documented on the methodology page.
-        </p>
-        <a class="method-link" href="/projects/cfb-rankings/methodology">Read Methodology</a>
+        <h2>Next Up</h2>
+        <ul>
+          <li>Migrate rankings storage from Supabase to artifact storage</li>
+          <li>Add outcome probability and simulation layers</li>
+          <li>Extend the model into conference and postseason views</li>
+        </ul>
       </article>
     </section>
   </section>
 
-  <script>
-    function setError(message: string) {
-      const meta = document.getElementById("meta");
-      const error = document.getElementById("error");
-
-      if (meta instanceof HTMLParagraphElement) {
-        meta.textContent = "Rankings unavailable";
-      }
-
-      if (error instanceof HTMLParagraphElement) {
-        error.hidden = false;
-        error.textContent = message;
-      }
-    }
-
-    function addCell(row: HTMLTableRowElement, value: string, className?: string) {
-      const cell = document.createElement("td");
-      cell.textContent = value;
-      if (className) {
-        cell.className = className;
-      }
-      row.appendChild(cell);
-    }
-
-    function formatDelta(value: number) {
-      if (!Number.isFinite(value)) return "0";
-      if (value > 0) return `+${value}`;
-      return `${value}`;
-    }
-
-    async function loadRankings() {
-      const meta = document.getElementById("meta");
-      const rows = document.getElementById("rows");
-      const error = document.getElementById("error");
-
-      if (
-        !(meta instanceof HTMLParagraphElement) ||
-        !(rows instanceof HTMLTableSectionElement) ||
-        !(error instanceof HTMLParagraphElement)
-      ) {
-        return;
-      }
-
-      error.hidden = true;
-      error.textContent = "";
-
-      let response;
-      try {
-        response = await fetch("/data/cfb/latest-rankings.json", { cache: "no-store" });
-      } catch (_err) {
-        setError("Network error while loading rankings artifact.");
-        return;
-      }
-
-      if (!response.ok) {
-        setError(`Could not load rankings artifact (HTTP ${response.status}).`);
-        return;
-      }
-
-      let payload;
-      try {
-        payload = await response.json();
-      } catch (_err) {
-        setError("Artifact parsing failed. JSON payload is invalid.");
-        return;
-      }
-
-      if (
-        !payload ||
-        typeof payload !== "object" ||
-        !Array.isArray(payload.rankings) ||
-        typeof payload.season !== "number" ||
-        typeof payload.week !== "number" ||
-        typeof payload.generated_at_utc !== "string"
-      ) {
-        setError("Artifact format is invalid. Expected a rankings array.");
-        return;
-      }
-
-      if (payload.rankings.length === 0) {
-        setError("No rankings are available for this snapshot yet.");
-        return;
-      }
-
-      meta.textContent = `Season ${payload.season}, Week ${payload.week}. Updated ${payload.generated_at_utc}.`;
-      rows.innerHTML = "";
-
-      for (const row of payload.rankings) {
-        const tableRow = document.createElement("tr");
-        const rating = Number(row.rating);
-        const delta = Number(row.delta);
-
-        addCell(tableRow, String(row.rank ?? ""), "rank-cell");
-        addCell(tableRow, String(row.team ?? ""), "team-cell");
-        addCell(tableRow, String(row.record ?? ""));
-        addCell(tableRow, Number.isFinite(rating) ? rating.toFixed(2) : "", "rating-cell");
-        addCell(
-          tableRow,
-          formatDelta(delta),
-          delta > 0 ? "delta-pos" : delta < 0 ? "delta-neg" : "delta-flat"
-        );
-
-        rows.appendChild(tableRow);
-      }
-    }
-
-    loadRankings();
-  </script>
-
   <style>
     .project-shell {
       display: grid;
-      gap: 1.4rem;
+      gap: 1rem;
     }
 
-    .project-hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.8fr);
-      gap: 1.4rem;
-    }
-
-    .hero-copy,
-    .hero-aside,
+    .project-hero,
+    .rankings-panel,
     .info-card {
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
@@ -246,182 +100,148 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       box-shadow: var(--shadow-card);
     }
 
-    .hero-copy {
-      padding: 1.4rem;
+    .project-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(15rem, 0.7fr);
+      gap: 1rem;
+      padding: 1.05rem 1.15rem;
     }
 
     .hero-kicker,
-    .section-label {
+    .section-label,
+    .hero-aside span {
       margin: 0;
       color: var(--accent-football);
       font-family: var(--font-mono);
-      font-size: 0.76rem;
+      font-size: 0.74rem;
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
     }
 
     .hero-copy h1 {
-      margin: 0.5rem 0 0.7rem;
+      margin: 0.35rem 0 0.45rem;
       font-family: var(--font-display);
-      font-size: clamp(2.6rem, 5vw, 4.8rem);
-      line-height: 0.94;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 0.96;
       letter-spacing: -0.05em;
     }
 
     .hero-text {
       margin: 0;
-      max-width: 40rem;
       color: var(--muted);
-      font-size: 1.04rem;
-      line-height: 1.8;
+      font-size: 0.98rem;
+      line-height: 1.65;
+      max-width: 34rem;
     }
 
     .hero-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.55rem;
-      margin-top: 1rem;
+      gap: 0.45rem;
+      margin-top: 0.8rem;
     }
 
-    .hero-tags span,
-    .hero-aside span {
+    .hero-tags span {
       display: inline-flex;
       align-items: center;
-      min-height: 1.95rem;
-      padding: 0.16rem 0.65rem;
+      min-height: 1.75rem;
+      padding: 0.1rem 0.58rem;
       border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.04);
       color: var(--text-soft);
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       font-weight: 600;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
     }
 
     .hero-aside {
       display: grid;
-      gap: 1rem;
-      padding: 1.15rem;
+      gap: 0.7rem;
+      align-content: start;
     }
 
     .hero-aside div {
-      padding-top: 0.2rem;
+      padding: 0.75rem 0.85rem;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .hero-aside strong {
       display: block;
-      margin-top: 0.75rem;
+      margin-top: 0.55rem;
       color: var(--text-soft);
-      line-height: 1.75;
-      font-size: 0.98rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
     }
 
-    .link-card-row {
+    .compact-links {
       margin: 0;
     }
 
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1.4rem;
+    .rankings-panel {
+      padding: 1.05rem;
     }
 
-    .info-card {
-      padding: 1.3rem;
+    .panel-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 0.8rem;
+      margin-bottom: 0.8rem;
     }
 
-    .info-card h2 {
-      margin: 0 0 0.7rem;
+    .panel-head h2 {
+      margin: 0.4rem 0 0;
       font-family: var(--font-display);
       font-size: 1.55rem;
       line-height: 1;
       letter-spacing: -0.03em;
     }
 
-    .info-card p {
+    .panel-meta {
       margin: 0;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .info-card {
+      padding: 1.05rem;
+    }
+
+    .info-card h2 {
+      margin: 0 0 0.55rem;
+      font-family: var(--font-display);
+      font-size: 1.28rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
     }
 
     .info-card ul {
       margin: 0;
-      padding-left: 1.2rem;
+      padding-left: 1.1rem;
       color: var(--muted);
-      line-height: 1.8;
+      line-height: 1.7;
     }
 
     .info-card li + li {
-      margin-top: 0.38rem;
-    }
-
-    .snapshot-card {
-      padding: 1.3rem;
-    }
-
-    .snapshot-head {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-      align-items: end;
-      margin-bottom: 0.8rem;
-    }
-
-    .snapshot-head h2 {
-      margin-top: 0.5rem;
-    }
-
-    .snapshot-meta {
-      margin: 0;
-      color: var(--muted);
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    table {
-      min-width: 35rem;
-    }
-
-    td:not(:nth-child(2)) {
-      font-family: var(--font-mono);
-    }
-
-    .rank-cell {
-      color: var(--accent-football);
-      font-weight: 700;
-    }
-
-    .team-cell,
-    .rating-cell,
-    .delta-pos,
-    .delta-neg,
-    .delta-flat {
-      font-weight: 600;
-    }
-
-    .delta-pos {
-      color: #c8fb61;
-    }
-
-    .delta-neg {
-      color: #f3c28f;
-    }
-
-    .delta-flat {
-      color: var(--muted);
+      margin-top: 0.3rem;
     }
 
     .method-link {
       display: inline-flex;
-      margin-top: 0.9rem;
+      margin-top: 0.75rem;
       color: var(--text);
       text-decoration: none;
       font-weight: 600;
@@ -445,10 +265,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       transform: scaleX(1);
     }
 
-    @media (max-width: 960px) {
+    @media (max-width: 920px) {
       .project-hero,
       .info-grid {
         grid-template-columns: 1fr;
+      }
+
+      .panel-head {
+        align-items: start;
+        flex-direction: column;
       }
     }
   </style>

@@ -9,10 +9,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     <section class="projects-hero reveal">
       <div class="hero-copy">
         <p class="hero-kicker">Project Index</p>
-        <h1>Technical portfolio work built around models, systems, and public-facing outputs.</h1>
+        <h1>Technical portfolio work built around models and systems.</h1>
         <p class="hero-text">
-          These projects are structured as full case studies, with emphasis on architecture, methodology,
-          implementation details, and delivery quality rather than isolated visual results.
+          Analytics projects with methodology, architecture, and delivery context.
         </p>
       </div>
       <div class="hero-grid">
@@ -86,15 +85,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   <style>
     .projects-shell {
       display: grid;
-      gap: 5rem;
+      gap: 3.2rem;
     }
 
     .projects-hero {
       display: grid;
       grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.9fr);
-      gap: 1.5rem;
+      gap: 1rem;
       align-items: end;
-      min-height: 22rem;
+      min-height: 15rem;
     }
 
     .hero-kicker {
@@ -109,19 +108,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .hero-copy h1 {
       margin: 0;
       font-family: var(--font-display);
-      font-size: clamp(3rem, 6vw, 5.5rem);
-      line-height: 0.94;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      line-height: 0.97;
       letter-spacing: -0.06em;
-      max-width: 11ch;
+      max-width: 10ch;
       text-wrap: balance;
     }
 
     .hero-text {
-      margin: 1.1rem 0 0;
-      max-width: 42rem;
+      margin: 0.75rem 0 0;
+      max-width: 28rem;
       color: var(--muted);
-      font-size: 1.05rem;
-      line-height: 1.85;
+      font-size: 0.98rem;
+      line-height: 1.7;
     }
 
     .hero-grid {

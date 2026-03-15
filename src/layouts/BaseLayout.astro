@@ -120,7 +120,7 @@ function isActive(href: string): boolean {
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
-        min-height: 4.7rem;
+        min-height: 4.1rem;
       }
 
       .brand {
@@ -144,8 +144,8 @@ function isActive(href: string): boolean {
         position: relative;
         display: inline-flex;
         align-items: center;
-        min-height: 2.5rem;
-        padding: 0.35rem 0.82rem;
+        min-height: 2.35rem;
+        padding: 0.3rem 0.78rem;
         border-radius: 999px;
         border: 1px solid transparent;
         color: var(--muted);
@@ -159,8 +159,7 @@ function isActive(href: string): boolean {
           transform 180ms ease;
       }
 
-      nav .links a::after,
-      nav .links .projects-trigger::before {
+      nav .links a::after {
         content: "";
         position: absolute;
         left: 0.85rem;
@@ -199,6 +198,8 @@ function isActive(href: string): boolean {
 
       nav .links .projects-nav {
         position: relative;
+        padding-bottom: 0.35rem;
+        margin-bottom: -0.35rem;
       }
 
       nav .links .projects-trigger {
@@ -206,15 +207,20 @@ function isActive(href: string): boolean {
       }
 
       nav .links .projects-trigger::after {
-        content: "▾";
-        margin-left: 0.42rem;
-        font-size: 0.72rem;
+        content: "";
+        width: 0.42rem;
+        height: 0.42rem;
+        margin-left: 0.48rem;
+        border-right: 1.5px solid currentColor;
+        border-bottom: 1.5px solid currentColor;
+        transform: rotate(45deg) translateY(-1px);
         opacity: 0.7;
+        transition: transform 180ms ease, opacity 180ms ease;
       }
 
       nav .links .projects-menu {
         position: absolute;
-        top: calc(100% + 0.35rem);
+        top: calc(100% - 0.05rem);
         right: 0;
         display: none;
         min-width: 15rem;
@@ -230,12 +236,19 @@ function isActive(href: string): boolean {
         display: grid;
       }
 
+      nav .links .projects-nav:hover .projects-trigger::after,
+      nav .links .projects-nav:focus-within .projects-trigger::after,
+      nav .links .projects-nav.active .projects-trigger::after {
+        transform: rotate(225deg) translateY(1px);
+        opacity: 1;
+      }
+
       nav .links .projects-menu a {
         border-radius: 12px;
       }
 
       main {
-        padding-block: 3.5rem 5rem;
+        padding-block: 2.2rem 4rem;
       }
 
       .muted {
