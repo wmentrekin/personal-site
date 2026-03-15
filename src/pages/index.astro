@@ -1,10 +1,7 @@
 ---
 import { readFileSync } from "node:fs";
 
-import ChartFrame from "../components/ChartFrame.astro";
-import ProjectCard from "../components/ProjectCard.astro";
 import RankingsTable from "../components/RankingsTable.astro";
-import SectionBlock from "../components/SectionBlock.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
 const rankingsPath = new URL("../../public/data/cfb/latest-rankings.json", import.meta.url);
@@ -16,198 +13,210 @@ const sampleRows = rankingsPayload.rankings.slice(0, 5).map((team: Record<string
   Number(team.rating).toFixed(2),
   Number(team.delta) > 0 ? `+${team.delta}` : `${team.delta}`
 ]);
-const updatedLabel = `Season ${rankingsPayload.season}, Week ${rankingsPayload.week}`;
 ---
 
 <BaseLayout title="Wyatt Entrekin">
-  <section class="home-shell">
-    <section class="hero-grid">
-      <div class="hero-main reveal">
-        <p class="hero-kicker">Sports Analytics + Data Engineering</p>
-        <h1>Sports analytics systems built with production-minded engineering.</h1>
-        <p class="hero-text">
-          Rankings, simulations, and technical writeups designed to be reliable, inspectable, and useful.
+  <section class="home-stage">
+    <div class="home-grid">
+      <section class="hero-card reveal">
+        <p class="eyebrow">Sports Analytics + Data Engineering</p>
+        <h1>Analytics systems built with production-minded engineering.</h1>
+        <p class="hero-copy">
+          Rankings, simulations, and methodology pages designed to be reliable, inspectable, and useful.
         </p>
         <div class="hero-actions">
           <a class="hero-link primary" href="/projects">Browse Projects</a>
-          <a class="hero-link" href="/about">Background</a>
+          <a class="hero-link" href="/about">About</a>
         </div>
-      </div>
+        <dl class="hero-meta">
+          <div>
+            <dt>Focus</dt>
+            <dd>Optimization, pipelines, technical writing</dd>
+          </div>
+          <div>
+            <dt>Current build</dt>
+            <dd>Artifact-first sports analytics portfolio</dd>
+          </div>
+        </dl>
+      </section>
 
-      <aside class="hero-rail reveal">
-        <div class="signal-card">
-          <p class="signal-label">Current Focus</p>
-          <ul>
-            <li>Optimization-based sports ratings</li>
-            <li>Artifact-first delivery for reliability</li>
-            <li>Methodology pages that explain the system</li>
-          </ul>
+      <section class="snapshot-card reveal">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow accent-football">CFB Snapshot</p>
+            <h2>Latest Rankings</h2>
+          </div>
+          <p class="meta-note">S{rankingsPayload.season} W{rankingsPayload.week}</p>
         </div>
-      </aside>
-    </section>
+        <RankingsTable headers={["Rank", "Team", "Record", "Rating", "Delta"]} rows={sampleRows} />
+      </section>
 
-    <section class="featured-panel reveal">
-      <div class="featured-copy">
-        <p class="featured-label">Featured Project</p>
+      <article class="feature-card tone-football reveal">
+        <p class="eyebrow accent-football">Featured Project</p>
         <h2>CFB Rankings</h2>
-        <p>
-          Weekly college football rankings powered by a convex quadratic program and published as static artifacts.
-        </p>
-      </div>
-      <div class="featured-meta">
-        <div>
-          <span>Model</span>
-          <strong>Convex quadratic program</strong>
+        <p>Convex quadratic rankings published weekly with static artifacts and methodology documentation.</p>
+        <div class="card-links">
+          <a href="/projects/cfb-rankings">Project</a>
+          <a href="/projects/cfb-rankings/methodology">Methodology</a>
         </div>
-        <div>
-          <span>Delivery</span>
-          <strong>Static artifacts + public UI</strong>
-        </div>
-        <div>
-          <span>Ops</span>
-          <strong>Automated weekly refreshes</strong>
-        </div>
-      </div>
-      <div class="featured-actions">
-        <a href="/projects/cfb-rankings">Open project</a>
-        <a href="/projects/cfb-rankings/methodology">Read methodology</a>
-      </div>
-    </section>
-
-    <SectionBlock
-      id="projects"
-      eyebrow="Selected Work"
-      title="Projects"
-      intro="Systems, not just screenshots."
-    >
-      <div class="project-grid">
-        <ProjectCard
-          href="/projects/cfb-rankings"
-          title="CFB Rankings"
-          eyebrow="Sports Analytics"
-          status="Active"
-          tone="football"
-          summary="Weekly college football rankings with automated ingestion, optimization, publication, and static artifact resilience."
-          tags={["Optimization", "Pipelines", "Astro", "Public UI"]}
-        >
-          <a slot="actions" class="card-link" href="/projects/cfb-rankings/methodology">Methodology</a>
-        </ProjectCard>
-
-        <ProjectCard
-          href="/projects/cfb-rankings/methodology"
-          title="Methodology Articles"
-          eyebrow="Long-form Technical Writing"
-          status="Docs"
-          tone="article"
-          summary="Mathematical documentation, implementation notes, and rationale written to make the model inspectable and critiqueable."
-          tags={["Equations", "Assumptions", "Documentation"]}
-        />
-
-        <ProjectCard
-          href="/projects/2020-election-model"
-          title="2020 Election Model"
-          eyebrow="Archive"
-          status="Archived"
-          tone="archive"
-          summary="An earlier forecasting project preserved as a full archive, including original writeup, map output, and result tables."
-          tags={["Forecasting", "Statistics", "Historical Snapshot"]}
-        />
-      </div>
-    </SectionBlock>
-
-    <section class="analytics-grid reveal">
-      <ChartFrame
-        title="Rankings Snapshot"
-        subtitle="The shared table pattern for rankings, deltas, and future simulation outputs."
-        source="Static artifact"
-        updatedAt={updatedLabel}
-      >
-        <RankingsTable
-          headers={["Rank", "Team", "Record", "Rating", "Delta"]}
-          rows={sampleRows}
-        />
-      </ChartFrame>
-
-      <article class="compact-note">
-        <p class="signal-label">What This Site Is For</p>
-        <p>
-          A compact portfolio for sports analytics, methodology articles, and data engineering case studies.
-        </p>
-        <a href="/about">Read background</a>
       </article>
-    </section>
+
+      <article class="feature-card tone-method reveal">
+        <p class="eyebrow accent-method">Documentation</p>
+        <h2>Methodology</h2>
+        <p>Long-form technical writing for equations, assumptions, architecture, and implementation details.</p>
+        <div class="card-links">
+          <a href="/projects/cfb-rankings/methodology">Read Article</a>
+        </div>
+      </article>
+
+      <article class="feature-card tone-archive reveal">
+        <p class="eyebrow accent-archive">Archive</p>
+        <h2>2020 Election Model</h2>
+        <p>A preserved forecasting project with original narrative, result tables, and map output.</p>
+        <div class="card-links">
+          <a href="/projects/2020-election-model">Open Archive</a>
+        </div>
+      </article>
+    </div>
   </section>
 
   <style>
-    .home-shell {
+    .home-stage {
+      min-height: calc(100svh - 8.2rem);
       display: grid;
-      gap: 2.4rem;
+      align-items: stretch;
     }
 
-    .hero-grid {
+    .home-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 0.9fr);
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-template-rows: minmax(0, 1.05fr) minmax(0, 0.8fr);
       gap: 1rem;
-      align-items: end;
+      min-height: 100%;
     }
 
-    .hero-main {
+    .hero-card,
+    .snapshot-card,
+    .feature-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .hero-card {
+      grid-column: span 7;
       display: grid;
-      gap: 0.9rem;
-      padding-top: 0.4rem;
-      max-width: 42rem;
+      align-content: space-between;
+      gap: 1rem;
+      padding: 1.2rem 1.25rem;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(125, 211, 252, 0.12), transparent 32%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
     }
 
-    .hero-kicker,
-    .featured-label,
-    .signal-label {
+    .snapshot-card {
+      grid-column: span 5;
+      padding: 1rem;
+    }
+
+    .feature-card {
+      grid-column: span 4;
+      display: grid;
+      gap: 0.75rem;
+      align-content: start;
+      padding: 1rem 1.05rem;
+      position: relative;
+    }
+
+    .feature-card::after {
+      content: "";
+      position: absolute;
+      inset: -4rem -3rem auto auto;
+      width: 8rem;
+      height: 8rem;
+      border-radius: 999px;
+      filter: blur(18px);
+      opacity: 0.16;
+      background: var(--tone);
+    }
+
+    .tone-football {
+      --tone: var(--accent-football);
+    }
+
+    .tone-method {
+      --tone: var(--accent-method);
+    }
+
+    .tone-archive {
+      --tone: var(--accent-archive);
+    }
+
+    .eyebrow {
       margin: 0;
       color: var(--accent);
       font-family: var(--font-mono);
-      font-size: 0.8rem;
+      font-size: 0.74rem;
       font-weight: 600;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
     }
 
-    .hero-main h1 {
-      margin: 0;
+    .accent-football {
+      color: var(--accent-football);
+    }
+
+    .accent-method {
+      color: var(--accent-method);
+    }
+
+    .accent-archive {
+      color: var(--accent-archive);
+    }
+
+    .hero-card h1 {
+      margin: 0.35rem 0 0;
+      max-width: 10ch;
       font-family: var(--font-display);
-      font-size: clamp(2.6rem, 6vw, 4.9rem);
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
       line-height: 0.94;
       letter-spacing: -0.06em;
-      max-width: 11ch;
       text-wrap: balance;
     }
 
-    .hero-text {
+    .hero-copy {
       margin: 0;
-      max-width: 34rem;
+      max-width: 32rem;
       color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.7;
+      font-size: 0.98rem;
+      line-height: 1.65;
     }
 
     .hero-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 0.7rem;
-      margin-top: 0.1rem;
     }
 
     .hero-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 2.9rem;
-      padding: 0.6rem 1rem;
+      min-height: 2.8rem;
+      padding: 0.55rem 0.95rem;
       border-radius: 999px;
       border: 1px solid var(--line-strong);
       background: rgba(255, 255, 255, 0.03);
       color: var(--text);
       text-decoration: none;
       font-weight: 600;
-      transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+      transition: transform 180ms ease, border-color 180ms ease;
     }
 
     .hero-link.primary {
@@ -220,188 +229,87 @@ const updatedLabel = `Season ${rankingsPayload.season}, Week ${rankingsPayload.w
       border-color: rgba(125, 211, 252, 0.34);
     }
 
-    .hero-rail {
+    .hero-meta {
       display: grid;
-      gap: 0.8rem;
-      padding-top: 0;
-    }
-
-    .signal-card {
-      padding: 1rem;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--line);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
-        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
-      box-shadow: var(--shadow-card);
-    }
-
-    .signal-card ul,
-    .signal-card dl {
-      margin: 0.8rem 0 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      gap: 0.85rem;
-    }
-
-    .signal-card li,
-    .signal-card dd {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
       margin: 0;
-      color: var(--text-soft);
-      line-height: 1.7;
     }
 
-    .signal-card li {
-      padding-top: 0.7rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .signal-card dt {
-      color: var(--muted);
-      font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 0.25rem;
-    }
-
-    .featured-panel {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(0, 0.85fr));
-      gap: 1rem;
-      padding: 1.15rem;
-      border-radius: 1.5rem;
-      border: 1px solid rgba(163, 230, 53, 0.18);
-      background:
-        radial-gradient(circle at 0% 0%, rgba(163, 230, 53, 0.1), transparent 30%),
-        linear-gradient(160deg, rgba(18, 29, 25, 0.96), rgba(10, 16, 20, 0.98));
-      box-shadow: var(--shadow-card);
-    }
-
-    .featured-copy h2 {
-      margin: 0.3rem 0 0.55rem;
-      font-family: var(--font-display);
-      font-size: clamp(1.7rem, 3vw, 2.6rem);
-      line-height: 1;
-      letter-spacing: -0.05em;
-    }
-
-    .featured-copy p:last-child {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.65;
-      max-width: 30rem;
-    }
-
-    .featured-meta {
-      display: grid;
-      gap: 0.9rem;
-    }
-
-    .featured-meta div,
-    .featured-actions {
-      padding: 0.85rem;
+    .hero-meta div {
+      padding: 0.8rem 0.9rem;
       border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
     }
 
-    .featured-meta span {
-      display: block;
-      margin-bottom: 0.45rem;
+    .hero-meta dt {
       color: var(--muted);
       font-family: var(--font-mono);
-      font-size: 0.72rem;
-      text-transform: uppercase;
+      font-size: 0.7rem;
       letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    .featured-meta strong {
-      font-size: 0.94rem;
-      line-height: 1.45;
+    .hero-meta dd {
+      margin: 0.4rem 0 0;
+      color: var(--text-soft);
+      font-size: 0.9rem;
+      line-height: 1.55;
     }
 
-    .featured-actions {
+    .card-head {
       display: flex;
-      flex-direction: column;
+      align-items: end;
       justify-content: space-between;
-      gap: 0.8rem;
-    }
-
-    .featured-actions a,
-    .about-band a {
-      position: relative;
-      width: fit-content;
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .featured-actions a::after,
-    .about-band a::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      bottom: -0.15rem;
-      width: 100%;
-      height: 1px;
-      background: currentColor;
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 180ms ease;
-    }
-
-    .featured-actions a:hover::after,
-    .about-band a:hover::after {
-      transform: scaleX(1);
-    }
-
-    .project-grid,
-    .analytics-grid {
-      display: grid;
-      gap: 1rem;
-    }
-
-    .project-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .analytics-grid {
-      grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.65fr);
-    }
-
-    .compact-note {
-      display: grid;
       gap: 0.75rem;
-      align-content: start;
-      padding: 1.05rem;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--line);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
-        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
-      box-shadow: var(--shadow-card);
+      margin-bottom: 0.75rem;
     }
 
-    .compact-note p {
+    .card-head h2,
+    .feature-card h2 {
+      margin: 0.35rem 0 0;
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .meta-note {
       margin: 0;
       color: var(--muted);
-      line-height: 1.65;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
     }
 
-    .compact-note a {
+    .feature-card p:not(.eyebrow) {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.6;
+      max-width: 28rem;
+    }
+
+    .card-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-top: 0.1rem;
+    }
+
+    .card-links a {
+      position: relative;
       color: var(--text);
       text-decoration: none;
       font-weight: 600;
-      position: relative;
       width: fit-content;
     }
 
-    .compact-note a::after {
+    .card-links a::after {
       content: "";
       position: absolute;
       left: 0;
-      bottom: -0.14rem;
+      bottom: -0.12rem;
       width: 100%;
       height: 1px;
       background: currentColor;
@@ -410,33 +318,39 @@ const updatedLabel = `Season ${rankingsPayload.season}, Week ${rankingsPayload.w
       transition: transform 180ms ease;
     }
 
-    .compact-note a:hover::after {
+    .card-links a:hover::after {
       transform: scaleX(1);
     }
 
-    @media (max-width: 1100px) {
-      .featured-panel,
-      .project-grid,
-      .analytics-grid {
+    @media (max-width: 1080px) {
+      .home-stage {
+        min-height: auto;
+      }
+
+      .home-grid {
         grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+
+      .hero-card,
+      .snapshot-card,
+      .feature-card {
+        grid-column: auto;
       }
     }
 
-    @media (max-width: 900px) {
-      .home-shell {
-        gap: 2rem;
+    @media (max-width: 720px) {
+      .hero-card h1 {
+        max-width: 100%;
       }
 
-      .hero-grid {
+      .hero-meta {
         grid-template-columns: 1fr;
       }
 
-      .hero-main {
-        padding-top: 0.4rem;
-      }
-
-      .hero-main h1 {
-        max-width: 100%;
+      .card-head {
+        align-items: start;
+        flex-direction: column;
       }
     }
   </style>
