@@ -1,168 +1,120 @@
 ---
-import { readFileSync } from "node:fs";
-
-import RankingsTable from "../components/RankingsTable.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-
-const rankingsPath = new URL("../../public/data/cfb/latest-rankings.json", import.meta.url);
-const rankingsPayload = JSON.parse(readFileSync(rankingsPath, "utf-8"));
-const sampleRows = rankingsPayload.rankings.slice(0, 5).map((team: Record<string, string | number>) => [
-  team.rank,
-  team.team,
-  team.record,
-  Number(team.rating).toFixed(2),
-  Number(team.delta) > 0 ? `+${team.delta}` : `${team.delta}`
-]);
 ---
 
 <BaseLayout title="Wyatt Entrekin">
   <section class="home-stage">
-    <div class="home-grid">
-      <section class="hero-card reveal">
-        <p class="eyebrow">Sports Analytics + Data Engineering</p>
-        <h1>Analytics systems built with production-minded engineering.</h1>
-        <p class="hero-copy">
-          Rankings, simulations, and methodology pages designed to be reliable, inspectable, and useful.
-        </p>
-        <div class="hero-actions">
-          <a class="hero-link primary" href="/projects">Browse Projects</a>
-          <a class="hero-link" href="/about">About</a>
+    <div class="home-frame">
+      <section class="intro-card reveal">
+        <div class="intro-copy">
+          <p class="eyebrow">Wyatt Entrekin</p>
+          <h1>Sports analytics and data engineering portfolio.</h1>
+          <p class="intro-text">
+            I build technical projects around rankings, optimization, data pipelines, and methodology.
+          </p>
+          <p class="intro-text">
+            The work here is meant to be concise, inspectable, and useful.
+          </p>
         </div>
-        <dl class="hero-meta">
+
+        <div class="social-row">
+          <a href="/projects">Projects</a>
+          <a href="/about">About</a>
+          <a href="https://github.com/wmentrekin" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://www.linkedin.com/in/wentrekin/" target="_blank" rel="noreferrer">LinkedIn</a>
+          <a href="mailto:wmentrekin@gmail.com">Email</a>
+        </div>
+
+        <div class="meta-strip">
           <div>
-            <dt>Focus</dt>
-            <dd>Optimization, pipelines, technical writing</dd>
+            <span>Focus</span>
+            <strong>Optimization, pipelines, technical writing</strong>
           </div>
           <div>
-            <dt>Current build</dt>
-            <dd>Artifact-first sports analytics portfolio</dd>
+            <span>Based in</span>
+            <strong>Atlanta, GA</strong>
           </div>
-        </dl>
+        </div>
       </section>
 
-      <section class="snapshot-card reveal">
-        <div class="card-head">
-          <div>
-            <p class="eyebrow accent-football">CFB Snapshot</p>
-            <h2>Latest Rankings</h2>
-          </div>
-          <p class="meta-note">S{rankingsPayload.season} W{rankingsPayload.week}</p>
-        </div>
-        <RankingsTable headers={["Rank", "Team", "Record", "Rating", "Delta"]} rows={sampleRows} />
+      <section class="link-grid">
+        <a class="link-tile tone-football reveal" href="/projects/cfb-rankings">
+          <p class="eyebrow accent-football">Featured</p>
+          <h2>CFB Rankings</h2>
+          <p>Weekly college football ratings.</p>
+        </a>
+
+        <a class="link-tile tone-method reveal" href="/projects/cfb-rankings/methodology">
+          <p class="eyebrow accent-method">Documentation</p>
+          <h2>Methodology</h2>
+          <p>Model assumptions and equations.</p>
+        </a>
+
+        <a class="link-tile tone-projects reveal" href="/projects">
+          <p class="eyebrow">Index</p>
+          <h2>All Projects</h2>
+          <p>Portfolio index and archive.</p>
+        </a>
+
+        <a class="link-tile tone-about reveal" href="/about">
+          <p class="eyebrow">Profile</p>
+          <h2>About</h2>
+          <p>Background and experience.</p>
+        </a>
+
+        <a class="link-tile tone-election reveal" href="/projects/2020-election-model">
+          <p class="eyebrow accent-archive">Archive</p>
+          <h2>2020 Election Model</h2>
+          <p>Forecasting project archive.</p>
+        </a>
+
+        <a class="link-tile tone-repo reveal" href="https://github.com/wmentrekin" target="_blank" rel="noreferrer">
+          <p class="eyebrow">External</p>
+          <h2>GitHub</h2>
+          <p>Source code and repositories.</p>
+        </a>
       </section>
-
-      <article class="feature-card tone-football reveal">
-        <p class="eyebrow accent-football">Featured Project</p>
-        <h2>CFB Rankings</h2>
-        <p>Convex quadratic rankings published weekly with static artifacts and methodology documentation.</p>
-        <div class="card-links">
-          <a href="/projects/cfb-rankings">Project</a>
-          <a href="/projects/cfb-rankings/methodology">Methodology</a>
-        </div>
-      </article>
-
-      <article class="feature-card tone-method reveal">
-        <p class="eyebrow accent-method">Documentation</p>
-        <h2>Methodology</h2>
-        <p>Long-form technical writing for equations, assumptions, architecture, and implementation details.</p>
-        <div class="card-links">
-          <a href="/projects/cfb-rankings/methodology">Read Article</a>
-        </div>
-      </article>
-
-      <article class="feature-card tone-archive reveal">
-        <p class="eyebrow accent-archive">Archive</p>
-        <h2>2020 Election Model</h2>
-        <p>A preserved forecasting project with original narrative, result tables, and map output.</p>
-        <div class="card-links">
-          <a href="/projects/2020-election-model">Open Archive</a>
-        </div>
-      </article>
     </div>
   </section>
 
   <style>
     .home-stage {
-      min-height: calc(100svh - 8.2rem);
+      min-height: calc(100svh - 7.4rem);
       display: grid;
       align-items: stretch;
     }
 
-    .home-grid {
+    .home-frame {
       display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      grid-template-rows: minmax(0, 1.05fr) minmax(0, 0.8fr);
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
       gap: 1rem;
       min-height: 100%;
     }
 
-    .hero-card,
-    .snapshot-card,
-    .feature-card {
+    .intro-card,
+    .link-tile {
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
-        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
       box-shadow: var(--shadow-card);
       overflow: hidden;
     }
 
-    .hero-card {
-      grid-column: span 7;
+    .intro-card {
       display: grid;
       align-content: space-between;
-      gap: 1rem;
+      gap: 1.2rem;
       padding: 1.2rem 1.25rem;
       background:
-        radial-gradient(circle at 0% 0%, rgba(125, 211, 252, 0.12), transparent 32%),
+        radial-gradient(circle at top left, rgba(125, 211, 252, 0.12), transparent 30%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
         linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
-    }
-
-    .snapshot-card {
-      grid-column: span 5;
-      padding: 1rem;
-    }
-
-    .feature-card {
-      grid-column: span 4;
-      display: grid;
-      gap: 0.75rem;
-      align-content: start;
-      padding: 1rem 1.05rem;
-      position: relative;
-    }
-
-    .feature-card::after {
-      content: "";
-      position: absolute;
-      inset: -4rem -3rem auto auto;
-      width: 8rem;
-      height: 8rem;
-      border-radius: 999px;
-      filter: blur(18px);
-      opacity: 0.16;
-      background: var(--tone);
-    }
-
-    .tone-football {
-      --tone: var(--accent-football);
-    }
-
-    .tone-method {
-      --tone: var(--accent-method);
-    }
-
-    .tone-archive {
-      --tone: var(--accent-archive);
     }
 
     .eyebrow {
       margin: 0;
       color: var(--accent);
       font-family: var(--font-mono);
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -180,146 +132,130 @@ const sampleRows = rankingsPayload.rankings.slice(0, 5).map((team: Record<string
       color: var(--accent-archive);
     }
 
-    .hero-card h1 {
+    .intro-card h1 {
       margin: 0.35rem 0 0;
-      max-width: 10ch;
+      max-width: 8.5ch;
       font-family: var(--font-display);
-      font-size: clamp(2.5rem, 5vw, 4.5rem);
-      line-height: 0.94;
+      font-size: clamp(2.6rem, 5vw, 4.5rem);
+      line-height: 0.93;
       letter-spacing: -0.06em;
       text-wrap: balance;
     }
 
-    .hero-copy {
-      margin: 0;
-      max-width: 32rem;
+    .intro-text {
+      margin: 0.8rem 0 0;
+      max-width: 31rem;
       color: var(--muted);
       font-size: 0.98rem;
-      line-height: 1.65;
+      line-height: 1.68;
     }
 
-    .hero-actions {
+    .social-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.7rem;
+      gap: 0.65rem;
     }
 
-    .hero-link {
+    .social-row a {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 2.8rem;
-      padding: 0.55rem 0.95rem;
+      min-height: 2.5rem;
+      padding: 0.5rem 0.85rem;
       border-radius: 999px;
       border: 1px solid var(--line-strong);
       background: rgba(255, 255, 255, 0.03);
       color: var(--text);
       text-decoration: none;
+      font-size: 0.9rem;
       font-weight: 600;
-      transition: transform 180ms ease, border-color 180ms ease;
+      transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
     }
 
-    .hero-link.primary {
-      background: linear-gradient(135deg, rgba(125, 211, 252, 0.22), rgba(96, 165, 250, 0.12));
-      border-color: rgba(125, 211, 252, 0.24);
-    }
-
-    .hero-link:hover {
+    .social-row a:hover {
       transform: translateY(-2px);
       border-color: rgba(125, 211, 252, 0.34);
+      background: rgba(255, 255, 255, 0.05);
     }
 
-    .hero-meta {
+    .meta-strip {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.75rem;
-      margin: 0;
     }
 
-    .hero-meta div {
+    .meta-strip div {
       padding: 0.8rem 0.9rem;
       border-radius: var(--radius-md);
       border: 1px solid rgba(255, 255, 255, 0.06);
       background: rgba(255, 255, 255, 0.03);
     }
 
-    .hero-meta dt {
+    .meta-strip span {
+      display: block;
+      margin-bottom: 0.35rem;
       color: var(--muted);
       font-family: var(--font-mono);
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
-    .hero-meta dd {
-      margin: 0.4rem 0 0;
+    .meta-strip strong {
       color: var(--text-soft);
       font-size: 0.9rem;
       line-height: 1.55;
     }
 
-    .card-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 0.75rem;
-      margin-bottom: 0.75rem;
+    .link-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
     }
 
-    .card-head h2,
-    .feature-card h2 {
-      margin: 0.35rem 0 0;
+    .link-tile {
+      display: grid;
+      align-content: end;
+      gap: 0.55rem;
+      min-height: 9.75rem;
+      padding: 1rem;
+      position: relative;
+      text-decoration: none;
+      color: var(--text);
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .link-tile::after {
+      content: "";
+      position: absolute;
+      inset: -4rem -3rem auto auto;
+      width: 8rem;
+      height: 8rem;
+      border-radius: 999px;
+      filter: blur(18px);
+      opacity: 0.14;
+      background: var(--tone, var(--accent));
+    }
+
+    .link-tile:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .link-tile h2 {
+      margin: 0;
       font-family: var(--font-display);
-      font-size: 1.35rem;
+      font-size: 1.2rem;
       line-height: 1;
       letter-spacing: -0.03em;
     }
 
-    .meta-note {
+    .link-tile p:not(.eyebrow) {
       margin: 0;
       color: var(--muted);
-      font-family: var(--font-mono);
-      font-size: 0.76rem;
-    }
-
-    .feature-card p:not(.eyebrow) {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.94rem;
-      line-height: 1.6;
-      max-width: 28rem;
-    }
-
-    .card-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.9rem;
-      margin-top: 0.1rem;
-    }
-
-    .card-links a {
-      position: relative;
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 600;
-      width: fit-content;
-    }
-
-    .card-links a::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      bottom: -0.12rem;
-      width: 100%;
-      height: 1px;
-      background: currentColor;
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 180ms ease;
-    }
-
-    .card-links a:hover::after {
-      transform: scaleX(1);
+      font-size: 0.9rem;
+      line-height: 1.55;
     }
 
     @media (max-width: 1080px) {
@@ -327,30 +263,19 @@ const sampleRows = rankingsPayload.rankings.slice(0, 5).map((team: Record<string
         min-height: auto;
       }
 
-      .home-grid {
+      .home-frame {
         grid-template-columns: 1fr;
-        grid-template-rows: auto;
-      }
-
-      .hero-card,
-      .snapshot-card,
-      .feature-card {
-        grid-column: auto;
       }
     }
 
     @media (max-width: 720px) {
-      .hero-card h1 {
+      .intro-card h1 {
         max-width: 100%;
       }
 
-      .hero-meta {
+      .meta-strip,
+      .link-grid {
         grid-template-columns: 1fr;
-      }
-
-      .card-head {
-        align-items: start;
-        flex-direction: column;
       }
     }
   </style>
