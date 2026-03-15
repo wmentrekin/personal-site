@@ -10,18 +10,6 @@ const {
   title,
   description = "Sports analytics, data engineering, and technical portfolio work by Wyatt Entrekin."
 } = Astro.props;
-
-const pathname = Astro.url.pathname;
-const projectLinks = [
-  { href: "/projects/cfb-rankings", label: "CFB Rankings" },
-  { href: "/projects/2020-election-model", label: "2020 Election Model" }
-];
-const projectsActive = pathname === "/projects" || pathname.startsWith("/projects/");
-
-function isActive(href: string): boolean {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 ---
 
 <!doctype html>
@@ -100,155 +88,14 @@ function isActive(href: string): boolean {
         color: inherit;
       }
 
-      header {
-        position: sticky;
-        top: 0;
-        z-index: 30;
-        border-bottom: 1px solid var(--line);
-        background: rgba(10, 15, 20, 0.72);
-        backdrop-filter: blur(18px) saturate(135%);
-      }
-
       .container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 0 1.4rem;
       }
 
-      nav {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-        min-height: 4.1rem;
-      }
-
-      .brand {
-        color: var(--text);
-        text-decoration: none;
-        font-family: var(--font-display);
-        font-size: 1rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-      }
-
-      nav .links {
-        display: flex;
-        align-items: center;
-        gap: 0.2rem;
-        flex-wrap: wrap;
-      }
-
-      nav .links a,
-      nav .links .projects-trigger {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        min-height: 2.35rem;
-        padding: 0.3rem 0.78rem;
-        border-radius: 999px;
-        border: 1px solid transparent;
-        color: var(--muted);
-        text-decoration: none;
-        font-size: 0.94rem;
-        font-weight: 500;
-        transition:
-          color 180ms ease,
-          background-color 180ms ease,
-          border-color 180ms ease,
-          transform 180ms ease;
-      }
-
-      nav .links a::after {
-        content: "";
-        position: absolute;
-        left: 0.85rem;
-        right: 0.85rem;
-        bottom: 0.42rem;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, currentColor, transparent);
-        transform: scaleX(0.2);
-        opacity: 0;
-        transition: transform 180ms ease, opacity 180ms ease;
-      }
-
-      nav .links a:hover,
-      nav .links .projects-trigger:hover,
-      nav .links .projects-nav:focus-within .projects-trigger {
-        color: var(--text);
-        background: rgba(255, 255, 255, 0.03);
-        border-color: rgba(255, 255, 255, 0.06);
-      }
-
-      nav .links a:hover::after,
-      nav .links a.active::after,
-      nav .links .projects-trigger:hover::before,
-      nav .links .projects-nav:focus-within .projects-trigger::before,
-      nav .links .projects-nav.active .projects-trigger::before {
-        opacity: 1;
-        transform: scaleX(1);
-      }
-
-      nav .links a.active,
-      nav .links .projects-nav.active .projects-trigger {
-        color: var(--text);
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.08);
-      }
-
-      nav .links .projects-nav {
-        position: relative;
-        padding-bottom: 0.35rem;
-        margin-bottom: -0.35rem;
-      }
-
-      nav .links .projects-trigger {
-        user-select: none;
-      }
-
-      nav .links .projects-trigger::after {
-        content: "";
-        width: 0.42rem;
-        height: 0.42rem;
-        margin-left: 0.48rem;
-        border-right: 1.5px solid currentColor;
-        border-bottom: 1.5px solid currentColor;
-        transform: rotate(45deg) translateY(-1px);
-        opacity: 0.7;
-        transition: transform 180ms ease, opacity 180ms ease;
-      }
-
-      nav .links .projects-menu {
-        position: absolute;
-        top: calc(100% - 0.05rem);
-        right: 0;
-        display: none;
-        min-width: 15rem;
-        padding: 0.5rem;
-        border: 1px solid var(--line-strong);
-        border-radius: 18px;
-        background: rgba(12, 18, 25, 0.96);
-        box-shadow: var(--shadow-card);
-      }
-
-      nav .links .projects-nav:hover .projects-menu,
-      nav .links .projects-nav:focus-within .projects-menu {
-        display: grid;
-      }
-
-      nav .links .projects-nav:hover .projects-trigger::after,
-      nav .links .projects-nav:focus-within .projects-trigger::after,
-      nav .links .projects-nav.active .projects-trigger::after {
-        transform: rotate(225deg) translateY(1px);
-        opacity: 1;
-      }
-
-      nav .links .projects-menu a {
-        border-radius: 12px;
-      }
-
       main {
-        padding-block: 2.2rem 4rem;
+        padding-block: 1.5rem 3rem;
       }
 
       .muted {
@@ -345,18 +192,6 @@ function isActive(href: string): boolean {
       @media (max-width: 820px) {
         .grid {
           grid-template-columns: 1fr;
-        }
-
-        nav {
-          align-items: flex-start;
-          flex-direction: column;
-          padding-block: 0.9rem;
-        }
-
-        nav .links .projects-menu {
-          position: static;
-          min-width: 0;
-          margin-top: 0.36rem;
         }
       }
     </style>
@@ -501,27 +336,6 @@ function isActive(href: string): boolean {
     </style>
   </head>
   <body>
-    <header>
-      <div class="container">
-        <nav>
-          <a class="brand" href="/">Wyatt Entrekin</a>
-          <div class="links">
-            <a href="/" class={isActive("/") ? "active" : ""}>Home</a>
-            <div class={`projects-nav ${projectsActive ? "active" : ""}`} tabindex="0">
-              <a href="/projects" class="projects-trigger">Projects</a>
-              <div class="projects-menu">
-                {
-                  projectLinks.map((link) => (
-                    <a href={link.href} class={isActive(link.href) ? "active" : ""}>{link.label}</a>
-                  ))
-                }
-              </div>
-            </div>
-            <a href="/about" class={isActive("/about") ? "active" : ""}>About</a>
-          </div>
-        </nav>
-      </div>
-    </header>
     <main class="container">
       <slot />
     </main>
