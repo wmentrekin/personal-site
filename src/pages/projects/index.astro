@@ -34,16 +34,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               ></path>
             </svg>
           </a>
-          <a slot="actions" class="card-link" href="/projects/cfb-rankings/methodology">Methodology</a>
-          <a
-            slot="actions"
-            class="card-link"
-            href="https://cfb-rankings-wmentrekin.streamlit.app/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Original Site
-          </a>
         </ProjectCard>
       </div>
 
@@ -73,29 +63,66 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               ></path>
             </svg>
           </a>
+        </ProjectCard>
+      </div>
+
+      <div class="frame-tile">
+        <ProjectCard
+          href="https://github.com/wmentrekin/cbb-rankings"
+          title="College Basketball Rankings"
+          eyebrow="In Progress"
+          status="In Progress"
+          tone="basketball"
+          summary="An in-progress adaptation of the college football optimization framework for college basketball."
+          tags={["Basketball", "Optimization", "Sports Analytics", "Python"]}
+        >
           <a
+            class="card-link icon-link"
             slot="actions"
-            class="card-link"
-            href="https://wmentrekin.github.io/2020election/"
+            href="https://github.com/wmentrekin/cbb-rankings"
             target="_blank"
             rel="noreferrer"
+            aria-label="College Basketball Rankings repository"
+            title="Repository"
           >
-            Original Site
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 2C6.48 2 2 6.58 2 12.24c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-1.05-.01-1.9-2.78.62-3.37-1.21-3.37-1.21-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.55-1.14-4.55-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.86c.85 0 1.71.12 2.51.35 1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.33 4.8-4.56 5.05.36.32.68.95.68 1.92 0 1.39-.01 2.5-.01 2.84 0 .27.18.59.69.49A10.13 10.13 0 0 0 22 12.24C22 6.58 17.52 2 12 2Z"
+                fill="currentColor"
+              ></path>
+            </svg>
           </a>
         </ProjectCard>
       </div>
 
-      <article class="placeholder-card frame-tile reveal">
-        <p class="placeholder-eyebrow">Planned</p>
-        <h2>College Basketball Rankings</h2>
-        <p class="placeholder-copy">Future rankings model adapted from the college football framework.</p>
-      </article>
-
-      <article class="placeholder-card frame-tile reveal">
-        <p class="placeholder-eyebrow">Planned</p>
-        <h2>Memphis Grizzlies Asset Lineage</h2>
-        <p class="placeholder-copy">A roster and pick-tracking project built around timelines and network views.</p>
-      </article>
+      <div class="frame-tile">
+        <ProjectCard
+          href="https://github.com/wmentrekin/nba-asset-lineage"
+          title="Memphis Grizzlies Asset Lineage"
+          eyebrow="In Progress"
+          status="In Progress"
+          tone="basketball"
+          summary="A Grizzlies project tracing roster and draft-pick asset movement through timelines and network-style views."
+          tags={["NBA", "Data Visualization", "Basketball", "Analytics"]}
+        >
+          <a
+            class="card-link icon-link"
+            slot="actions"
+            href="https://github.com/wmentrekin/nba-asset-lineage"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Memphis Grizzlies Asset Lineage repository"
+            title="Repository"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 2C6.48 2 2 6.58 2 12.24c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-1.05-.01-1.9-2.78.62-3.37-1.21-3.37-1.21-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.55-1.14-4.55-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.86c.85 0 1.71.12 2.51.35 1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.33 4.8-4.56 5.05.36.32.68.95.68 1.92 0 1.39-.01 2.5-.01 2.84 0 .27.18.59.69.49A10.13 10.13 0 0 0 22 12.24C22 6.58 17.52 2 12 2Z"
+                fill="currentColor"
+              ></path>
+            </svg>
+          </a>
+        </ProjectCard>
+      </div>
     </div>
   </section>
 
@@ -111,7 +138,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-rows: repeat(2, var(--tile-height));
-      gap: 0.9rem;
+      column-gap: 0.9rem;
+      row-gap: 1.15rem;
       width: min(100%, 72rem);
       align-items: stretch;
     }
@@ -165,6 +193,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       font-size: 0.92rem;
     }
 
+    .frame-tile :global(.card-actions > .card-link:first-child) {
+      display: none;
+    }
+
     .frame-tile :global(.icon-link) {
       display: inline-flex;
       align-items: center;
@@ -183,27 +215,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       flex: 0 0 auto;
     }
 
-    .placeholder-card {
-      position: relative;
-      display: grid;
-      align-content: start;
-      gap: 0.45rem;
-      padding: 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      border-radius: var(--radius-lg);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
-        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      transition:
-        transform 180ms ease,
-        box-shadow 180ms ease,
-        border-color 180ms ease;
-    }
-
-    .frame-tile :global(.project-card::before),
-    .placeholder-card::before {
+    .frame-tile :global(.project-card::before) {
       content: "";
       position: absolute;
       inset: 0;
@@ -228,8 +240,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       pointer-events: none;
     }
 
-    .frame-tile :global(.project-card:hover),
-    .placeholder-card:hover {
+    .frame-tile :global(.project-card:hover) {
       transform: translateY(-4px);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.28),
@@ -238,32 +249,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       border-color: rgba(255, 255, 255, 0.34);
     }
 
-    .frame-tile :global(.project-card:hover::before),
-    .placeholder-card:hover::before {
+    .frame-tile :global(.project-card:hover::before) {
       opacity: 1;
-    }
-
-    .placeholder-eyebrow {
-      margin: 0;
-      color: rgba(150, 169, 188, 0.7);
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .placeholder-card h2 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: 1.2rem;
-      line-height: 1.05;
-      letter-spacing: -0.03em;
-    }
-
-    .placeholder-copy {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.55;
     }
 
     @media (max-width: 980px) {
@@ -278,7 +265,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       }
 
       .frame-tile :global(.project-card),
-      .placeholder-card {
+      .frame-tile {
         height: auto;
         min-height: 14rem;
       }
