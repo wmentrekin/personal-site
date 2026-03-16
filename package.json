@@ -13,9 +13,7 @@
   },
   "dependencies": {
     "astro": "^5.2.0",
-    "globe.gl": "^2.45.1",
-    "topojson-client": "^3.1.0",
-    "world-atlas": "^2.0.2"
+    "d3-geo": "^3.1.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",

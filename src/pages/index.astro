@@ -52,21 +52,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               ></path>
             </svg>
           </a>
-          <!-- <a href="https://www.strava.com/athletes/135437583" target="_blank" rel="noreferrer">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M10.42 2 5.63 11.37h2.83L10.42 7l1.99 4.37h2.83L10.42 2Zm5.11 9.37-1.96 3.84-1.16-2.28H9.58L13.57 21l5.9-11.55h-3.94Z"
-                fill="currentColor"
-              ></path>
-            </svg>
-          </a>
-          <a href="https://hevy.com/profile" target="_blank" rel="noreferrer">
-            <img
-              src="https://www.hevyapp.com/wp-content/uploads/logo-hevy-black.svg"
-              alt="Hevy"
-              loading="lazy"
-            />
-          </a> -->
         </div>
 
         <p class="focus-line">
@@ -116,12 +101,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <a class="link-tile tile-now tone-now reveal" href="/now">
         <p class="eyebrow">Current</p>
         <h2>Now</h2>
-        <p>what I&apos;m focused on at the moment</p>
+        <p>what I&apos;m up to</p>
       </a>
       <a class="link-tile tile-travel tone-travel reveal" href="/travel">
         <p class="eyebrow">Map</p>
         <h2>Travel</h2>
-        <p>places I&apos;ve been and where I want to go next</p>
+        <p>where I&apos;ve been</p>
       </a>
       <article class="placeholder-tile reveal">
         <p class="eyebrow">Placeholder</p>
@@ -129,6 +114,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <article class="placeholder-tile reveal">
         <p class="eyebrow">Placeholder</p>
       </article>
+
+      <p class="site-note reveal">Built with Astro.</p>
     </div>
   </section>
 
@@ -407,6 +394,21 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       color: rgba(150, 169, 188, 0.7);
     }
 
+    .site-note {
+      margin: 0;
+      align-self: end;
+      justify-self: end;
+      grid-column: 4;
+      grid-row: 3;
+      padding: 0 0.1rem 0.05rem 0;
+      color: rgba(150, 169, 188, 0.82);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
     @media (max-width: 1080px) {
       .home-stage {
         min-height: auto;
@@ -425,9 +427,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       .tile-travel,
       .tile-projects,
       .tile-about,
-      .placeholder-tile {
+      .placeholder-tile,
+      .site-note {
         grid-column: auto;
         grid-row: auto;
+      }
+
+      .site-note {
+        justify-self: start;
+        padding: 0.15rem 0 0;
       }
     }
 

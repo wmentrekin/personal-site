@@ -22,6 +22,10 @@ const entries = [
   <section class="now-shell">
     <section class="now-hero reveal">
       <p class="hero-kicker">Now</p>
+      <p class="hero-text">
+        This is a snapshot of what I&apos;m currently focused on rather than a full archive. The format comes from the
+        <a href="https://nownownow.com/about" target="_blank" rel="noreferrer">now page idea</a>.
+      </p>
       <p class="hero-meta">Last updated {lastUpdated}</p>
     </section>
 
@@ -84,6 +88,11 @@ const entries = [
       max-width: 40rem;
       color: var(--muted);
       line-height: 1.7;
+    }
+
+    .hero-text a {
+      color: var(--text);
+      text-underline-offset: 0.16em;
     }
 
     .hero-meta {
