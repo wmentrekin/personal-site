@@ -1,0 +1,280 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const visited = [
+  "United States",
+  "Mexico",
+  "Peru",
+  "Puerto Rico",
+  "Dominican Republic",
+  "Italy",
+  "Spain",
+  "France",
+  "Netherlands",
+  "United Kingdom",
+  "Germany",
+  "Austria",
+  "Iceland",
+  "Ireland",
+  "Vatican City",
+  "United States Virgin Islands",
+  "Costa Rica",
+  "Jamaica",
+  "Bahamas",
+  "Cayman Islands"
+];
+
+const nextUp = ["Vietnam"];
+---
+
+<BaseLayout
+  title="Travel | Wyatt Entrekin"
+  description="Travel log and future travel visualization work by Wyatt Entrekin."
+>
+  <section class="travel-shell">
+    <section class="travel-hero reveal">
+      <p class="hero-kicker">Travel</p>
+      <h1>Places I&apos;ve been, plus the map I want to build next.</h1>
+      <p class="hero-text">
+        This page will eventually hold an interactive travel visualization, likely a globe with visited countries
+        highlighted. For now, it acts as the landing page and data stub for that work.
+      </p>
+    </section>
+
+    <section class="travel-grid">
+      <article class="globe-card reveal">
+        <div class="globe-wrap" aria-hidden="true">
+          <div class="globe"></div>
+          <div class="globe-ring ring-one"></div>
+          <div class="globe-ring ring-two"></div>
+        </div>
+        <div class="globe-copy">
+          <span>Visualization placeholder</span>
+          <h2>Interactive globe coming here</h2>
+          <p class="muted">
+            The final version should use a real 3D globe, country highlight states, and a clean interaction model
+            for visited, lived, and planned destinations.
+          </p>
+        </div>
+      </article>
+
+      <div class="travel-column">
+        <article class="card reveal">
+          <span class="meta-label">Visited</span>
+          <ul class="country-list">
+            {visited.map((country) => (
+              <li>{country}</li>
+            ))}
+          </ul>
+        </article>
+
+        <article class="card reveal">
+          <span class="meta-label">Next Up</span>
+          <ul class="country-list">
+            {nextUp.map((country) => (
+              <li>{country}</li>
+            ))}
+          </ul>
+        </article>
+      </div>
+    </section>
+  </section>
+
+  <style>
+    .travel-shell {
+      display: grid;
+      gap: 1.4rem;
+    }
+
+    .travel-hero {
+      display: grid;
+      gap: 0.7rem;
+      max-width: 44rem;
+      padding-top: 0.2rem;
+    }
+
+    .hero-kicker,
+    .meta-label,
+    .globe-copy span {
+      margin: 0;
+      color: var(--accent-travel);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .travel-hero h1 {
+      margin: 0;
+      max-width: 12ch;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+      text-wrap: balance;
+    }
+
+    .hero-text {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .travel-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 0.9fr);
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .globe-card {
+      display: grid;
+      gap: 1.2rem;
+      min-height: 28rem;
+      padding: 1.35rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background:
+        radial-gradient(circle at 25% 20%, rgba(94, 234, 212, 0.12), transparent 25%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+      box-shadow: var(--shadow-card);
+    }
+
+    .globe-wrap {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 20rem;
+      overflow: hidden;
+      border-radius: calc(var(--radius-lg) - 6px);
+      background:
+        radial-gradient(circle at center, rgba(94, 234, 212, 0.14), transparent 42%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+      border: 1px solid rgba(173, 196, 221, 0.08);
+    }
+
+    .globe {
+      position: relative;
+      width: min(18rem, 54vw);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.16), transparent 18%),
+        radial-gradient(circle at 55% 48%, rgba(94, 234, 212, 0.18), transparent 16%),
+        radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.16), rgba(13, 24, 35, 0.98) 68%);
+      box-shadow:
+        0 0 0 1px rgba(173, 196, 221, 0.08),
+        inset -28px -26px 60px rgba(0, 0, 0, 0.35),
+        inset 20px 18px 40px rgba(255, 255, 255, 0.04),
+        0 20px 60px rgba(0, 0, 0, 0.32);
+      animation: spin-globe 22s linear infinite;
+    }
+
+    .globe::before,
+    .globe::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+    }
+
+    .globe::before {
+      background:
+        repeating-linear-gradient(
+          to right,
+          transparent 0,
+          transparent 15px,
+          rgba(173, 196, 221, 0.09) 15px,
+          rgba(173, 196, 221, 0.09) 16px
+        );
+      mix-blend-mode: screen;
+      opacity: 0.5;
+    }
+
+    .globe::after {
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 15px,
+          rgba(173, 196, 221, 0.08) 15px,
+          rgba(173, 196, 221, 0.08) 16px
+        );
+      mix-blend-mode: screen;
+      opacity: 0.38;
+    }
+
+    .globe-ring {
+      position: absolute;
+      border: 1px solid rgba(173, 196, 221, 0.12);
+      border-radius: 50%;
+    }
+
+    .ring-one {
+      width: min(22rem, 68vw);
+      aspect-ratio: 1;
+    }
+
+    .ring-two {
+      width: min(24rem, 74vw);
+      aspect-ratio: 1;
+      transform: rotateX(72deg);
+    }
+
+    .globe-copy h2 {
+      margin: 0.35rem 0 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.35rem, 2vw, 1.8rem);
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+    }
+
+    .globe-copy p {
+      margin: 0.7rem 0 0;
+    }
+
+    .travel-column {
+      display: grid;
+      gap: 1rem;
+      align-content: start;
+    }
+
+    .country-list {
+      margin: 0.85rem 0 0;
+      padding-left: 1.1rem;
+      color: var(--text-soft);
+      line-height: 1.7;
+    }
+
+    .country-list li + li {
+      margin-top: 0.35rem;
+    }
+
+    @keyframes spin-globe {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .globe {
+        animation: none;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .travel-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .globe-card {
+        min-height: 0;
+      }
+    }
+  </style>
+</BaseLayout>

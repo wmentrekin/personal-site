@@ -1,0 +1,157 @@
+---
+interface Marker {
+  label: string;
+  lat: number;
+  lng: number;
+  type?: "visited" | "planned" | "home";
+  meta?: string;
+}
+
+interface Props {
+  visitedIso2: string[];
+  markers?: Marker[];
+}
+
+const { visitedIso2, markers = [] } = Astro.props;
+const globeId = `travel-globe-${Math.random().toString(36).slice(2, 10)}`;
+---
+
+<div class="travel-globe-shell">
+  <div id={globeId} class="travel-globe-canvas" aria-label="Interactive globe visualization"></div>
+</div>
+
+<script define:vars={{ globeId, visitedIso2, markers }}>
+  import Globe from "globe.gl";
+  import countries from "globe.gl/example/datasets/ne_110m_admin_0_countries.geojson";
+
+  const container = document.getElementById(globeId);
+
+  if (container && !container.dataset.ready) {
+    container.dataset.ready = "true";
+
+    const visitedSet = new Set(visitedIso2);
+    const countriesData = countries.features.filter(
+      (feature) => feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "AQ"
+    );
+
+    let hoveredPolygon = null;
+
+    const polygonAltitude = (feature) => {
+      if (feature === hoveredPolygon) return 0.11;
+      return visitedSet.has(feature.properties.ISO_A2) ? 0.055 : 0.006;
+    };
+
+    const polygonCapColor = (feature) => {
+      if (feature === hoveredPolygon) return "rgba(125, 211, 252, 0.94)";
+      return visitedSet.has(feature.properties.ISO_A2)
+        ? "rgba(94, 234, 212, 0.84)"
+        : "rgba(148, 163, 184, 0.08)";
+    };
+
+    const polygonSideColor = (feature) =>
+      visitedSet.has(feature.properties.ISO_A2)
+        ? "rgba(94, 234, 212, 0.18)"
+        : "rgba(148, 163, 184, 0.04)";
+
+    const polygonStrokeColor = (feature) =>
+      visitedSet.has(feature.properties.ISO_A2)
+        ? "rgba(173, 196, 221, 0.36)"
+        : "rgba(173, 196, 221, 0.12)";
+
+    const pointColor = (marker) => {
+      if (marker.type === "planned") return "#facc15";
+      if (marker.type === "home") return "#7dd3fc";
+      return "#5eead4";
+    };
+
+    const pointAltitude = (marker) => (marker.type === "planned" ? 0.038 : 0.022);
+    const pointRadius = (marker) => (marker.type === "planned" ? 0.28 : 0.22);
+
+    const globe = new Globe(container)
+      .backgroundColor("rgba(0,0,0,0)")
+      .showAtmosphere(true)
+      .atmosphereColor("#7dd3fc")
+      .atmosphereAltitude(0.16)
+      .lineHoverPrecision(0)
+      .polygonsData(countriesData)
+      .polygonAltitude(polygonAltitude)
+      .polygonCapColor(polygonCapColor)
+      .polygonSideColor(polygonSideColor)
+      .polygonStrokeColor(polygonStrokeColor)
+      .polygonLabel(
+        (feature) => `
+          <div style="padding: 0.2rem 0.35rem;">
+            <strong>${feature.properties.ADMIN}</strong><br />
+            ${visitedSet.has(feature.properties.ISO_A2) ? "Visited" : "Not visited yet"}
+          </div>
+        `
+      )
+      .onPolygonHover((feature) => {
+        hoveredPolygon = feature;
+        globe
+          .polygonAltitude(polygonAltitude)
+          .polygonCapColor(polygonCapColor)
+          .polygonSideColor(polygonSideColor);
+      })
+      .polygonsTransitionDuration(220)
+      .pointsData(markers)
+      .pointLat("lat")
+      .pointLng("lng")
+      .pointColor(pointColor)
+      .pointAltitude(pointAltitude)
+      .pointRadius(pointRadius)
+      .pointLabel(
+        (marker) => `
+          <div style="padding: 0.2rem 0.35rem;">
+            <strong>${marker.label}</strong><br />
+            ${marker.meta ?? ""}
+          </div>
+        `
+      )
+      .onGlobeReady(() => {
+        globe.pointOfView({ lat: 20, lng: -70, altitude: 2.05 }, 0);
+      });
+
+    const controls = globe.controls();
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.45;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enablePan = false;
+
+    const resize = () => {
+      globe.width(container.clientWidth);
+      globe.height(container.clientHeight);
+    };
+
+    resize();
+
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(container);
+
+    window.addEventListener(
+      "pagehide",
+      () => {
+        resizeObserver.disconnect();
+      },
+      { once: true }
+    );
+  }
+</script>
+
+<style>
+  .travel-globe-shell,
+  .travel-globe-canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .travel-globe-canvas {
+    min-height: 22rem;
+    cursor: grab;
+  }
+
+  .travel-globe-canvas:active {
+    cursor: grabbing;
+  }
+</style>
