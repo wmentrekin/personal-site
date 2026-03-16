@@ -226,24 +226,13 @@ const { visitedIso2, visitedUsStates = [] } = Astro.props;
 
     const drawSphere = () => {
       const sphere = { type: "Sphere" };
-      const radius = Math.min(width, height) * 0.45 * zoom;
-      const centerX = width / 2;
-      const centerY = height / 2;
+      const fill = context.createLinearGradient(0, 0, 0, height);
 
       context.save();
       context.beginPath();
       path(sphere);
-      const fill = context.createRadialGradient(
-        centerX - radius * 0.38,
-        centerY - radius * 0.42,
-        radius * 0.08,
-        centerX,
-        centerY,
-        radius
-      );
-      fill.addColorStop(0, "rgba(158, 196, 223, 0.14)");
-      fill.addColorStop(0.22, "rgba(36, 74, 104, 0.88)");
-      fill.addColorStop(0.6, "rgba(12, 24, 36, 1)");
+      fill.addColorStop(0, "rgba(24, 34, 46, 0.98)");
+      fill.addColorStop(0.45, "rgba(12, 20, 30, 0.99)");
       fill.addColorStop(1, "rgba(5, 10, 17, 1)");
       context.fillStyle = fill;
       context.fill();
