@@ -17,6 +17,8 @@ const rows = rankingsPayload.rankings.map((team: Record<string, string | number>
 
 <BaseLayout title="CFB Rankings Project | Wyatt Entrekin">
   <section class="project-shell">
+    <a class="back-link reveal" href="/projects"><span aria-hidden="true">←</span> Projects</a>
+
     <section class="project-hero reveal">
       <div class="hero-copy">
         <p class="hero-kicker">Active Project</p>
@@ -87,6 +89,7 @@ const rows = rankingsPayload.rankings.map((team: Record<string, string | number>
     .project-shell {
       display: grid;
       gap: 1rem;
+      padding-top: 0.8rem;
     }
 
     .project-hero,

@@ -83,10 +83,8 @@ const {
         background:
           linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
           linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px),
-          radial-gradient(circle at top left, rgba(125, 211, 252, 0.12), transparent 28%),
-          radial-gradient(circle at 80% 10%, rgba(163, 230, 53, 0.08), transparent 24%),
           linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 55%, #070b10 100%);
-        background-size: 42px 42px, 42px 42px, auto, auto, auto;
+        background-size: 42px 42px, 42px 42px, auto;
         background-attachment: fixed;
       }
 
@@ -203,6 +201,24 @@ const {
     </style>
 
     <style is:global>
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        width: fit-content;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        letter-spacing: 0.06em;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: color 180ms ease;
+      }
+
+      .back-link:hover {
+        color: var(--text);
+      }
+
       .quick-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));

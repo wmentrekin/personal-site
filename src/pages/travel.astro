@@ -4,6 +4,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 const visitedIso2 = [
   "US",
+  "PR",
   "MX",
   "PE",
   "DO",
@@ -32,7 +33,6 @@ const visitedIso2 = [
         <span aria-hidden="true">←</span>
         Home
       </a>
-      <p class="hero-kicker">Travel</p>
     </section>
 
     <section class="globe-card reveal">
@@ -52,52 +52,8 @@ const visitedIso2 = [
 
     .travel-hero {
       display: grid;
-      gap: 0.7rem;
-      width: min(100%, 64rem);
+      width: min(100%, 72rem);
       padding-top: 0.2rem;
-    }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      width: fit-content;
-      color: var(--muted);
-      font-family: var(--font-mono);
-      font-size: 0.76rem;
-      letter-spacing: 0.06em;
-      text-decoration: none;
-      text-transform: uppercase;
-    }
-
-    .back-link:hover {
-      color: var(--text);
-    }
-
-    .hero-kicker,
-    .meta-label {
-      margin: 0;
-      color: var(--accent-travel);
-      font-family: var(--font-mono);
-      font-size: 0.76rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .travel-hero h1 {
-      margin: 0;
-      max-width: 10ch;
-      font-family: var(--font-display);
-      font-size: clamp(2.1rem, 4vw, 3.8rem);
-      line-height: 0.98;
-      letter-spacing: -0.05em;
-      text-wrap: balance;
-    }
-
-    .hero-text {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.75;
     }
 
     .globe-card {
@@ -108,12 +64,21 @@ const visitedIso2 = [
 
     .globe-stage {
       width: min(100%, 68rem);
-      min-height: 40rem;
+      min-height: 42rem;
+      border: 1px solid rgba(173, 196, 221, 0.24);
+      border-radius: calc(var(--radius-lg) - 2px);
+      background:
+        radial-gradient(circle at center, rgba(255, 255, 255, 0.02), transparent 55%),
+        rgba(8, 13, 20, 0.74);
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      overflow: hidden;
     }
 
     @media (max-width: 900px) {
       .globe-stage {
-        min-height: 28rem;
+        min-height: 30rem;
       }
     }
   </style>

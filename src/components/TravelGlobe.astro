@@ -30,6 +30,9 @@ const { visitedIso2 } = Astro.props;
   const countryAliases: Record<string, string> = {
     France: "FR"
   };
+  const tinyVisitedPoints: Record<string, [number, number]> = {
+    PR: [-66.49, 18.22]
+  };
 
   const loadCountriesData = async () => {
     if (!countriesDataPromise) {
@@ -79,6 +82,7 @@ const { visitedIso2 } = Astro.props;
     const path = geoPath(projection, context);
     const graticule = geoGraticule10();
     const rotation = [-20, -18, 0];
+    let zoom = 1;
 
     let width = 0;
     let height = 0;
@@ -88,7 +92,7 @@ const { visitedIso2 } = Astro.props;
 
     const drawSphere = () => {
       const sphere = { type: "Sphere" };
-      const radius = Math.min(width, height) * 0.42;
+      const radius = Math.min(width, height) * 0.45 * zoom;
       const centerX = width / 2;
       const centerY = height / 2;
 
@@ -125,7 +129,7 @@ const { visitedIso2 } = Astro.props;
       context.beginPath();
       path(sphere);
       context.strokeStyle = "rgba(173, 196, 221, 0.24)";
-      context.lineWidth = 1.1;
+      context.lineWidth = 1.45;
       context.stroke();
       context.restore();
     };
@@ -152,11 +156,27 @@ const { visitedIso2 } = Astro.props;
 
         context.beginPath();
         path(feature);
-        context.fillStyle = visited ? "rgba(94, 234, 212, 0.88)" : "rgba(148, 163, 184, 0.08)";
+        context.fillStyle = visited ? "rgba(217, 67, 67, 0.92)" : "rgba(148, 163, 184, 0.08)";
         context.fill();
-        context.strokeStyle = visited ? "rgba(214, 245, 255, 0.34)" : "rgba(173, 196, 221, 0.12)";
-        context.lineWidth = 0.75;
+        context.strokeStyle = visited ? "rgba(255, 228, 228, 0.5)" : "rgba(173, 196, 221, 0.12)";
+        context.lineWidth = visited ? 0.95 : 0.75;
         context.stroke();
+
+        if (visited && code && tinyVisitedPoints[code]) {
+          const point = projection(tinyVisitedPoints[code]);
+
+          if (!point) {
+            return;
+          }
+
+          context.beginPath();
+          context.arc(point[0], point[1], 4.2, 0, Math.PI * 2);
+          context.fillStyle = "rgba(217, 67, 67, 0.98)";
+          context.fill();
+          context.strokeStyle = "rgba(255, 240, 240, 0.86)";
+          context.lineWidth = 1.2;
+          context.stroke();
+        }
       });
 
       const shadow = context.createRadialGradient(
@@ -192,7 +212,7 @@ const { visitedIso2 } = Astro.props;
 
       projection
         .translate([width / 2, height / 2])
-        .scale(Math.min(width, height) * 0.42)
+        .scale(Math.min(width, height) * 0.45 * zoom)
         .clipAngle(90)
         .precision(0.5)
         .rotate(rotation);
@@ -239,6 +259,17 @@ const { visitedIso2 } = Astro.props;
     canvas.addEventListener("pointercancel", stopDragging);
     canvas.addEventListener("pointerleave", stopDragging);
 
+    canvas.addEventListener(
+      "wheel",
+      (event) => {
+        event.preventDefault();
+        const direction = Math.sign(event.deltaY);
+        zoom = Math.max(0.88, Math.min(1.55, zoom - direction * 0.06));
+        resize();
+      },
+      { passive: false }
+    );
+
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas);
     resize();
@@ -277,7 +308,7 @@ const { visitedIso2 } = Astro.props;
     display: block;
     width: 100%;
     height: 100%;
-    min-height: 32rem;
+    min-height: 36rem;
     cursor: grab;
   }
 
