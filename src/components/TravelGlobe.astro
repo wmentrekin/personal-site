@@ -241,9 +241,9 @@ const { visitedIso2, visitedUsStates = [] } = Astro.props;
         centerY,
         radius
       );
-      fill.addColorStop(0, "rgba(196, 236, 255, 0.34)");
-      fill.addColorStop(0.24, "rgba(64, 130, 181, 0.4)");
-      fill.addColorStop(0.62, "rgba(16, 34, 54, 0.98)");
+      fill.addColorStop(0, "rgba(158, 196, 223, 0.14)");
+      fill.addColorStop(0.22, "rgba(36, 74, 104, 0.88)");
+      fill.addColorStop(0.6, "rgba(12, 24, 36, 1)");
       fill.addColorStop(1, "rgba(5, 10, 17, 1)");
       context.fillStyle = fill;
       context.fill();
@@ -283,16 +283,16 @@ const { visitedIso2, visitedUsStates = [] } = Astro.props;
         context.beginPath();
         path(normalizedFeature as never);
         context.fillStyle = isUnitedStates
-          ? "rgba(148, 163, 184, 0.03)"
+          ? "rgba(61, 72, 85, 0.12)"
           : visited
-            ? "rgba(217, 67, 67, 0.92)"
-            : "rgba(148, 163, 184, 0.08)";
+            ? "rgba(217, 67, 67, 0.96)"
+            : "rgba(74, 86, 102, 0.32)";
         context.fill();
         context.strokeStyle = isUnitedStates
-          ? "rgba(173, 196, 221, 0.08)"
+          ? "rgba(173, 196, 221, 0.12)"
           : visited
-            ? "rgba(255, 228, 228, 0.56)"
-            : "rgba(173, 196, 221, 0.12)";
+            ? "rgba(255, 228, 228, 0.62)"
+            : "rgba(173, 196, 221, 0.16)";
         context.lineWidth = visited ? 1 : 0.75;
         context.stroke();
       });
@@ -302,26 +302,12 @@ const { visitedIso2, visitedUsStates = [] } = Astro.props;
 
         context.beginPath();
         path(stateFeature as never);
-        context.fillStyle = visited ? "rgba(217, 67, 67, 0.96)" : "rgba(148, 163, 184, 0.04)";
+        context.fillStyle = visited ? "rgba(217, 67, 67, 0.98)" : "rgba(74, 86, 102, 0.16)";
         context.fill();
-        context.strokeStyle = visited ? "rgba(255, 234, 234, 0.62)" : "rgba(173, 196, 221, 0.12)";
+        context.strokeStyle = visited ? "rgba(255, 234, 234, 0.68)" : "rgba(173, 196, 221, 0.14)";
         context.lineWidth = visited ? 0.95 : 0.55;
         context.stroke();
       });
-
-      const shadow = context.createRadialGradient(
-        width * 0.38,
-        height * 0.34,
-        width * 0.04,
-        width * 0.62,
-        height * 0.64,
-        Math.min(width, height) * 0.48
-      );
-      shadow.addColorStop(0, "rgba(255, 255, 255, 0)");
-      shadow.addColorStop(0.65, "rgba(0, 0, 0, 0.06)");
-      shadow.addColorStop(1, "rgba(0, 0, 0, 0.3)");
-      context.fillStyle = shadow;
-      context.fillRect(0, 0, width, height);
 
       context.restore();
     };

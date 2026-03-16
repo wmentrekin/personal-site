@@ -73,18 +73,22 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .projects-shell {
       display: grid;
       gap: 1.25rem;
+      min-height: calc(100svh - 4.5rem);
       padding-top: 0.8rem;
     }
 
     .project-list {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(15.5rem, 1fr));
       gap: 1rem;
       align-items: stretch;
+      flex: 1;
     }
 
     .project-list > * {
-      min-height: 19rem;
+      min-height: 0;
+      height: 100%;
     }
 
     .placeholder-card {
