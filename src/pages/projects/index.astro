@@ -170,6 +170,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       overflow: visible;
     }
 
+    .frame-tile :global(.project-card.surface-glass) {
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+    }
+
     .frame-tile :global(.card-top) {
       gap: 0.7rem;
     }
@@ -215,6 +221,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .frame-tile :global(.project-card.surface-glass:hover) {
       transform: none;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.28),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04);
     }
 
     .frame-tile :global(.icon-link) {
