@@ -327,6 +327,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       padding: 1rem;
       text-decoration: none;
       color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.72), rgba(11, 18, 26, 0.84));
+      backdrop-filter: blur(10px);
     }
 
     .tile-cfb {
@@ -362,7 +366,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       height: 8rem;
       border-radius: 999px;
       filter: blur(18px);
-      opacity: 0.14;
+      opacity: 0.1;
       background: var(--tone, var(--accent));
     }
 

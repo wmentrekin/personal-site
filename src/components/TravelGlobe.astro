@@ -1,9 +1,10 @@
 ---
 interface Props {
   visitedIso2: string[];
+  visitedUsStates?: string[];
 }
 
-const { visitedIso2 } = Astro.props;
+const { visitedIso2, visitedUsStates = [] } = Astro.props;
 ---
 
 <div class="travel-globe-shell">
@@ -11,27 +12,120 @@ const { visitedIso2 } = Astro.props;
     class="travel-globe-canvas"
     data-travel-globe
     data-visited-iso2={JSON.stringify(visitedIso2)}
+    data-visited-us-states={JSON.stringify(visitedUsStates)}
     aria-label="Interactive globe"
   ></canvas>
 </div>
 
 <script>
-  import { geoGraticule10, geoOrthographic, geoPath } from "d3-geo";
+  import { geoCentroid, geoGraticule10, geoOrthographic, geoPath } from "d3-geo";
+  import { feature } from "topojson-client";
+  import usStatesUrl from "us-atlas/states-10m.json?url";
 
   type CountryFeature = {
+    type?: string;
+    geometry?: {
+      type: string;
+      coordinates: unknown;
+    };
     properties: {
       ISO_A2?: string;
       ADMIN?: string;
     };
   };
 
+  type UsStateFeature = {
+    type?: string;
+    id?: string;
+    geometry?: {
+      type: string;
+      coordinates: unknown;
+    };
+    properties?: {
+      name?: string;
+    };
+  };
+
   let countriesDataPromise: Promise<CountryFeature[]> | undefined;
+  let usStatesDataPromise: Promise<UsStateFeature[]> | undefined;
 
   const countryAliases: Record<string, string> = {
     France: "FR"
   };
-  const tinyVisitedPoints: Record<string, [number, number]> = {
-    PR: [-66.49, 18.22]
+  const usStateFipsByCode: Record<string, string> = {
+    AL: "01",
+    AK: "02",
+    AZ: "04",
+    AR: "05",
+    CA: "06",
+    CO: "08",
+    CT: "09",
+    DE: "10",
+    FL: "12",
+    GA: "13",
+    HI: "15",
+    ID: "16",
+    IL: "17",
+    IN: "18",
+    IA: "19",
+    KS: "20",
+    KY: "21",
+    LA: "22",
+    ME: "23",
+    MD: "24",
+    MA: "25",
+    MI: "26",
+    MN: "27",
+    MS: "28",
+    MO: "29",
+    MT: "30",
+    NE: "31",
+    NV: "32",
+    NH: "33",
+    NJ: "34",
+    NM: "35",
+    NY: "36",
+    NC: "37",
+    ND: "38",
+    OH: "39",
+    OK: "40",
+    OR: "41",
+    PA: "42",
+    RI: "44",
+    SC: "45",
+    SD: "46",
+    TN: "47",
+    TX: "48",
+    UT: "49",
+    VT: "50",
+    VA: "51",
+    WA: "53",
+    WV: "54",
+    WI: "55",
+    WY: "56",
+    DC: "11",
+    PR: "72"
+  };
+
+  const loadUsStatesData = async () => {
+    if (!usStatesDataPromise) {
+      usStatesDataPromise = fetch(usStatesUrl)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Failed to load U.S. state geometry: ${response.status}`);
+          }
+
+          return response.json();
+        })
+        .then((topology) => {
+          const collection = feature(topology as never, (topology as any).objects.states) as {
+            features: UsStateFeature[];
+          };
+          return collection.features;
+        });
+    }
+
+    return usStatesDataPromise;
   };
 
   const loadCountriesData = async () => {
@@ -62,6 +156,41 @@ const { visitedIso2 } = Astro.props;
     return countryAliases[feature.properties.ADMIN ?? ""] ?? null;
   };
 
+  const normalizeCountryFeature = (feature: CountryFeature) => {
+    const code = getCountryCode(feature);
+
+    if (
+      code === "FR" &&
+      feature.geometry?.type === "MultiPolygon" &&
+      Array.isArray(feature.geometry.coordinates)
+    ) {
+      const mainlandCoordinates = feature.geometry.coordinates.filter((polygon) => {
+        const centroid = geoCentroid({
+          type: "Feature",
+          properties: feature.properties,
+          geometry: {
+            type: "MultiPolygon",
+            coordinates: [polygon]
+          }
+        } as never);
+
+        return centroid[0] > -10 && centroid[0] < 15 && centroid[1] > 35 && centroid[1] < 55;
+      });
+
+      if (mainlandCoordinates.length > 0) {
+        return {
+          ...feature,
+          geometry: {
+            ...feature.geometry,
+            coordinates: mainlandCoordinates
+          }
+        };
+      }
+    }
+
+    return feature;
+  };
+
   const mountTravelGlobe = async (canvas: Element) => {
     if (!(canvas instanceof HTMLCanvasElement) || canvas.dataset.ready === "true") {
       return;
@@ -70,8 +199,13 @@ const { visitedIso2 } = Astro.props;
     canvas.dataset.ready = "true";
 
     const countries = await loadCountriesData();
+    const usStates = await loadUsStatesData();
     const visitedIso2 = JSON.parse(canvas.dataset.visitedIso2 ?? "[]");
+    const visitedUsStates = JSON.parse(canvas.dataset.visitedUsStates ?? "[]");
     const visitedSet = new Set(visitedIso2);
+    const visitedUsStatesSet = new Set(
+      visitedUsStates.map((code: string) => usStateFipsByCode[code]).filter(Boolean)
+    );
     const context = canvas.getContext("2d");
 
     if (!context) {
@@ -95,16 +229,6 @@ const { visitedIso2 } = Astro.props;
       const radius = Math.min(width, height) * 0.45 * zoom;
       const centerX = width / 2;
       const centerY = height / 2;
-
-      context.save();
-      context.beginPath();
-      path(sphere);
-      const glow = context.createRadialGradient(centerX, centerY, radius * 0.55, centerX, centerY, radius * 1.08);
-      glow.addColorStop(0, "rgba(125, 211, 252, 0)");
-      glow.addColorStop(1, "rgba(125, 211, 252, 0.18)");
-      context.fillStyle = glow;
-      context.fill();
-      context.restore();
 
       context.save();
       context.beginPath();
@@ -151,32 +275,38 @@ const { visitedIso2 } = Astro.props;
       context.stroke();
 
       countries.forEach((feature: CountryFeature) => {
-        const code = getCountryCode(feature);
+        const normalizedFeature = normalizeCountryFeature(feature);
+        const code = getCountryCode(normalizedFeature);
         const visited = code ? visitedSet.has(code) : false;
+        const isUnitedStates = code === "US";
 
         context.beginPath();
-        path(feature);
-        context.fillStyle = visited ? "rgba(217, 67, 67, 0.92)" : "rgba(148, 163, 184, 0.08)";
+        path(normalizedFeature as never);
+        context.fillStyle = isUnitedStates
+          ? "rgba(148, 163, 184, 0.03)"
+          : visited
+            ? "rgba(217, 67, 67, 0.92)"
+            : "rgba(148, 163, 184, 0.08)";
         context.fill();
-        context.strokeStyle = visited ? "rgba(255, 228, 228, 0.5)" : "rgba(173, 196, 221, 0.12)";
-        context.lineWidth = visited ? 0.95 : 0.75;
+        context.strokeStyle = isUnitedStates
+          ? "rgba(173, 196, 221, 0.08)"
+          : visited
+            ? "rgba(255, 228, 228, 0.56)"
+            : "rgba(173, 196, 221, 0.12)";
+        context.lineWidth = visited ? 1 : 0.75;
         context.stroke();
+      });
 
-        if (visited && code && tinyVisitedPoints[code]) {
-          const point = projection(tinyVisitedPoints[code]);
+      usStates.forEach((stateFeature) => {
+        const visited = stateFeature.id ? visitedUsStatesSet.has(stateFeature.id) : false;
 
-          if (!point) {
-            return;
-          }
-
-          context.beginPath();
-          context.arc(point[0], point[1], 4.2, 0, Math.PI * 2);
-          context.fillStyle = "rgba(217, 67, 67, 0.98)";
-          context.fill();
-          context.strokeStyle = "rgba(255, 240, 240, 0.86)";
-          context.lineWidth = 1.2;
-          context.stroke();
-        }
+        context.beginPath();
+        path(stateFeature as never);
+        context.fillStyle = visited ? "rgba(217, 67, 67, 0.96)" : "rgba(148, 163, 184, 0.04)";
+        context.fill();
+        context.strokeStyle = visited ? "rgba(255, 234, 234, 0.62)" : "rgba(173, 196, 221, 0.12)";
+        context.lineWidth = visited ? 0.95 : 0.55;
+        context.stroke();
       });
 
       const shadow = context.createRadialGradient(
