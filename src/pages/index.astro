@@ -65,6 +65,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </p>
 
         <p class="focus-line">
+          <span>Hometown</span>
+          Memphis, TN
+        </p>
+
+        <p class="focus-line">
           <span>Current Role</span>
           Data Engineering Consultant at CapTech
         </p>
@@ -77,6 +82,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p class="focus-line">
           <span>Interests</span>
           Fitness, Food, Travel, Sports, Language Learning, History
+        </p>
+
+        <p class="focus-line">
+          <span>Languages</span>
+          Native: English, Intermediate: Spanish, Exploring: Vietnamese, French, Arabic
         </p>
       </section>
 
@@ -114,17 +124,25 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <article class="placeholder-tile reveal">
         <p class="eyebrow">Placeholder</p>
       </article>
-
-      <p class="site-note reveal">Built with Astro.</p>
     </div>
+    <a class="site-note" href="https://astro.build" target="_blank" rel="noreferrer">
+      <img
+        src="https://astro.build/assets/press/astro-icon-light-gradient.svg"
+        alt="Astro"
+        loading="lazy"
+      />
+      <span>Built with Astro</span>
+    </a>
   </section>
 
   <style>
     .home-stage {
+      position: relative;
       min-height: calc(100svh - 4.5rem);
       display: grid;
       align-items: stretch;
       padding-top: 1.15rem;
+      padding-bottom: 1.5rem;
     }
 
     .home-frame {
@@ -395,18 +413,29 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .site-note {
+      position: absolute;
+      right: 0.15rem;
+      bottom: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
       margin: 0;
-      align-self: end;
-      justify-self: end;
-      grid-column: 4;
-      grid-row: 3;
-      padding: 0 0.1rem 0.05rem 0;
       color: rgba(150, 169, 188, 0.82);
       font-family: var(--font-mono);
       font-size: 0.7rem;
       letter-spacing: 0.08em;
+      text-decoration: none;
       text-transform: uppercase;
-      pointer-events: none;
+    }
+
+    .site-note img {
+      width: 0.95rem;
+      height: 0.95rem;
+      flex: 0 0 auto;
+    }
+
+    .site-note:hover {
+      color: var(--text);
     }
 
     @media (max-width: 1080px) {
@@ -427,15 +456,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       .tile-travel,
       .tile-projects,
       .tile-about,
-      .placeholder-tile,
-      .site-note {
+      .placeholder-tile {
         grid-column: auto;
         grid-row: auto;
       }
 
       .site-note {
-        justify-self: start;
-        padding: 0.15rem 0 0;
+        position: static;
+        padding-top: 0.15rem;
       }
     }
 

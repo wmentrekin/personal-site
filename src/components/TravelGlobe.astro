@@ -1,242 +1,159 @@
 ---
+import { readFileSync } from "node:fs";
+import { geoEquirectangular, geoGraticule10, geoPath } from "d3-geo";
+
+interface FeatureProperties {
+  ISO_A2?: string;
+}
+
+interface FeatureCollection {
+  features: Array<{
+    properties: FeatureProperties;
+  }>;
+}
+
 interface Props {
   visitedIso2: string[];
 }
 
 const { visitedIso2 } = Astro.props;
+
+const countries = JSON.parse(
+  readFileSync(new URL("../../public/data/travel/ne_110m_admin_0_countries.geojson", import.meta.url), "utf-8")
+) as FeatureCollection;
+
+const width = 1400;
+const height = 700;
+const projection = geoEquirectangular().fitSize([width, height], countries as never);
+const path = geoPath(projection);
+const graticule = geoGraticule10();
+const visitedSet = new Set(visitedIso2);
+
+const countryPaths = countries.features
+  .filter((feature) => feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "AQ")
+  .map((feature) => {
+    const shape = path(feature as never);
+
+    if (!shape) {
+      return "";
+    }
+
+    const visited = visitedSet.has(feature.properties.ISO_A2 ?? "");
+
+    return `<path d="${shape}" fill="${visited ? "#5eead4" : "rgba(148,163,184,0.08)"}" stroke="${
+      visited ? "rgba(214,245,255,0.32)" : "rgba(173,196,221,0.10)"
+    }" stroke-width="0.7" />`;
+  })
+  .join("");
+
+const graticulePath = path(graticule as never) ?? "";
+
+const textureSvg = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">
+    <rect width="${width}" height="${height}" fill="#0a121b" />
+    <path d="${graticulePath}" fill="none" stroke="rgba(173,196,221,0.11)" stroke-width="0.8" />
+    ${countryPaths}
+  </svg>
+`;
+
+const textureUrl = `url("data:image/svg+xml,${encodeURIComponent(textureSvg)}")`;
 ---
 
 <div class="travel-globe-shell">
-  <div class="travel-globe-canvas-wrap">
-    <canvas
-      class="travel-globe-canvas"
-      aria-label="Rotating globe visualization"
-      data-travel-globe
-      data-visited-iso2={JSON.stringify(visitedIso2)}
-    ></canvas>
+  <div class="globe-orbit orbit-one"></div>
+  <div class="globe-orbit orbit-two"></div>
+  <div class="travel-globe-sphere" style={`--globe-texture: ${textureUrl};`}>
+    <div class="globe-map"></div>
   </div>
 </div>
 
-<script>
-  import { geoGraticule10, geoOrthographic, geoPath } from "d3-geo";
-
-  let countriesDataPromise;
-
-  const loadCountriesData = async () => {
-    if (!countriesDataPromise) {
-      countriesDataPromise = fetch("/data/travel/ne_110m_admin_0_countries.geojson")
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Failed to load travel globe data: ${response.status}`);
-          }
-
-          return response.json();
-        })
-        .then((countries) =>
-          countries.features.filter(
-            (feature) => feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "AQ"
-          )
-        );
-    }
-
-    return countriesDataPromise;
-  };
-
-  const mountTravelGlobe = async (canvas) => {
-    if (!(canvas instanceof HTMLCanvasElement) || canvas.dataset.ready === "true" || canvas.dataset.loading === "true") {
-      return;
-    }
-
-    canvas.dataset.loading = "true";
-
-    const countriesData = await loadCountriesData();
-
-    canvas.dataset.loading = "false";
-    canvas.dataset.ready = "true";
-
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      return;
-    }
-
-    const visitedIso2 = JSON.parse(canvas.dataset.visitedIso2 ?? "[]");
-    const visitedSet = new Set(visitedIso2);
-    const projection = geoOrthographic();
-    const path = geoPath(projection, context);
-    const graticule = geoGraticule10();
-
-    let width = 0;
-    let height = 0;
-    let animationFrame = 0;
-    let lastFrameTime = 0;
-    const rotation = [-85, -18, 0];
-
-    const resize = () => {
-      const nextWidth = Math.max(1, canvas.clientWidth);
-      const nextHeight = Math.max(1, canvas.clientHeight);
-      const ratio = window.devicePixelRatio || 1;
-
-      width = nextWidth;
-      height = nextHeight;
-
-      canvas.width = Math.round(nextWidth * ratio);
-      canvas.height = Math.round(nextHeight * ratio);
-
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.scale(ratio, ratio);
-
-      projection
-        .translate([width / 2, height / 2])
-        .scale(Math.min(width, height) * 0.42)
-        .clipAngle(90)
-        .precision(0.45);
-
-      draw();
-    };
-
-    const drawSphere = () => {
-      const sphere = { type: "Sphere" };
-      const radius = Math.min(width, height) * 0.42;
-      const centerX = width / 2;
-      const centerY = height / 2;
-
-      context.save();
-      context.shadowColor = "rgba(125, 211, 252, 0.2)";
-      context.shadowBlur = 24;
-      context.beginPath();
-      path(sphere);
-      const fill = context.createRadialGradient(
-        centerX - radius * 0.38,
-        centerY - radius * 0.42,
-        radius * 0.08,
-        centerX,
-        centerY,
-        radius
-      );
-      fill.addColorStop(0, "rgba(163, 230, 255, 0.34)");
-      fill.addColorStop(0.28, "rgba(44, 122, 175, 0.42)");
-      fill.addColorStop(0.65, "rgba(16, 36, 56, 0.96)");
-      fill.addColorStop(1, "rgba(5, 11, 18, 1)");
-      context.fillStyle = fill;
-      context.fill();
-      context.restore();
-
-      context.save();
-      context.beginPath();
-      path(sphere);
-      context.strokeStyle = "rgba(173, 196, 221, 0.22)";
-      context.lineWidth = 1.1;
-      context.stroke();
-      context.restore();
-    };
-
-    const draw = () => {
-      context.clearRect(0, 0, width, height);
-
-      drawSphere();
-
-      context.save();
-      context.beginPath();
-      path({ type: "Sphere" });
-      context.clip();
-
-      context.beginPath();
-      path(graticule);
-      context.strokeStyle = "rgba(173, 196, 221, 0.11)";
-      context.lineWidth = 0.7;
-      context.stroke();
-
-      countriesData.forEach((feature) => {
-        context.beginPath();
-        path(feature);
-        context.fillStyle = visitedSet.has(feature.properties.ISO_A2)
-          ? "rgba(94, 234, 212, 0.86)"
-          : "rgba(148, 163, 184, 0.08)";
-        context.fill();
-        context.strokeStyle = visitedSet.has(feature.properties.ISO_A2)
-          ? "rgba(173, 196, 221, 0.32)"
-          : "rgba(173, 196, 221, 0.1)";
-        context.lineWidth = 0.65;
-        context.stroke();
-      });
-
-      const shade = context.createRadialGradient(
-        width * 0.38,
-        height * 0.34,
-        width * 0.05,
-        width * 0.6,
-        height * 0.62,
-        Math.min(width, height) * 0.45
-      );
-      shade.addColorStop(0, "rgba(255, 255, 255, 0)");
-      shade.addColorStop(0.62, "rgba(0, 0, 0, 0.06)");
-      shade.addColorStop(1, "rgba(0, 0, 0, 0.26)");
-      context.fillStyle = shade;
-      context.fillRect(0, 0, width, height);
-
-      context.restore();
-    };
-
-    const animate = (timestamp) => {
-      if (!lastFrameTime) {
-        lastFrameTime = timestamp;
-      }
-
-      const delta = timestamp - lastFrameTime;
-      lastFrameTime = timestamp;
-
-      rotation[0] += delta * 0.0035;
-      projection.rotate(rotation);
-      draw();
-      animationFrame = window.requestAnimationFrame(animate);
-    };
-
-    resize();
-
-    const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(canvas);
-    animationFrame = window.requestAnimationFrame(animate);
-
-    window.addEventListener(
-      "pagehide",
-      () => {
-        window.cancelAnimationFrame(animationFrame);
-        resizeObserver.disconnect();
-      },
-      { once: true }
-    );
-  };
-
-  const initTravelGlobes = () => {
-    document.querySelectorAll("[data-travel-globe]").forEach((canvas) => {
-      void mountTravelGlobe(canvas);
-    });
-  };
-
-  document.addEventListener("astro:page-load", initTravelGlobes);
-  initTravelGlobes();
-</script>
-
 <style>
-  .travel-globe-shell,
-  .travel-globe-canvas-wrap,
-  .travel-globe-canvas {
+  .travel-globe-shell {
+    position: relative;
+    display: grid;
+    place-items: center;
     width: 100%;
     height: 100%;
-  }
-
-  .travel-globe-canvas-wrap {
-    position: relative;
-  }
-
-  .travel-globe-canvas {
-    display: block;
     min-height: 22rem;
-    cursor: grab;
+    overflow: hidden;
   }
 
-  .travel-globe-canvas:active {
-    cursor: grabbing;
+  .travel-globe-sphere {
+    position: relative;
+    width: min(25rem, 68vw);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.22), transparent 14%),
+      radial-gradient(circle at 42% 36%, rgba(125, 211, 252, 0.16), transparent 24%),
+      radial-gradient(circle at 50% 50%, rgba(14, 29, 45, 0.98), rgba(5, 10, 17, 1) 74%);
+    box-shadow:
+      inset -34px -30px 72px rgba(0, 0, 0, 0.42),
+      inset 24px 20px 56px rgba(255, 255, 255, 0.05),
+      0 24px 60px rgba(0, 0, 0, 0.36);
+  }
+
+  .globe-map {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-image: var(--globe-texture);
+    background-repeat: repeat-x;
+    background-size: auto 100%;
+    background-position: 0 50%;
+    transform: scaleX(1.22);
+    transform-origin: center;
+    opacity: 0.96;
+    animation: globe-spin 34s linear infinite;
+  }
+
+  .globe-map::before,
+  .globe-map::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .globe-map::before {
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.16), transparent 18%),
+      radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.18) 78%);
+  }
+
+  .globe-map::after {
+    background:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.32), transparent 22%, transparent 72%, rgba(0, 0, 0, 0.36)),
+      radial-gradient(circle at center, transparent 62%, rgba(125, 211, 252, 0.1) 100%);
+  }
+
+  .globe-orbit {
+    position: absolute;
+    border: 1px solid rgba(173, 196, 221, 0.12);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .orbit-one {
+    width: min(30rem, 82vw);
+    aspect-ratio: 1;
+  }
+
+  .orbit-two {
+    width: min(32rem, 88vw);
+    aspect-ratio: 1;
+    transform: rotateX(72deg);
+  }
+
+  @keyframes globe-spin {
+    from {
+      background-position: 0 50%;
+    }
+
+    to {
+      background-position: -1400px 50%;
+    }
   }
 </style>
