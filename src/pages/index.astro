@@ -82,34 +82,34 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </p>
       </section>
 
-      <a class="link-tile tile-cfb tone-football reveal" href="/projects/cfb-rankings">
+      <a class="link-tile glass-card tile-cfb tone-football reveal" href="/projects/cfb-rankings">
         <p class="eyebrow accent-football">Featured</p>
         <h2>College Football Rankings</h2>
         <p>ranking college football teams using convex optimization</p>
       </a>
 
-      <a class="link-tile tile-projects tone-projects reveal" href="/projects">
+      <a class="link-tile glass-card tile-projects tone-projects reveal" href="/projects">
         <h2>Projects</h2>
         <p>all my projects</p>
       </a>
 
-      <a class="link-tile tile-about tone-about reveal" href="/about">
+      <a class="link-tile glass-card tile-about tone-about reveal" href="/about">
         <h2>About</h2>
         <p>more about me</p>
       </a>
 
-      <a class="link-tile tile-now tone-now reveal" href="/now">
+      <a class="link-tile glass-card tile-now tone-now reveal" href="/now">
         <h2>Now</h2>
         <p>what I&apos;m up to</p>
       </a>
-      <a class="link-tile tile-travel tone-travel reveal" href="/travel">
+      <a class="link-tile glass-card tile-travel tone-travel reveal" href="/travel">
         <h2>Travel</h2>
         <p>where I&apos;ve been</p>
       </a>
-      <article class="placeholder-tile reveal">
+      <article class="placeholder-tile glass-card reveal">
         <p class="eyebrow">Placeholder</p>
       </article>
-      <article class="placeholder-tile reveal">
+      <article class="placeholder-tile glass-card reveal">
         <p class="eyebrow">Placeholder</p>
       </article>
     </div>
@@ -141,9 +141,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       min-height: calc(100svh - 4.5rem);
     }
 
-    .intro-card,
-    .link-tile,
-    .placeholder-tile {
+    .intro-card {
       position: relative;
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
@@ -155,9 +153,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         border-color 180ms ease;
     }
 
-    .intro-card::before,
-    .link-tile::before,
-    .placeholder-tile::before {
+    .intro-card::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -195,16 +191,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
     }
 
-    .intro-card:hover,
-    .placeholder-tile:hover {
+    .intro-card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow-hover);
       border-color: rgba(255, 255, 255, 0.12);
     }
 
-    .intro-card:hover::before,
-    .link-tile:hover::before,
-    .placeholder-tile:hover::before {
+    .intro-card:hover::before {
       opacity: 1;
     }
 
@@ -315,14 +308,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       padding: 1rem;
       text-decoration: none;
       color: var(--text);
-      background: none !important;
-      background-color: transparent !important;
-      background-image: none !important;
-      border-color: rgba(255, 255, 255, 0.28);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.22),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.03),
-        0 8px 18px rgba(0, 0, 0, 0.06);
     }
 
     .tile-cfb {
@@ -350,34 +335,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       grid-row: 3;
     }
 
-    .link-tile::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: none;
-      opacity: 0.95;
-      pointer-events: none;
-    }
-
-    .tile-cfb,
-    .tile-projects,
-    .tile-about,
-    .tile-now,
-    .tile-travel {
-      background: none !important;
-      background-color: transparent !important;
-      background-image: none !important;
-    }
-
-    .link-tile:hover {
-      transform: translateY(-4px);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-        0 14px 28px rgba(0, 0, 0, 0.1);
-      border-color: rgba(255, 255, 255, 0.34);
-    }
-
     .link-tile h2 {
       margin: 0;
       font-family: var(--font-display);
@@ -396,15 +353,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     .placeholder-tile {
       min-height: 0;
       padding: 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      border-radius: var(--radius-lg);
-      background: none !important;
-      background-color: transparent !important;
-      background-image: none !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.03),
-        0 8px 18px rgba(0, 0, 0, 0.05);
       display: grid;
       align-content: start;
     }

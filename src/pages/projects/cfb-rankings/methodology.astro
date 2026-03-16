@@ -20,7 +20,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     </section>
 
     <section class="method-doc">
-      <nav class="method-toc reveal" aria-label="Methodology sections">
+      <nav class="method-toc reveal glass-card" aria-label="Methodology sections">
         <p class="toc-title">On this page</p>
         <a href="#overview">Methodology</a>
         <a href="#decision-variables">Decision Variables &amp; Parameters</a>
@@ -29,7 +29,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
         <a href="#implementation-notes">Implementation Notes</a>
       </nav>
 
-      <article class="method-content reveal">
+      <article class="method-content reveal glass-card">
         <section id="overview" class="method-section">
           <h2>Methodology</h2>
           <p>
@@ -257,12 +257,6 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
       display: grid;
       gap: 0.25rem;
       padding: 1rem;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--line);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
-        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
-      box-shadow: var(--shadow-card);
     }
 
     .toc-title {
@@ -293,12 +287,14 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     .method-content {
       min-width: 0;
       padding: 1.5rem;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--line);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
-        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
-      box-shadow: var(--shadow-card);
+    }
+
+    .method-content.glass-card:hover {
+      transform: none;
+    }
+
+    .method-content.glass-card:hover::before {
+      opacity: 0;
     }
 
     .method-section + .method-section {

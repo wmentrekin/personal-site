@@ -14,6 +14,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           title="CFB Rankings"
           eyebrow="Active Project"
           status="Active"
+          surface="glass"
           tone="football"
           summary="A convex quadratic optimization model for ranking college football teams, supported by automated ingestion, storage, publishing, and methodology documentation."
           tags={["Optimization", "Sports Analytics", "Python", "Supabase", "GitHub Actions"]}
@@ -44,6 +45,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           title="2020 Election Model"
           eyebrow="Archived Project"
           status="Archived"
+          surface="glass"
           tone="archive"
           summary="A state-by-state election forecasting project preserved with its original narrative, map output, and full result tables in an archive-oriented presentation."
           tags={["Python", "Forecasting", "Statistics", "Election Modeling"]}
@@ -74,6 +76,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           title="College Basketball Rankings"
           eyebrow="In Progress"
           status="In Progress"
+          surface="glass"
           tone="basketball"
           summary="An in-progress adaptation of the college football optimization framework for college basketball."
           tags={["Basketball", "Optimization", "Sports Analytics", "Python"]}
@@ -103,6 +106,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           title="Memphis Grizzlies Asset Lineage"
           eyebrow="In Progress"
           status="In Progress"
+          surface="glass"
           tone="basketball"
           summary="A Grizzlies project tracing roster and draft-pick asset movement through timelines and network-style views."
           tags={["NBA", "Data Visualization", "Basketball", "Analytics"]}
@@ -136,19 +140,16 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .projects-frame {
-      --tile-height: 16.25rem;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: repeat(2, var(--tile-height));
-      column-gap: 0.9rem;
-      row-gap: 0.9rem;
+      gap: 1rem;
       width: min(100%, 72rem);
       align-items: stretch;
     }
 
     .frame-tile {
       position: relative;
-      height: 100%;
+      aspect-ratio: 1.58 / 1;
       min-height: 0;
       overflow: visible;
     }
@@ -158,29 +159,20 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       min-height: 0;
       padding: 1rem;
       gap: 0.7rem;
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      border-radius: var(--radius-lg);
-      background: none !important;
-      background-color: transparent !important;
-      background-image: none !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.22),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.03),
-        0 8px 18px rgba(0, 0, 0, 0.06);
       overflow: hidden;
-      transition:
-        transform 180ms ease,
-        box-shadow 180ms ease,
-        border-color 180ms ease;
+    }
+
+    .frame-tile :global(.card-top) {
+      gap: 0.7rem;
+    }
+
+    .frame-tile :global(.status-pill) {
+      flex-shrink: 0;
     }
 
     .frame-tile :global(.project-card > *) {
       position: relative;
       z-index: 2;
-    }
-
-    .frame-tile :global(.project-card::after) {
-      display: none;
     }
 
     .frame-tile :global(.card-summary) {
@@ -225,44 +217,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       flex: 0 0 auto;
     }
 
-    .frame-tile :global(.project-card::before) {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      padding: 1px;
-      background: linear-gradient(
-        135deg,
-        rgba(125, 211, 252, 0.55),
-        rgba(94, 234, 212, 0.2) 45%,
-        rgba(255, 255, 255, 0.06) 100%
-      );
-      -webkit-mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
-      mask-composite: exclude;
-      opacity: 0;
-      transition: opacity 180ms ease;
-      pointer-events: none;
-    }
-
-    .frame-tile :global(.project-card:hover) {
-      transform: translateY(-4px);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.28),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-        0 14px 28px rgba(0, 0, 0, 0.1);
-      border-color: rgba(255, 255, 255, 0.34);
-    }
-
-    .frame-tile :global(.project-card:hover::before) {
-      opacity: 1;
-    }
-
     .tile-overlay {
       position: absolute;
       inset: 0;
@@ -273,12 +227,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     @media (max-width: 980px) {
       .projects-frame {
         grid-template-columns: 1fr;
-        grid-template-rows: auto;
         width: 100%;
+        gap: 1rem;
       }
 
       .frame-tile {
-        height: auto;
+        aspect-ratio: auto;
       }
 
       .frame-tile :global(.project-card),

@@ -42,7 +42,7 @@ const tables = {
   <section class="project-shell">
     <a class="back-link reveal" href="/projects"><span aria-hidden="true">←</span> Projects</a>
 
-    <section class="archive-banner reveal">
+    <section class="archive-banner reveal glass-card">
       <p>
         <strong>Archived project:</strong> This page preserves the original 2020 election model content and outputs
         for historical reference.
@@ -50,7 +50,7 @@ const tables = {
     </section>
 
     <section class="project-hero reveal">
-      <div class="hero-copy">
+      <div class="hero-copy glass-card">
         <p class="hero-kicker">Archived Project</p>
         <h1>2020 Election Model</h1>
         <p class="hero-text">
@@ -83,7 +83,7 @@ const tables = {
       <a href="#insights">Insights</a>
     </section>
 
-    <section class="info-card reveal">
+    <section class="info-card reveal glass-card">
       <h2>Introduction</h2>
       <p class="muted">
         Hi, I'm Wyatt Entrekin, a 3rd-year Industrial Engineering student at the Georgia Institute of Technology with
@@ -99,7 +99,7 @@ const tables = {
       </p>
     </section>
 
-    <section class="info-card reveal" id="methods">
+    <section class="info-card reveal glass-card" id="methods">
       <h2>Methods</h2>
       <p class="muted">
         <strong>Disclaimer</strong>: This model is not an official prediction. I am in no way attesting to its
@@ -134,10 +134,10 @@ const tables = {
       </p>
     </section>
 
-    <section class="info-card reveal" id="results">
+    <section class="info-card reveal glass-card" id="results">
       <h2>Results</h2>
 
-      <article class="result-card">
+      <article class="result-card glass-card">
         <h3>Average Margin of Victory</h3>
         <p class="muted">
           In the model, there are 10,000 scenarios that were run. This map visualizes the average margin of victory
@@ -155,25 +155,25 @@ const tables = {
       </article>
 
       <div class="results-grid">
-        <article class="result-card reveal">
+        <article class="result-card reveal glass-card">
           <h3>Closest Projected Margins of Victory</h3>
           <p class="muted">The table below shows states where the winner is projected to win by less than 10% of the vote.</p>
           <div class="table-wrap" set:html={tables.closestMargins}></div>
         </article>
 
-        <article class="result-card reveal">
+        <article class="result-card reveal glass-card">
           <h3>Most Lopsided Projected Margins of Victory</h3>
           <p class="muted">The table below shows states where the winner is projected to win by more than 25% of the vote.</p>
           <div class="table-wrap" set:html={tables.lopsidedMargins}></div>
         </article>
 
-        <article class="result-card reveal">
+        <article class="result-card reveal glass-card">
           <h3>Projected Tossup States</h3>
           <p class="muted">The table below shows states where both candidates have at least a 40% chance of winning.</p>
           <div class="table-wrap" set:html={tables.tossups}></div>
         </article>
 
-        <article class="result-card reveal">
+        <article class="result-card reveal glass-card">
           <h3>Projected Flipped States</h3>
           <p class="muted">
             This table below shows states where the projected winner in 2020 is from a different party than the one
@@ -182,7 +182,7 @@ const tables = {
           <div class="table-wrap" set:html={tables.flips}></div>
         </article>
 
-        <article class="result-card full reveal">
+        <article class="result-card full reveal glass-card">
           <h3>Full Results</h3>
           <p class="muted">
             The table below shows the full results of the model in all 50 states and the District of Columbia. Below
@@ -192,7 +192,7 @@ const tables = {
           <div class="table-wrap wide" set:html={tables.results}></div>
         </article>
 
-        <article class="result-card full reveal">
+        <article class="result-card full reveal glass-card">
           <h3>Win Probabilities &amp; Expected Electoral Votes</h3>
           <p class="muted">
             The table below represents the expected value of electoral votes and chance of winning the electoral
@@ -206,7 +206,7 @@ const tables = {
       </div>
     </section>
 
-    <section class="info-card reveal" id="insights">
+    <section class="info-card reveal glass-card" id="insights">
       <h2>Insights</h2>
       <p class="muted">
         The first interesting result that I noted while getting the first results of this model were how some states
@@ -252,19 +252,8 @@ const tables = {
       padding-top: 0.8rem;
     }
 
-    .archive-banner,
-    .hero-copy,
-    .info-card {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-card);
-    }
-
     .archive-banner {
       padding: 0.95rem 1.1rem;
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
-        linear-gradient(160deg, rgba(28, 34, 43, 0.96), rgba(12, 18, 25, 0.98));
     }
 
     .archive-banner p {
@@ -279,10 +268,6 @@ const tables = {
 
     .hero-copy {
       padding: 1.1rem 1.2rem;
-      background:
-        radial-gradient(circle at top right, rgba(148, 163, 184, 0.12), transparent 30%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
-        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
     }
 
     .hero-kicker {
@@ -348,9 +333,6 @@ const tables = {
 
     .info-card {
       padding: 1.3rem;
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
-        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
     }
 
     .info-card h2,
@@ -383,9 +365,6 @@ const tables = {
 
     .result-card {
       padding: 1rem;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
     }
 
     .result-card + .result-card {

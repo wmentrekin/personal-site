@@ -219,6 +219,62 @@ const {
         color: var(--text);
       }
 
+      .glass-card {
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: var(--radius-lg);
+        background: none !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.22),
+          inset 0 -1px 0 rgba(255, 255, 255, 0.03),
+          0 8px 18px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          border-color 180ms ease;
+      }
+
+      .glass-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1px;
+        background: linear-gradient(
+          135deg,
+          rgba(125, 211, 252, 0.55),
+          rgba(94, 234, 212, 0.2) 45%,
+          rgba(255, 255, 255, 0.06) 100%
+        );
+        -webkit-mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        opacity: 0;
+        transition: opacity 180ms ease;
+        pointer-events: none;
+      }
+
+      .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.3),
+          inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+          0 14px 28px rgba(0, 0, 0, 0.1);
+        border-color: rgba(255, 255, 255, 0.34);
+      }
+
+      .glass-card:hover::before {
+        opacity: 1;
+      }
+
       .quick-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
