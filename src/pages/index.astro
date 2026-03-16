@@ -80,6 +80,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </p>
 
         <p class="focus-line">
+          <span>Current Role</span>
+          Data Engineer | Consultant at CapTech
+        </p>
+
+        <p class="focus-line">
           <span>Education</span>
           Georgia Institute of Technology, BS in Industrial Engineering
         </p>
@@ -112,6 +117,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p class="eyebrow">Current</p>
         <h2>Now</h2>
         <p>what I&apos;m focused on at the moment</p>
+      </a>
+      <a class="link-tile tile-travel tone-travel reveal" href="/travel">
+        <p class="eyebrow">Map</p>
+        <h2>Travel</h2>
+        <p>places I&apos;ve been and where I want to go next</p>
       </a>
       <article class="placeholder-tile reveal">
         <p class="eyebrow">Placeholder</p>
@@ -293,6 +303,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       grid-row: 3;
     }
 
+    .tile-travel {
+      grid-column: 2;
+      grid-row: 3;
+    }
+
     .link-tile::after {
       content: "";
       position: absolute;
@@ -338,16 +353,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .placeholder-tile:nth-of-type(1) {
-      grid-column: 2;
-      grid-row: 3;
-    }
-
-    .placeholder-tile:nth-of-type(2) {
       grid-column: 3;
       grid-row: 3;
     }
 
-    .placeholder-tile:nth-of-type(3) {
+    .placeholder-tile:nth-of-type(2) {
       grid-column: 4;
       grid-row: 3;
     }
@@ -371,6 +381,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       .intro-card,
       .tile-cfb,
       .tile-now,
+      .tile-travel,
       .tile-projects,
       .tile-about,
       .placeholder-tile {

@@ -44,12 +44,14 @@ const {
         --muted: #96a9bc;
         --line: rgba(173, 196, 221, 0.14);
         --line-strong: rgba(173, 196, 221, 0.24);
+        --grid-line: rgba(173, 196, 221, 0.055);
         --accent: #7dd3fc;
         --accent-football: #a3e635;
         --accent-basketball: #fb923c;
         --accent-baseball: #60a5fa;
         --accent-method: #facc15;
         --accent-archive: #94a3b8;
+        --accent-travel: #5eead4;
         --error-bg: rgba(123, 24, 24, 0.16);
         --error-text: #f6b1b1;
         --shadow-card:
@@ -75,12 +77,16 @@ const {
       }
 
       body {
+        position: relative;
         font-family: var(--font-body);
         color: var(--text);
         background:
+          linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+          linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px),
           radial-gradient(circle at top left, rgba(125, 211, 252, 0.12), transparent 28%),
           radial-gradient(circle at 80% 10%, rgba(163, 230, 53, 0.08), transparent 24%),
           linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 55%, #070b10 100%);
+        background-size: 42px 42px, 42px 42px, auto, auto, auto;
         background-attachment: fixed;
       }
 
@@ -259,6 +265,18 @@ const {
       .tone-about {
         background:
           linear-gradient(160deg, rgba(250, 204, 21, 0.08), rgba(19, 28, 39, 0.96)),
+          linear-gradient(160deg, rgba(19, 28, 39, 0.96), rgba(11, 18, 26, 0.98));
+      }
+
+      .tone-now {
+        background:
+          linear-gradient(160deg, rgba(148, 163, 184, 0.1), rgba(19, 28, 39, 0.96)),
+          linear-gradient(160deg, rgba(19, 28, 39, 0.96), rgba(11, 18, 26, 0.98));
+      }
+
+      .tone-travel {
+        background:
+          linear-gradient(160deg, rgba(94, 234, 212, 0.1), rgba(19, 28, 39, 0.96)),
           linear-gradient(160deg, rgba(19, 28, 39, 0.96), rgba(11, 18, 26, 0.98));
       }
 
