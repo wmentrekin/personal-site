@@ -146,6 +146,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-rows: repeat(2, minmax(0, 1fr));
       gap: 1rem;
+      height: 100%;
       min-height: 0;
       width: min(100%, 72rem);
       align-items: stretch;
@@ -155,7 +156,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       position: relative;
       min-height: 0;
       height: 100%;
-      overflow: visible;
+      overflow: hidden;
     }
 
     .frame-tile :global(.project-card) {
@@ -212,7 +213,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .frame-tile :global(.project-card.surface-glass:hover) {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
 
     .frame-tile :global(.icon-link) {
@@ -250,6 +251,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
       .frame-tile {
         height: auto;
+        overflow: visible;
       }
 
       .frame-tile :global(.project-card),
