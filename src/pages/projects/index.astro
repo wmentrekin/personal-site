@@ -18,8 +18,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           summary="A convex quadratic optimization model for ranking college football teams, supported by automated ingestion, storage, publishing, and methodology documentation."
           tags={["Optimization", "Sports Analytics", "Python", "Supabase", "GitHub Actions"]}
         >
-          <a slot="actions" class="card-link" href="https://github.com/wmentrekin/cfb-rankings" target="_blank" rel="noreferrer">
-            Repository
+          <a
+            slot="actions"
+            class="card-link icon-link"
+            href="https://github.com/wmentrekin/cfb-rankings"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="CFB Rankings repository"
+            title="Repository"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 2C6.48 2 2 6.58 2 12.24c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-1.05-.01-1.9-2.78.62-3.37-1.21-3.37-1.21-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.55-1.14-4.55-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.86c.85 0 1.71.12 2.51.35 1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.33 4.8-4.56 5.05.36.32.68.95.68 1.92 0 1.39-.01 2.5-.01 2.84 0 .27.18.59.69.49A10.13 10.13 0 0 0 22 12.24C22 6.58 17.52 2 12 2Z"
+                fill="currentColor"
+              ></path>
+            </svg>
           </a>
           <a slot="actions" class="card-link" href="/projects/cfb-rankings/methodology">Methodology</a>
           <a
@@ -44,8 +57,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           summary="A state-by-state election forecasting project preserved with its original narrative, map output, and full result tables in an archive-oriented presentation."
           tags={["Python", "Forecasting", "Statistics", "Election Modeling"]}
         >
-          <a slot="actions" class="card-link" href="https://github.com/wmentrekin/2020election" target="_blank" rel="noreferrer">
-            Repository
+          <a
+            slot="actions"
+            class="card-link icon-link"
+            href="https://github.com/wmentrekin/2020election"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="2020 Election Model repository"
+            title="Repository"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 2C6.48 2 2 6.58 2 12.24c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-1.05-.01-1.9-2.78.62-3.37-1.21-3.37-1.21-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.55-1.14-4.55-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.86c.85 0 1.71.12 2.51.35 1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.33 4.8-4.56 5.05.36.32.68.95.68 1.92 0 1.39-.01 2.5-.01 2.84 0 .27.18.59.69.49A10.13 10.13 0 0 0 22 12.24C22 6.58 17.52 2 12 2Z"
+                fill="currentColor"
+              ></path>
+            </svg>
           </a>
           <a
             slot="actions"
@@ -75,30 +101,26 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
   <style>
     .projects-shell {
-      --shell-gap: 0.95rem;
-      --frame-gap: 0.9rem;
       display: grid;
-      grid-template-rows: auto 1fr;
-      gap: var(--shell-gap);
-      height: calc(100svh - 4.5rem);
+      gap: 0.95rem;
       padding-top: 0.8rem;
-      overflow: hidden;
     }
 
     .projects-frame {
+      --tile-height: 16.25rem;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: repeat(2, calc((100% - var(--frame-gap)) / 2));
-      gap: var(--frame-gap);
-      height: 100%;
-      min-height: 0;
+      grid-template-rows: repeat(2, var(--tile-height));
+      gap: 0.9rem;
+      width: min(100%, 72rem);
+      align-items: stretch;
     }
 
     .frame-tile {
       position: relative;
-      min-height: 0;
       height: 100%;
-      overflow: hidden;
+      min-height: 0;
+      overflow: visible;
     }
 
     .frame-tile :global(.project-card) {
@@ -119,6 +141,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         border-color 180ms ease;
     }
 
+    .frame-tile :global(.project-card::after) {
+      display: none;
+    }
+
     .frame-tile :global(.card-summary) {
       display: -webkit-box;
       -webkit-line-clamp: 3;
@@ -137,6 +163,24 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .frame-tile :global(.card-actions) {
       gap: 0.55rem;
       font-size: 0.92rem;
+    }
+
+    .frame-tile :global(.icon-link) {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.85rem;
+      height: 1.85rem;
+      padding: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .frame-tile :global(.icon-link svg) {
+      width: 0.95rem;
+      height: 0.95rem;
+      flex: 0 0 auto;
     }
 
     .placeholder-card {
@@ -223,15 +267,20 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     @media (max-width: 980px) {
-      .projects-shell {
-        height: auto;
-        overflow: visible;
-      }
-
       .projects-frame {
         grid-template-columns: 1fr;
         grid-template-rows: auto;
+        width: 100%;
+      }
+
+      .frame-tile {
         height: auto;
+      }
+
+      .frame-tile :global(.project-card),
+      .placeholder-card {
+        height: auto;
+        min-height: 14rem;
       }
     }
   </style>
