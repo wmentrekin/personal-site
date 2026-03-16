@@ -1,0 +1,15 @@
+<svg width="112" height="48" viewBox="0 0 112 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="10" y="10" width="44" height="28" rx="2" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+  <path d="M10 14H54" stroke="#DC2626" stroke-width="3"/>
+  <path d="M10 20H54" stroke="#DC2626" stroke-width="3"/>
+  <path d="M10 26H54" stroke="#DC2626" stroke-width="3"/>
+  <path d="M10 32H54" stroke="#DC2626" stroke-width="3"/>
+  <rect x="10" y="10" width="20" height="15" fill="#1D4ED8"/>
+  <circle cx="16" cy="15" r="1" fill="#FFFFFF"/>
+  <circle cx="22" cy="15" r="1" fill="#FFFFFF"/>
+  <circle cx="28" cy="15" r="1" fill="#FFFFFF"/>
+  <circle cx="19" cy="20" r="1" fill="#FFFFFF"/>
+  <circle cx="25" cy="20" r="1" fill="#FFFFFF"/>
+  <text x="64" y="20" fill="#DBEAFE" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="0.14em">UNITED</text>
+  <text x="64" y="33" fill="#FCA5A5" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="800" letter-spacing="0.14em">STATES</text>
+</svg>
