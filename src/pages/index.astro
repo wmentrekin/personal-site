@@ -149,11 +149,44 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .intro-card,
-    .link-tile {
+    .link-tile,
+    .placeholder-tile {
+      position: relative;
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-card);
       overflow: hidden;
+      transition:
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        border-color 180ms ease;
+    }
+
+    .intro-card::before,
+    .link-tile::before,
+    .placeholder-tile::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(
+        135deg,
+        rgba(125, 211, 252, 0.55),
+        rgba(94, 234, 212, 0.2) 45%,
+        rgba(255, 255, 255, 0.06) 100%
+      );
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 180ms ease;
+      pointer-events: none;
     }
 
     .intro-card {
@@ -167,6 +200,19 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         radial-gradient(circle at top left, rgba(125, 211, 252, 0.12), transparent 30%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
         linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+    }
+
+    .intro-card:hover,
+    .placeholder-tile:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .intro-card:hover::before,
+    .link-tile:hover::before,
+    .placeholder-tile:hover::before {
+      opacity: 1;
     }
 
     .eyebrow {
@@ -274,10 +320,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       gap: 0.55rem;
       min-height: 0;
       padding: 1rem;
-      position: relative;
       text-decoration: none;
       color: var(--text);
-      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
     }
 
     .tile-cfb {

@@ -7,13 +7,10 @@ const lastUpdated = "March 15, 2026";
 const entries = [
   {
     date: "March 15, 2026",
-    title: "Building out the portfolio foundation",
+    title: "",
     summary:
-      "I am tightening the personal site so it can act as a stable home for sports analytics work, technical writing, and future dashboards.",
+      "Focusing on fitness, lifitng and running regularly. Working on cool personal projects.",
     items: [
-      "Refining the homepage and page templates so the site feels compact and easier to navigate.",
-      "Cleaning up the project pages, especially the college football rankings work and its methodology writeup.",
-      "Keeping room for new long-form analytics projects once the first version of the site feels stable."
     ]
   }
 ];
@@ -21,33 +18,11 @@ const entries = [
 
 <BaseLayout
   title="Now | Wyatt Entrekin"
-  description="What Wyatt Entrekin is focused on now across data engineering, analytics, and current projects."
 >
   <section class="now-shell">
     <section class="now-hero reveal">
       <p class="hero-kicker">Now</p>
-      <h1>A current snapshot of what I&apos;m focused on.</h1>
-      <p class="hero-text">
-        This page is a lightweight running log rather than a full archive. I update it when priorities shift,
-        projects change, or something becomes worth noting.
-      </p>
       <p class="hero-meta">Last updated {lastUpdated}</p>
-    </section>
-
-    <section class="grid reveal">
-      <article class="card guide-card">
-        <span>What belongs here</span>
-        <p class="muted">
-          Current work, active interests, and anything that explains where my time and attention are going right
-          now.
-        </p>
-      </article>
-      <article class="card guide-card">
-        <span>How I&apos;ll use it</span>
-        <p class="muted">
-          Each new update can be added as another entry near the top of the file, keeping the newest note first.
-        </p>
-      </article>
     </section>
 
     <section class="entry-list">
@@ -72,6 +47,7 @@ const entries = [
       gap: 1.5rem;
       max-width: 56rem;
       margin: 0 auto;
+      padding-top: 0.8rem;
     }
 
     .now-hero {

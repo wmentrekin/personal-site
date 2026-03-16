@@ -4,26 +4,63 @@ interface Props {
 }
 
 const { visitedIso2 } = Astro.props;
-const globeId = `travel-globe-${Math.random().toString(36).slice(2, 10)}`;
 ---
 
 <div class="travel-globe-shell">
-  <div id={globeId} class="travel-globe-canvas" aria-label="Interactive globe visualization"></div>
+  <div
+    class="travel-globe-canvas"
+    aria-label="Interactive globe visualization"
+    data-travel-globe
+    data-visited-iso2={JSON.stringify(visitedIso2)}
+  ></div>
 </div>
 
-<script define:vars={{ globeId, visitedIso2 }}>
-  import Globe from "globe.gl";
-  import countries from "globe.gl/example/datasets/ne_110m_admin_0_countries.geojson";
+<script>
+  let globeModulePromise;
 
-  const container = document.getElementById(globeId);
+  let countriesDataPromise;
 
-  if (container && !container.dataset.ready) {
+  const loadGlobeModule = async () => {
+    if (!globeModulePromise) {
+      globeModulePromise = import("globe.gl").then((module) => module.default);
+    }
+
+    return globeModulePromise;
+  };
+
+  const loadCountriesData = async () => {
+    if (!countriesDataPromise) {
+      countriesDataPromise = fetch("/data/travel/ne_110m_admin_0_countries.geojson")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Failed to load travel globe data: ${response.status}`);
+          }
+
+          return response.json();
+        })
+        .then((countries) =>
+          countries.features.filter(
+            (feature) => feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "AQ"
+          )
+        );
+    }
+
+    return countriesDataPromise;
+  };
+
+  const mountTravelGlobe = async (container) => {
+    if (!(container instanceof HTMLElement) || container.dataset.ready === "true" || container.dataset.loading === "true") {
+      return;
+    }
+
+    container.dataset.loading = "true";
+
+    const [Globe, countriesData] = await Promise.all([loadGlobeModule(), loadCountriesData()]);
+    container.dataset.loading = "false";
     container.dataset.ready = "true";
 
+    const visitedIso2 = JSON.parse(container.dataset.visitedIso2 ?? "[]");
     const visitedSet = new Set(visitedIso2);
-    const countriesData = countries.features.filter(
-      (feature) => feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "AQ"
-    );
 
     let hoveredPolygon = null;
 
@@ -104,7 +141,41 @@ const globeId = `travel-globe-${Math.random().toString(36).slice(2, 10)}`;
       },
       { once: true }
     );
-  }
+  };
+
+  const initTravelGlobes = () => {
+    const containers = document.querySelectorAll("[data-travel-globe]");
+
+    if (!("IntersectionObserver" in window)) {
+      containers.forEach((container) => {
+        void mountTravelGlobe(container);
+      });
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+          observer.unobserve(entry.target);
+          void mountTravelGlobe(entry.target);
+        });
+      },
+      { rootMargin: "200px 0px" }
+    );
+
+    containers.forEach((container) => {
+      if (container instanceof HTMLElement && container.dataset.ready !== "true") {
+        observer.observe(container);
+      }
+    });
+  };
+
+  document.addEventListener("astro:page-load", initTravelGlobes);
+  initTravelGlobes();
 </script>
 
 <style>
@@ -117,6 +188,7 @@ const globeId = `travel-globe-${Math.random().toString(36).slice(2, 10)}`;
   .travel-globe-canvas {
     min-height: 22rem;
     cursor: grab;
+    position: relative;
   }
 
   .travel-globe-canvas:active {
