@@ -25,7 +25,6 @@ const visitedIso2 = [
 
 <BaseLayout
   title="Travel | Wyatt Entrekin"
-  description="Travel log and interactive globe visualization by Wyatt Entrekin."
 >
   <section class="travel-shell">
     <section class="travel-hero reveal">
@@ -34,10 +33,6 @@ const visitedIso2 = [
         Home
       </a>
       <p class="hero-kicker">Travel</p>
-      <h1>Places I&apos;ve been.</h1>
-      <p class="hero-text">
-        Click and drag the globe to rotate it.
-      </p>
     </section>
 
     <section class="globe-card reveal">
@@ -108,24 +103,12 @@ const visitedIso2 = [
     .globe-card {
       display: grid;
       width: min(100%, 72rem);
-      padding: 1.5rem;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      background:
-        radial-gradient(circle at 25% 20%, rgba(94, 234, 212, 0.12), transparent 25%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
-        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
-      box-shadow: var(--shadow-card);
+      justify-items: center;
     }
 
     .globe-stage {
-      min-height: 36rem;
-      border-radius: calc(var(--radius-lg) - 6px);
-      overflow: hidden;
-      border: 1px solid rgba(173, 196, 221, 0.08);
-      background:
-        radial-gradient(circle at center, rgba(94, 234, 212, 0.12), transparent 42%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+      width: min(100%, 68rem);
+      min-height: 40rem;
     }
 
     @media (max-width: 900px) {

@@ -1,142 +1,265 @@
 ---
-import { readFileSync } from "node:fs";
-import { geoEquirectangular, geoGraticule10, geoPath } from "d3-geo";
-
-interface FeatureProperties {
-  ISO_A2?: string;
-  ADMIN?: string;
-}
-
-interface FeatureCollection {
-  features: Array<{
-    properties: FeatureProperties;
-  }>;
-}
-
 interface Props {
   visitedIso2: string[];
 }
 
 const { visitedIso2 } = Astro.props;
-const adminIsoAliases: Record<string, string> = {
-  France: "FR"
-};
-
-const countries = JSON.parse(
-  readFileSync(new URL("../../public/data/travel/ne_110m_admin_0_countries.geojson", import.meta.url), "utf-8")
-) as FeatureCollection;
-
-const width = 1400;
-const height = 700;
-const projection = geoEquirectangular().fitSize([width, height], countries as never);
-const path = geoPath(projection);
-const graticule = geoGraticule10();
-const visitedSet = new Set(visitedIso2);
-
-const countryPaths = countries.features
-  .filter((feature) => feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "AQ")
-  .map((feature) => {
-    const shape = path(feature as never);
-
-    if (!shape) {
-      return "";
-    }
-
-    const isoCode = feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "-99"
-      ? feature.properties.ISO_A2
-      : adminIsoAliases[feature.properties.ADMIN ?? ""] ?? "";
-    const visited = visitedSet.has(isoCode);
-
-    return `<path d="${shape}" fill="${visited ? "#5eead4" : "rgba(148,163,184,0.08)"}" stroke="${
-      visited ? "rgba(214,245,255,0.32)" : "rgba(173,196,221,0.10)"
-    }" stroke-width="0.7" />`;
-  })
-  .join("");
-
-const graticulePath = path(graticule as never) ?? "";
-
-const textureSvg = `
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">
-    <rect width="${width}" height="${height}" fill="#0a121b" />
-    <path d="${graticulePath}" fill="none" stroke="rgba(173,196,221,0.11)" stroke-width="0.8" />
-    ${countryPaths}
-  </svg>
-`;
-
-const textureUrl = `url("data:image/svg+xml,${encodeURIComponent(textureSvg)}")`;
 ---
 
 <div class="travel-globe-shell">
-  <div class="globe-orbit orbit-one"></div>
-  <div class="globe-orbit orbit-two"></div>
-  <div class="travel-globe-sphere" data-drag-globe style={`--globe-texture: ${textureUrl};`}>
-    <div class="globe-map"></div>
-  </div>
+  <canvas
+    class="travel-globe-canvas"
+    data-travel-globe
+    data-visited-iso2={JSON.stringify(visitedIso2)}
+    aria-label="Interactive globe"
+  ></canvas>
 </div>
 
 <script>
-  const initDragGlobes = () => {
-    document.querySelectorAll("[data-drag-globe]").forEach((globe) => {
-      if (!(globe instanceof HTMLElement) || globe.dataset.ready === "true") {
+  import { geoGraticule10, geoOrthographic, geoPath } from "d3-geo";
+
+  type CountryFeature = {
+    properties: {
+      ISO_A2?: string;
+      ADMIN?: string;
+    };
+  };
+
+  let countriesDataPromise: Promise<CountryFeature[]> | undefined;
+
+  const countryAliases: Record<string, string> = {
+    France: "FR"
+  };
+
+  const loadCountriesData = async () => {
+    if (!countriesDataPromise) {
+      countriesDataPromise = fetch("/data/travel/ne_110m_admin_0_countries.geojson")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Failed to load travel globe data: ${response.status}`);
+          }
+
+          return response.json() as Promise<{ features: CountryFeature[] }>;
+        })
+        .then((countries) =>
+          countries.features.filter(
+            (feature: CountryFeature) => feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "AQ"
+          )
+        );
+    }
+
+    return countriesDataPromise;
+  };
+
+  const getCountryCode = (feature: CountryFeature) => {
+    if (feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "-99") {
+      return feature.properties.ISO_A2;
+    }
+
+    return countryAliases[feature.properties.ADMIN ?? ""] ?? null;
+  };
+
+  const mountTravelGlobe = async (canvas: Element) => {
+    if (!(canvas instanceof HTMLCanvasElement) || canvas.dataset.ready === "true") {
+      return;
+    }
+
+    canvas.dataset.ready = "true";
+
+    const countries = await loadCountriesData();
+    const visitedIso2 = JSON.parse(canvas.dataset.visitedIso2 ?? "[]");
+    const visitedSet = new Set(visitedIso2);
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return;
+    }
+
+    const projection = geoOrthographic();
+    const path = geoPath(projection, context);
+    const graticule = geoGraticule10();
+    const rotation = [-20, -18, 0];
+
+    let width = 0;
+    let height = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+
+    const drawSphere = () => {
+      const sphere = { type: "Sphere" };
+      const radius = Math.min(width, height) * 0.42;
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      context.save();
+      context.beginPath();
+      path(sphere);
+      const glow = context.createRadialGradient(centerX, centerY, radius * 0.55, centerX, centerY, radius * 1.08);
+      glow.addColorStop(0, "rgba(125, 211, 252, 0)");
+      glow.addColorStop(1, "rgba(125, 211, 252, 0.18)");
+      context.fillStyle = glow;
+      context.fill();
+      context.restore();
+
+      context.save();
+      context.beginPath();
+      path(sphere);
+      const fill = context.createRadialGradient(
+        centerX - radius * 0.38,
+        centerY - radius * 0.42,
+        radius * 0.08,
+        centerX,
+        centerY,
+        radius
+      );
+      fill.addColorStop(0, "rgba(196, 236, 255, 0.34)");
+      fill.addColorStop(0.24, "rgba(64, 130, 181, 0.4)");
+      fill.addColorStop(0.62, "rgba(16, 34, 54, 0.98)");
+      fill.addColorStop(1, "rgba(5, 10, 17, 1)");
+      context.fillStyle = fill;
+      context.fill();
+      context.restore();
+
+      context.save();
+      context.beginPath();
+      path(sphere);
+      context.strokeStyle = "rgba(173, 196, 221, 0.24)";
+      context.lineWidth = 1.1;
+      context.stroke();
+      context.restore();
+    };
+
+    const draw = () => {
+      context.clearRect(0, 0, width, height);
+
+      drawSphere();
+
+      context.save();
+      context.beginPath();
+      path({ type: "Sphere" });
+      context.clip();
+
+      context.beginPath();
+      path(graticule);
+      context.strokeStyle = "rgba(173, 196, 221, 0.12)";
+      context.lineWidth = 0.7;
+      context.stroke();
+
+      countries.forEach((feature: CountryFeature) => {
+        const code = getCountryCode(feature);
+        const visited = code ? visitedSet.has(code) : false;
+
+        context.beginPath();
+        path(feature);
+        context.fillStyle = visited ? "rgba(94, 234, 212, 0.88)" : "rgba(148, 163, 184, 0.08)";
+        context.fill();
+        context.strokeStyle = visited ? "rgba(214, 245, 255, 0.34)" : "rgba(173, 196, 221, 0.12)";
+        context.lineWidth = 0.75;
+        context.stroke();
+      });
+
+      const shadow = context.createRadialGradient(
+        width * 0.38,
+        height * 0.34,
+        width * 0.04,
+        width * 0.62,
+        height * 0.64,
+        Math.min(width, height) * 0.48
+      );
+      shadow.addColorStop(0, "rgba(255, 255, 255, 0)");
+      shadow.addColorStop(0.65, "rgba(0, 0, 0, 0.06)");
+      shadow.addColorStop(1, "rgba(0, 0, 0, 0.3)");
+      context.fillStyle = shadow;
+      context.fillRect(0, 0, width, height);
+
+      context.restore();
+    };
+
+    const resize = () => {
+      const nextWidth = Math.max(1, canvas.clientWidth);
+      const nextHeight = Math.max(1, canvas.clientHeight);
+      const ratio = window.devicePixelRatio || 1;
+
+      width = nextWidth;
+      height = nextHeight;
+
+      canvas.width = Math.round(nextWidth * ratio);
+      canvas.height = Math.round(nextHeight * ratio);
+
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.scale(ratio, ratio);
+
+      projection
+        .translate([width / 2, height / 2])
+        .scale(Math.min(width, height) * 0.42)
+        .clipAngle(90)
+        .precision(0.5)
+        .rotate(rotation);
+
+      draw();
+    };
+
+    const stopDragging = (event: PointerEvent) => {
+      if (!isDragging) {
         return;
       }
 
-      globe.dataset.ready = "true";
+      isDragging = false;
+      if (event instanceof PointerEvent) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+    };
 
-      let isDragging = false;
-      let startX = 0;
-      let startY = 0;
-      let shiftX = 0;
-      let tiltDeg = -18;
+    canvas.addEventListener("pointerdown", (event) => {
+      isDragging = true;
+      startX = event.clientX;
+      startY = event.clientY;
+      canvas.setPointerCapture(event.pointerId);
+    });
 
-      const apply = () => {
-        globe.style.setProperty("--globe-shift", `${shiftX}px`);
-        globe.style.setProperty("--globe-tilt", `${tiltDeg}deg`);
-      };
+    canvas.addEventListener("pointermove", (event) => {
+      if (!isDragging) {
+        return;
+      }
 
-      globe.addEventListener("pointerdown", (event) => {
-        isDragging = true;
-        startX = event.clientX;
-        startY = event.clientY;
-        globe.setPointerCapture(event.pointerId);
-      });
+      const deltaX = event.clientX - startX;
+      const deltaY = event.clientY - startY;
 
-      globe.addEventListener("pointermove", (event) => {
-        if (!isDragging) {
-          return;
-        }
+      startX = event.clientX;
+      startY = event.clientY;
 
-        const deltaX = event.clientX - startX;
-        const deltaY = event.clientY - startY;
-        startX = event.clientX;
-        startY = event.clientY;
+      rotation[0] += deltaX * 0.35;
+      rotation[1] = Math.max(-55, Math.min(55, rotation[1] - deltaY * 0.25));
+      projection.rotate(rotation);
+      draw();
+    });
 
-        shiftX += deltaX * 2.2;
-        tiltDeg = Math.max(-32, Math.min(8, tiltDeg + deltaY * 0.08));
-        apply();
-      });
+    canvas.addEventListener("pointerup", stopDragging);
+    canvas.addEventListener("pointercancel", stopDragging);
+    canvas.addEventListener("pointerleave", stopDragging);
 
-      const stopDragging = (event: PointerEvent) => {
-        if (!isDragging) {
-          return;
-        }
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvas);
+    resize();
 
-        isDragging = false;
-        if (event instanceof PointerEvent) {
-          globe.releasePointerCapture(event.pointerId);
-        }
-      };
+    window.addEventListener(
+      "pagehide",
+      () => {
+        resizeObserver.disconnect();
+      },
+      { once: true }
+    );
+  };
 
-      globe.addEventListener("pointerup", stopDragging);
-      globe.addEventListener("pointercancel", stopDragging);
-      globe.addEventListener("pointerleave", stopDragging);
-
-      apply();
+  const initTravelGlobes = () => {
+    document.querySelectorAll("[data-travel-globe]").forEach((canvas) => {
+      void mountTravelGlobe(canvas);
     });
   };
 
-  document.addEventListener("astro:page-load", initDragGlobes);
-  initDragGlobes();
+  document.addEventListener("astro:page-load", initTravelGlobes);
+  initTravelGlobes();
 </script>
 
 <style>
@@ -146,84 +269,19 @@ const textureUrl = `url("data:image/svg+xml,${encodeURIComponent(textureSvg)}")`
     place-items: center;
     width: 100%;
     height: 100%;
-    min-height: 22rem;
+    min-height: 32rem;
     overflow: hidden;
   }
 
-  .travel-globe-sphere {
-    --globe-shift: 0px;
-    --globe-tilt: -18deg;
-    position: relative;
-    width: min(38rem, 84vw);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    overflow: hidden;
+  .travel-globe-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 32rem;
     cursor: grab;
-    background:
-      radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.22), transparent 14%),
-      radial-gradient(circle at 42% 36%, rgba(125, 211, 252, 0.16), transparent 24%),
-      radial-gradient(circle at 50% 50%, rgba(14, 29, 45, 0.98), rgba(5, 10, 17, 1) 74%);
-    box-shadow:
-      inset -34px -30px 72px rgba(0, 0, 0, 0.42),
-      inset 24px 20px 56px rgba(255, 255, 255, 0.05),
-      0 24px 60px rgba(0, 0, 0, 0.36);
-    transform: rotateZ(-6deg);
   }
 
-  .travel-globe-sphere:active {
+  .travel-globe-canvas:active {
     cursor: grabbing;
-  }
-
-  .globe-map {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background-image: var(--globe-texture);
-    background-repeat: repeat-x;
-    background-size: auto 100%;
-    background-position: var(--globe-shift) 50%;
-    transform: perspective(900px) rotateX(var(--globe-tilt)) scaleX(1.22);
-    transform-origin: center;
-    opacity: 0.96;
-    transition: transform 140ms ease-out;
-  }
-
-  .globe-map::before,
-  .globe-map::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    pointer-events: none;
-  }
-
-  .globe-map::before {
-    background:
-      radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.16), transparent 18%),
-      radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.18) 78%);
-  }
-
-  .globe-map::after {
-    background:
-      linear-gradient(90deg, rgba(0, 0, 0, 0.32), transparent 22%, transparent 72%, rgba(0, 0, 0, 0.36)),
-      radial-gradient(circle at center, transparent 62%, rgba(125, 211, 252, 0.1) 100%);
-  }
-
-  .globe-orbit {
-    position: absolute;
-    border: 1px solid rgba(173, 196, 221, 0.12);
-    border-radius: 50%;
-    pointer-events: none;
-  }
-
-  .orbit-one {
-    width: min(44rem, 92vw);
-    aspect-ratio: 1;
-  }
-
-  .orbit-two {
-    width: min(47rem, 96vw);
-    aspect-ratio: 1;
-    transform: rotateX(72deg);
   }
 </style>
