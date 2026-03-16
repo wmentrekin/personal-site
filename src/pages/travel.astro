@@ -1,4 +1,5 @@
 ---
+import TravelGlobe from "../components/TravelGlobe.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
 const visited = [
@@ -24,38 +25,52 @@ const visited = [
   "Cayman Islands"
 ];
 
+const visitedIso2 = [
+  "US",
+  "MX",
+  "PE",
+  "DO",
+  "IT",
+  "ES",
+  "FR",
+  "NL",
+  "GB",
+  "DE",
+  "AT",
+  "IS",
+  "IE",
+  "CR",
+  "JM",
+  "BS",
+  "KY"
+];
+
 const nextUp = ["Vietnam"];
 ---
 
 <BaseLayout
   title="Travel | Wyatt Entrekin"
-  description="Travel log and future travel visualization work by Wyatt Entrekin."
+  description="Travel log and interactive globe visualization by Wyatt Entrekin."
 >
   <section class="travel-shell">
     <section class="travel-hero reveal">
       <p class="hero-kicker">Travel</p>
-      <h1>Places I&apos;ve been, plus the map I want to build next.</h1>
+      <h1>Places I&apos;ve been, with a globe I can keep extending over time.</h1>
       <p class="hero-text">
-        This page will eventually hold an interactive travel visualization, likely a globe with visited countries
-        highlighted. For now, it acts as the landing page and data stub for that work.
+        Visited countries are highlighted on the globe, with trip stops layered on top. This page is meant to stay
+        lightweight now and get richer as I add more travel history.
       </p>
     </section>
 
     <section class="travel-grid">
       <article class="globe-card reveal">
-        <div class="globe-wrap" aria-hidden="true">
-          <div class="globe"></div>
-          <div class="globe-ring ring-one"></div>
-          <div class="globe-ring ring-two"></div>
+        <div class="globe-stage">
+          <TravelGlobe visitedIso2={visitedIso2} />
         </div>
-        <div class="globe-copy">
-          <span>Visualization placeholder</span>
-          <h2>Interactive globe coming here</h2>
-          <p class="muted">
-            The final version should use a real 3D globe, country highlight states, and a clean interaction model
-            for visited, lived, and planned destinations.
-          </p>
-        </div>
+        <p class="globe-note">
+          Countries are raised on hover. Territories and microstates may not appear as separate highlighted polygons
+          depending on the globe dataset.
+        </p>
       </article>
 
       <div class="travel-column">
@@ -94,8 +109,7 @@ const nextUp = ["Vietnam"];
     }
 
     .hero-kicker,
-    .meta-label,
-    .globe-copy span {
+    .meta-label {
       margin: 0;
       color: var(--accent-travel);
       font-family: var(--font-mono);
@@ -129,8 +143,8 @@ const nextUp = ["Vietnam"];
 
     .globe-card {
       display: grid;
-      gap: 1.2rem;
-      min-height: 28rem;
+      gap: 1rem;
+      min-height: 30rem;
       padding: 1.35rem;
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
@@ -141,97 +155,22 @@ const nextUp = ["Vietnam"];
       box-shadow: var(--shadow-card);
     }
 
-    .globe-wrap {
-      position: relative;
-      display: grid;
-      place-items: center;
-      min-height: 20rem;
-      overflow: hidden;
+    .globe-stage {
+      min-height: 24rem;
+      height: 100%;
       border-radius: calc(var(--radius-lg) - 6px);
-      background:
-        radial-gradient(circle at center, rgba(94, 234, 212, 0.14), transparent 42%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+      overflow: hidden;
       border: 1px solid rgba(173, 196, 221, 0.08);
-    }
-
-    .globe {
-      position: relative;
-      width: min(18rem, 54vw);
-      aspect-ratio: 1;
-      border-radius: 50%;
       background:
-        radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.16), transparent 18%),
-        radial-gradient(circle at 55% 48%, rgba(94, 234, 212, 0.18), transparent 16%),
-        radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.16), rgba(13, 24, 35, 0.98) 68%);
-      box-shadow:
-        0 0 0 1px rgba(173, 196, 221, 0.08),
-        inset -28px -26px 60px rgba(0, 0, 0, 0.35),
-        inset 20px 18px 40px rgba(255, 255, 255, 0.04),
-        0 20px 60px rgba(0, 0, 0, 0.32);
-      animation: spin-globe 22s linear infinite;
+        radial-gradient(circle at center, rgba(94, 234, 212, 0.12), transparent 42%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
     }
 
-    .globe::before,
-    .globe::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-    }
-
-    .globe::before {
-      background:
-        repeating-linear-gradient(
-          to right,
-          transparent 0,
-          transparent 15px,
-          rgba(173, 196, 221, 0.09) 15px,
-          rgba(173, 196, 221, 0.09) 16px
-        );
-      mix-blend-mode: screen;
-      opacity: 0.5;
-    }
-
-    .globe::after {
-      background:
-        repeating-linear-gradient(
-          to bottom,
-          transparent 0,
-          transparent 15px,
-          rgba(173, 196, 221, 0.08) 15px,
-          rgba(173, 196, 221, 0.08) 16px
-        );
-      mix-blend-mode: screen;
-      opacity: 0.38;
-    }
-
-    .globe-ring {
-      position: absolute;
-      border: 1px solid rgba(173, 196, 221, 0.12);
-      border-radius: 50%;
-    }
-
-    .ring-one {
-      width: min(22rem, 68vw);
-      aspect-ratio: 1;
-    }
-
-    .ring-two {
-      width: min(24rem, 74vw);
-      aspect-ratio: 1;
-      transform: rotateX(72deg);
-    }
-
-    .globe-copy h2 {
-      margin: 0.35rem 0 0;
-      font-family: var(--font-display);
-      font-size: clamp(1.35rem, 2vw, 1.8rem);
-      line-height: 1.04;
-      letter-spacing: -0.03em;
-    }
-
-    .globe-copy p {
-      margin: 0.7rem 0 0;
+    .globe-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.6;
     }
 
     .travel-column {
@@ -251,22 +190,6 @@ const nextUp = ["Vietnam"];
       margin-top: 0.35rem;
     }
 
-    @keyframes spin-globe {
-      from {
-        transform: rotate(0deg);
-      }
-
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .globe {
-        animation: none;
-      }
-    }
-
     @media (max-width: 900px) {
       .travel-grid {
         grid-template-columns: 1fr;
@@ -274,6 +197,10 @@ const nextUp = ["Vietnam"];
 
       .globe-card {
         min-height: 0;
+      }
+
+      .globe-stage {
+        min-height: 22rem;
       }
     }
   </style>
