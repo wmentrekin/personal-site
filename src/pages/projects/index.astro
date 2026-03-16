@@ -3,30 +3,52 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 const projects = [
   {
-    title: "CFB Rankings",
+    titleLines: ["College Football Optimization Rankings"],
     status: "Active",
-    summary: "a convex quadratic program to optimally rank college football teams based on game outcomes with automated ingestion, artifact publishing, methodology documentation, updated weekly during the season",
+    summaryLines: [
+      "a convex quadratic program to objectively rank",
+      "college football teams in FBS based solely",
+      "on game outcomes, with automated ingestion,",
+      "artifact publishing, methodology docs,",
+      "and weekly in-season updates"
+    ],
     pageHref: "/projects/cfb-rankings",
     repoHref: "https://github.com/wmentrekin/cfb-rankings"
   },
   {
-    title: "2020 Election Model",
+    titleLines: ["2020 Election Model"],
     status: "Archived",
-    summary: "an archived state-by-state election forecasting model for the 2020 United States presidential election, built using a combination of historical election results, census data,and polling data",
+    summaryLines: [
+      "an archived state-by-state election",
+      "forecasting model for the 2020 U.S.",
+      "presidential election, built from",
+      "historical election results, census data,",
+      "and polling data"
+    ],
     pageHref: "/projects/2020-election-model",
     repoHref: "https://github.com/wmentrekin/2020election"
   },
   {
-    title: "College Basketball Rankings",
+    titleLines: ["College Basketball Optimization Rankings"],
     status: "In Progress",
-    summary: "a college basketball adaptation of the optimization framework behind the football ranking model",
+    summaryLines: [
+      "a college basketball adaptation of",
+      "the optimization framework behind",
+      "the football ranking model"
+    ],
     pageHref: "https://github.com/wmentrekin/cbb-rankings",
     repoHref: "https://github.com/wmentrekin/cbb-rankings"
   },
   {
-    title: "Memphis Grizzlies Asset Lineage",
+    titleLines: ["Memphis Grizzlies Asset Lineage"],
     status: "In Progress",
-    summary: "a data visualization and journalism project attempting to reconcile my personal memory of the Memphis Grizzlies recent successful history with the current reality of rebuilding, using a medallion pipeline to process historical transaction data tracing the lineage of the franchise's player and draft assets since the end of the Grit & Grind era",
+    summaryLines: [
+      "a data visualization and journalism project",
+      "tracing the lineage of franchise player",
+      "and draft assets since the end of the",
+      "Grit & Grind era using processed",
+      "historical transaction data"
+    ],
     pageHref: "https://github.com/wmentrekin/nba-asset-lineage",
     repoHref: "https://github.com/wmentrekin/nba-asset-lineage"
   }
@@ -43,7 +65,14 @@ const projects = [
           <div class="project-tile__inner">
             <div class="tile-head">
               <div class="tile-copy">
-                <h2>{project.title}</h2>
+                <h2>
+                  {project.titleLines.map((line) => (
+                    <>
+                      <span>{line}</span>
+                      <br />
+                    </>
+                  ))}
+                </h2>
               </div>
               <div class="tile-meta">
                 <span class="status-pill">{project.status}</span>
@@ -52,7 +81,7 @@ const projects = [
                   href={project.repoHref}
                   target="_blank"
                   rel="noreferrer"
-                  aria-label={`${project.title} repository`}
+                  aria-label={`${project.titleLines.join(" ")} repository`}
                   title="Repository"
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -65,7 +94,7 @@ const projects = [
               </div>
             </div>
 
-            <p class="tile-summary">{project.summary}</p>
+            <p class="tile-summary">{project.summaryLines.join("\n")}</p>
           </div>
 
           <a
@@ -73,7 +102,7 @@ const projects = [
             href={project.pageHref}
             target={project.pageHref.startsWith("http") ? "_blank" : undefined}
             rel={project.pageHref.startsWith("http") ? "noreferrer" : undefined}
-            aria-label={`Open ${project.title}`}
+            aria-label={`Open ${project.titleLines.join(" ")}`}
           ></a>
         </article>
       ))}
@@ -152,7 +181,11 @@ const projects = [
       font-size: 1.16rem;
       line-height: 1.04;
       letter-spacing: -0.03em;
-      text-wrap: balance;
+      text-wrap: initial;
+    }
+
+    .tile-head h2 span {
+      display: inline;
     }
 
     .status-pill {
@@ -175,10 +208,8 @@ const projects = [
       margin: 0;
       color: var(--muted);
       line-height: 1.55;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      white-space: pre-line;
+      text-wrap: pretty;
     }
 
     .icon-link {
