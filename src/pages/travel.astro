@@ -2,29 +2,6 @@
 import TravelGlobe from "../components/TravelGlobe.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
-const visited = [
-  "United States",
-  "Mexico",
-  "Peru",
-  "Puerto Rico",
-  "Dominican Republic",
-  "Italy",
-  "Spain",
-  "France",
-  "Netherlands",
-  "United Kingdom",
-  "Germany",
-  "Austria",
-  "Iceland",
-  "Ireland",
-  "Vatican City",
-  "United States Virgin Islands",
-  "Costa Rica",
-  "Jamaica",
-  "Bahamas",
-  "Cayman Islands"
-];
-
 const visitedIso2 = [
   "US",
   "MX",
@@ -44,8 +21,6 @@ const visitedIso2 = [
   "BS",
   "KY"
 ];
-
-const nextUp = ["Vietnam"];
 ---
 
 <BaseLayout
@@ -59,42 +34,15 @@ const nextUp = ["Vietnam"];
         Home
       </a>
       <p class="hero-kicker">Travel</p>
-      <h1>Places I&apos;ve been, with a globe I can keep extending over time.</h1>
+      <h1>Places I&apos;ve been.</h1>
       <p class="hero-text">
-        Visited countries are highlighted on a stylized rotating globe. This page is meant to stay lightweight now and
-        get richer as I add more travel history.
+        Click and drag the globe to rotate it.
       </p>
     </section>
 
-    <section class="travel-grid">
-      <article class="globe-card reveal">
-        <div class="globe-stage">
-          <TravelGlobe visitedIso2={visitedIso2} />
-        </div>
-        <p class="globe-note">
-          This is a stylized globe view rather than a literal interactive map, optimized to stay lightweight and
-          reliable.
-        </p>
-      </article>
-
-      <div class="travel-column">
-        <article class="card reveal">
-          <span class="meta-label">Visited</span>
-          <ul class="country-list">
-            {visited.map((country) => (
-              <li>{country}</li>
-            ))}
-          </ul>
-        </article>
-
-        <article class="card reveal">
-          <span class="meta-label">Next Up</span>
-          <ul class="country-list">
-            {nextUp.map((country) => (
-              <li>{country}</li>
-            ))}
-          </ul>
-        </article>
+    <section class="globe-card reveal">
+      <div class="globe-stage">
+        <TravelGlobe visitedIso2={visitedIso2} />
       </div>
     </section>
   </section>
@@ -102,14 +50,15 @@ const nextUp = ["Vietnam"];
   <style>
     .travel-shell {
       display: grid;
-      gap: 1.4rem;
+      gap: 1.6rem;
+      justify-items: center;
       padding-top: 0.8rem;
     }
 
     .travel-hero {
       display: grid;
       gap: 0.7rem;
-      max-width: 44rem;
+      width: min(100%, 64rem);
       padding-top: 0.2rem;
     }
 
@@ -142,9 +91,9 @@ const nextUp = ["Vietnam"];
 
     .travel-hero h1 {
       margin: 0;
-      max-width: 12ch;
+      max-width: 10ch;
       font-family: var(--font-display);
-      font-size: clamp(2rem, 4vw, 3.4rem);
+      font-size: clamp(2.1rem, 4vw, 3.8rem);
       line-height: 0.98;
       letter-spacing: -0.05em;
       text-wrap: balance;
@@ -156,18 +105,10 @@ const nextUp = ["Vietnam"];
       line-height: 1.75;
     }
 
-    .travel-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 0.9fr);
-      gap: 1rem;
-      align-items: stretch;
-    }
-
     .globe-card {
       display: grid;
-      gap: 1rem;
-      min-height: 30rem;
-      padding: 1.35rem;
+      width: min(100%, 72rem);
+      padding: 1.5rem;
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
       background:
@@ -178,8 +119,7 @@ const nextUp = ["Vietnam"];
     }
 
     .globe-stage {
-      min-height: 24rem;
-      height: 100%;
+      min-height: 36rem;
       border-radius: calc(var(--radius-lg) - 6px);
       overflow: hidden;
       border: 1px solid rgba(173, 196, 221, 0.08);
@@ -188,41 +128,9 @@ const nextUp = ["Vietnam"];
         linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
     }
 
-    .globe-note {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.88rem;
-      line-height: 1.6;
-    }
-
-    .travel-column {
-      display: grid;
-      gap: 1rem;
-      align-content: start;
-    }
-
-    .country-list {
-      margin: 0.85rem 0 0;
-      padding-left: 1.1rem;
-      color: var(--text-soft);
-      line-height: 1.7;
-    }
-
-    .country-list li + li {
-      margin-top: 0.35rem;
-    }
-
     @media (max-width: 900px) {
-      .travel-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .globe-card {
-        min-height: 0;
-      }
-
       .globe-stage {
-        min-height: 22rem;
+        min-height: 28rem;
       }
     }
   </style>

@@ -4,6 +4,7 @@ import { geoEquirectangular, geoGraticule10, geoPath } from "d3-geo";
 
 interface FeatureProperties {
   ISO_A2?: string;
+  ADMIN?: string;
 }
 
 interface FeatureCollection {
@@ -17,6 +18,9 @@ interface Props {
 }
 
 const { visitedIso2 } = Astro.props;
+const adminIsoAliases: Record<string, string> = {
+  France: "FR"
+};
 
 const countries = JSON.parse(
   readFileSync(new URL("../../public/data/travel/ne_110m_admin_0_countries.geojson", import.meta.url), "utf-8")
@@ -38,7 +42,10 @@ const countryPaths = countries.features
       return "";
     }
 
-    const visited = visitedSet.has(feature.properties.ISO_A2 ?? "");
+    const isoCode = feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "-99"
+      ? feature.properties.ISO_A2
+      : adminIsoAliases[feature.properties.ADMIN ?? ""] ?? "";
+    const visited = visitedSet.has(isoCode);
 
     return `<path d="${shape}" fill="${visited ? "#5eead4" : "rgba(148,163,184,0.08)"}" stroke="${
       visited ? "rgba(214,245,255,0.32)" : "rgba(173,196,221,0.10)"
@@ -62,10 +69,75 @@ const textureUrl = `url("data:image/svg+xml,${encodeURIComponent(textureSvg)}")`
 <div class="travel-globe-shell">
   <div class="globe-orbit orbit-one"></div>
   <div class="globe-orbit orbit-two"></div>
-  <div class="travel-globe-sphere" style={`--globe-texture: ${textureUrl};`}>
+  <div class="travel-globe-sphere" data-drag-globe style={`--globe-texture: ${textureUrl};`}>
     <div class="globe-map"></div>
   </div>
 </div>
+
+<script>
+  const initDragGlobes = () => {
+    document.querySelectorAll("[data-drag-globe]").forEach((globe) => {
+      if (!(globe instanceof HTMLElement) || globe.dataset.ready === "true") {
+        return;
+      }
+
+      globe.dataset.ready = "true";
+
+      let isDragging = false;
+      let startX = 0;
+      let startY = 0;
+      let shiftX = 0;
+      let tiltDeg = -18;
+
+      const apply = () => {
+        globe.style.setProperty("--globe-shift", `${shiftX}px`);
+        globe.style.setProperty("--globe-tilt", `${tiltDeg}deg`);
+      };
+
+      globe.addEventListener("pointerdown", (event) => {
+        isDragging = true;
+        startX = event.clientX;
+        startY = event.clientY;
+        globe.setPointerCapture(event.pointerId);
+      });
+
+      globe.addEventListener("pointermove", (event) => {
+        if (!isDragging) {
+          return;
+        }
+
+        const deltaX = event.clientX - startX;
+        const deltaY = event.clientY - startY;
+        startX = event.clientX;
+        startY = event.clientY;
+
+        shiftX += deltaX * 2.2;
+        tiltDeg = Math.max(-32, Math.min(8, tiltDeg + deltaY * 0.08));
+        apply();
+      });
+
+      const stopDragging = (event: PointerEvent) => {
+        if (!isDragging) {
+          return;
+        }
+
+        isDragging = false;
+        if (event instanceof PointerEvent) {
+          globe.releasePointerCapture(event.pointerId);
+        }
+      };
+
+      globe.addEventListener("pointerup", stopDragging);
+      globe.addEventListener("pointercancel", stopDragging);
+      globe.addEventListener("pointerleave", stopDragging);
+
+      apply();
+    });
+  };
+
+  document.addEventListener("astro:page-load", initDragGlobes);
+  initDragGlobes();
+</script>
 
 <style>
   .travel-globe-shell {
@@ -79,11 +151,14 @@ const textureUrl = `url("data:image/svg+xml,${encodeURIComponent(textureSvg)}")`
   }
 
   .travel-globe-sphere {
+    --globe-shift: 0px;
+    --globe-tilt: -18deg;
     position: relative;
-    width: min(25rem, 68vw);
+    width: min(38rem, 84vw);
     aspect-ratio: 1;
     border-radius: 50%;
     overflow: hidden;
+    cursor: grab;
     background:
       radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.22), transparent 14%),
       radial-gradient(circle at 42% 36%, rgba(125, 211, 252, 0.16), transparent 24%),
@@ -92,6 +167,11 @@ const textureUrl = `url("data:image/svg+xml,${encodeURIComponent(textureSvg)}")`
       inset -34px -30px 72px rgba(0, 0, 0, 0.42),
       inset 24px 20px 56px rgba(255, 255, 255, 0.05),
       0 24px 60px rgba(0, 0, 0, 0.36);
+    transform: rotateZ(-6deg);
+  }
+
+  .travel-globe-sphere:active {
+    cursor: grabbing;
   }
 
   .globe-map {
@@ -101,11 +181,11 @@ const textureUrl = `url("data:image/svg+xml,${encodeURIComponent(textureSvg)}")`
     background-image: var(--globe-texture);
     background-repeat: repeat-x;
     background-size: auto 100%;
-    background-position: 0 50%;
-    transform: scaleX(1.22);
+    background-position: var(--globe-shift) 50%;
+    transform: perspective(900px) rotateX(var(--globe-tilt)) scaleX(1.22);
     transform-origin: center;
     opacity: 0.96;
-    animation: globe-spin 34s linear infinite;
+    transition: transform 140ms ease-out;
   }
 
   .globe-map::before,
@@ -137,23 +217,13 @@ const textureUrl = `url("data:image/svg+xml,${encodeURIComponent(textureSvg)}")`
   }
 
   .orbit-one {
-    width: min(30rem, 82vw);
+    width: min(44rem, 92vw);
     aspect-ratio: 1;
   }
 
   .orbit-two {
-    width: min(32rem, 88vw);
+    width: min(47rem, 96vw);
     aspect-ratio: 1;
     transform: rotateX(72deg);
-  }
-
-  @keyframes globe-spin {
-    from {
-      background-position: 0 50%;
-    }
-
-    to {
-      background-position: -1400px 50%;
-    }
   }
 </style>

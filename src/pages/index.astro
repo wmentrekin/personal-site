@@ -86,7 +86,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
         <p class="focus-line">
           <span>Languages</span>
-          Native: English, Intermediate: Spanish, Exploring: Vietnamese, French, Arabic
+          English, Spanish (Intermediate), Exploring Vietnamese, French, & Arabic
         </p>
       </section>
 
@@ -413,9 +413,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .site-note {
-      position: absolute;
-      right: 0.15rem;
-      bottom: 0;
+      position: fixed;
+      right: 1rem;
+      bottom: 0.9rem;
+      z-index: 20;
       display: inline-flex;
       align-items: center;
       gap: 0.45rem;
