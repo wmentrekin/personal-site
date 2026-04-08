@@ -210,3 +210,6 @@ __marimo__/
 node_modules/
 .astro/
 dist/
+
+# Local agent context
+AGENTS.md
