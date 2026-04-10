@@ -126,19 +126,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <style>
     .home-stage {
       position: relative;
-      min-height: calc(100svh - 4.5rem);
       display: grid;
-      align-items: stretch;
+      justify-items: center;
+      align-items: start;
       padding-top: 1.15rem;
       padding-bottom: 1.5rem;
     }
 
     .home-frame {
+      --desktop-col: 16rem;
+      --desktop-row: 10.85rem;
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      grid-template-rows: repeat(3, minmax(8.6rem, 1fr));
+      grid-template-columns: repeat(4, var(--desktop-col));
+      grid-template-rows: repeat(3, var(--desktop-row));
       gap: 1rem;
-      min-height: calc(100svh - 4.5rem);
+      width: fit-content;
+      max-width: 100%;
     }
 
     .intro-card {
@@ -235,7 +238,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     .intro-text {
       margin: 0.45rem 0 0;
-      max-width: 36rem;
+      max-width: 31rem;
       color: var(--muted);
       font-size: 0.89rem;
       line-height: 1.55;
@@ -398,16 +401,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       color: var(--text);
     }
 
-    @media (max-width: 1080px) {
+    @media (max-width: 1140px) {
       .home-stage {
-        min-height: auto;
+        justify-items: stretch;
         padding-top: 0.8rem;
       }
 
       .home-frame {
         grid-template-columns: 1fr;
         grid-template-rows: auto;
-        min-height: auto;
+        width: 100%;
       }
 
       .intro-card,
