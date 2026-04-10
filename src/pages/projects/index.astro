@@ -1,5 +1,14 @@
 ---
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pngMarksDir = fileURLToPath(new URL("../../../public/images/projects/hub/png-marks/", import.meta.url));
+
+const markSrcIfPresent = (filename: string) => {
+  const assetPath = `${pngMarksDir}${filename}`;
+  return existsSync(assetPath) ? `/images/projects/hub/png-marks/${filename}` : null;
+};
 
 const projects = [
   {
@@ -12,7 +21,7 @@ const projects = [
     ],
     pageHref: "/projects/cfb-rankings",
     repoHref: "https://github.com/wmentrekin/cfb-rankings",
-    markSrc: "/images/projects/hub/cfp-mark.svg",
+    markSrc: markSrcIfPresent("cfb.png"),
     markAlt: "College football project mark"
   },
   {
@@ -25,8 +34,8 @@ const projects = [
     ],
     pageHref: "/projects/2020-election-model",
     repoHref: "https://github.com/wmentrekin/2020election",
-    markSrc: "/images/projects/hub/flag-mark.svg",
-    markAlt: "United States flag project mark"
+    markSrc: markSrcIfPresent("election.png"),
+    markAlt: "2020 election project mark"
   },
   {
     titleLines: ["College Basketball Optimization Rankings"],
@@ -34,9 +43,9 @@ const projects = [
     summaryLines: [
       "a college basketball adaptation of the optimization framework behind the football ranking model"
     ],
-    pageHref: "https://github.com/wmentrekin/cbb-rankings",
+    pageHref: null,
     repoHref: "https://github.com/wmentrekin/cbb-rankings",
-    markSrc: "/images/projects/hub/march-madness-mark.svg",
+    markSrc: markSrcIfPresent("cbb.png"),
     markAlt: "College basketball project mark"
   },
   {
@@ -47,9 +56,9 @@ const projects = [
       "",
       "an attempt to reconcile the present reality of rebuilding with my recent memories of success by analyzing the past and present asset management strategies of the franchise"
     ],
-    pageHref: "https://github.com/wmentrekin/nba-asset-lineage",
+    pageHref: null,
     repoHref: "https://github.com/wmentrekin/nba-asset-lineage",
-    markSrc: "/images/projects/hub/grizzlies-mark.svg",
+    markSrc: markSrcIfPresent("grizzlies.png"),
     markAlt: "Memphis Grizzlies project mark"
   }
 ];
@@ -98,17 +107,21 @@ const projects = [
 
             <div class="tile-footer" aria-hidden="true">
               <span class="footer-line"></span>
-              <img class="project-mark" src={project.markSrc} alt={project.markAlt} loading="lazy" />
+              {project.markSrc && (
+                <img class="project-mark" src={project.markSrc} alt={project.markAlt} loading="lazy" />
+              )}
             </div>
           </div>
 
-          <a
-            class="tile-overlay"
-            href={project.pageHref}
-            target={project.pageHref.startsWith("http") ? "_blank" : undefined}
-            rel={project.pageHref.startsWith("http") ? "noreferrer" : undefined}
-            aria-label={`Open ${project.titleLines.join(" ")}`}
-          ></a>
+          {project.pageHref && (
+            <a
+              class="tile-overlay"
+              href={project.pageHref}
+              target={project.pageHref.startsWith("http") ? "_blank" : undefined}
+              rel={project.pageHref.startsWith("http") ? "noreferrer" : undefined}
+              aria-label={`Open ${project.titleLines.join(" ")}`}
+            ></a>
+          )}
         </article>
       ))}
     </div>
@@ -219,7 +232,7 @@ const projects = [
 
     .tile-footer {
       display: flex;
-      align-items: end;
+      align-items: center;
       justify-content: flex-end;
       gap: 0.8rem;
       min-width: 0;
@@ -229,7 +242,6 @@ const projects = [
       flex: 1 1 auto;
       height: 1px;
       background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.22));
-      align-self: center;
     }
 
     .project-mark {
