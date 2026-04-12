@@ -36,7 +36,7 @@ const projects = [
     ],
     pageHref: null,
     repoHref: "https://github.com/wmentrekin/cbb-rankings",
-    markSrc: "/images/projects/hub/png-marks/cbb.jpeg",
+    markSrc: "/images/projects/hub/png-marks/cbb.png",
     markAlt: "College basketball project mark"
   },
   {
@@ -99,7 +99,9 @@ const projects = [
             <div class="tile-footer" aria-hidden="true">
               <span class="footer-line"></span>
               {project.markSrc && (
-                <img class="project-mark" src={project.markSrc} alt={project.markAlt} loading="lazy" />
+                <span class="project-mark-frame">
+                  <img class="project-mark" src={project.markSrc} alt={project.markAlt} loading="lazy" />
+                </span>
               )}
             </div>
           </div>
@@ -223,26 +225,36 @@ const projects = [
 
     .tile-footer {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: flex-end;
       gap: 0.8rem;
       min-width: 0;
+      padding-bottom: 0.3rem;
     }
 
     .footer-line {
       flex: 1 1 auto;
       height: 1px;
       background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.22));
+      align-self: center;
+    }
+
+    .project-mark-frame {
+      flex: 0 0 5rem;
+      height: 2rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
     }
 
     .project-mark {
       display: block;
-      width: 5.6rem;
-      height: 2.4rem;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
       object-fit: contain;
-      object-position: right center;
-      opacity: 0.92;
-      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.22));
+      object-position: right bottom;
     }
 
     .icon-link {
@@ -291,8 +303,9 @@ const projects = [
         min-height: 14rem;
       }
 
-      .project-mark {
-        width: 5rem;
+      .project-mark-frame {
+        flex-basis: 4.6rem;
+        height: 1.85rem;
       }
     }
   </style>
