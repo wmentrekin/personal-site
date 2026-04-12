@@ -71,11 +71,15 @@ const aboutCards = [
         If the <a href="/now">now page</a> is the current personal snapshot, this page is the broader professional context:
         where I come from, how I think, and what kind of work I like to do.
       </p>
+      <p class="hero-text">
+        This page is a high-level overview of my background, experience, and interests. For a more current view of what
+        I&apos;m focused on right now, check out my <a href="/now">now page</a>.
+      </p>
     </section>
 
     <section class="quick-grid reveal" aria-label="Quick facts">
       {quickFacts.map((fact) => (
-        <article class="fact-card glass-card">
+        <article class="fact-card reveal">
           <p class="fact-label">{fact.label}</p>
           <p class="fact-value">{fact.value}</p>
         </article>
@@ -84,7 +88,7 @@ const aboutCards = [
 
     <section class="about-grid">
       {aboutCards.map((card) => (
-        <article class="about-card glass-card reveal">
+        <article class="about-card reveal">
           <p class="card-kicker">{card.eyebrow}</p>
           <h2>{card.title}</h2>
           {card.paragraphs.map((paragraph) => (
@@ -144,6 +148,12 @@ const aboutCards = [
       padding: 1rem 1.05rem;
       display: grid;
       gap: 0.4rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+      box-shadow: var(--shadow-card);
     }
 
     .fact-value {
@@ -164,6 +174,12 @@ const aboutCards = [
       display: grid;
       align-content: start;
       gap: 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+      box-shadow: var(--shadow-card);
     }
 
     .about-card h2 {
@@ -179,6 +195,10 @@ const aboutCards = [
       margin: 0;
       color: var(--muted);
       line-height: 1.7;
+    }
+
+    .about-card p:first-of-type {
+      color: var(--text-soft);
     }
     @media (max-width: 900px) {
       .quick-grid {
