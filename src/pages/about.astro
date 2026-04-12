@@ -155,8 +155,9 @@ const aboutCards = [
 
     .about-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr;
       gap: 1rem;
+      max-width: 50rem;
     }
 
     .about-card {
@@ -180,10 +181,8 @@ const aboutCards = [
       color: var(--muted);
       line-height: 1.7;
     }
-
     @media (max-width: 900px) {
-      .quick-grid,
-      .about-grid {
+      .quick-grid {
         grid-template-columns: 1fr;
       }
     }
