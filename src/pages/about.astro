@@ -1,335 +1,190 @@
 ---
-import SectionBlock from "../components/SectionBlock.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
-const aboutSections = [
+const quickFacts = [
   {
-    id: "background",
-    title: "Background",
-    image: "/images/about/memphis.png",
-    alt: "Background placeholder image",
-    text: [
-      "I was born and raised in Memphis, Tennessee.",
-      "I graduated from Christian Brothers High School in 2018 as a Co-Salutatorian."
-    ],
-    reverse: false
+    label: "Current Role",
+    value: "Consultant in Data & Analytics at CapTech"
   },
   {
-    id: "education",
-    title: "Education",
-    image: "/images/about/GT_logo.png",
-    alt: "Georgia Tech logo",
-    text: [
-      "In the Fall of 2018, I enrolled at Georgia Tech to pursue a degree in Industrial & Systems Engineering. During my time at Tech, I developed a strong interest in data analytics, operation research, mathematical modeling, and machine learning.",
-      "During school, I was lucky enough to have multiple jobs and internships in a variety of industries, including CapTech, Assurant, Code Ninjas, Printpack, and WeAdmit. I was also an active member of Delta Tau Delta Fraternity, serving as the chapter's Vice President.",
-      "Before graduating in May 2023, I worked on a senior design project with Delta Airlines using process simulation to mitigate failures in the airline's baggage handling system at the Atlanta airport hub."
-    ],
-    reverse: true
+    label: "Based In",
+    value: "Atlanta, Georgia"
   },
   {
-    id: "career",
-    title: "Career",
-    image: "/images/about/captech.png",
-    alt: "CapTech logo",
-    text: [
-      "After graduating from Georgia Tech, I briefly returned home to Memphis and began working as an Industrial Engineer at GreatNeck Tools, using analytics to profile and optimize inventory management operations and warehouse layout at the company's central distribution center.",
-      "Then in January 2024, I joined CapTech as a Consultant in the Data & Analytics practice. In my time at CapTech, I have primarily worked for clients in the financial services industry, building and supporting data pipelines, automating data quality and testing processes, and supporting large-scale data migration efforts.",
-      "Always pursuing technical and leadership growth, I also contribute internally on PoC projects, serve as a mentor for new hires, and lead Data & Analytics practice engagement at the Atlanta office. I'm currently focused on growing data engineering and data science skills, particularly in cloud data platforms, orchestration, machine learning, streaming data, and real-time analytics."
-    ],
-    reverse: false
+    label: "Background",
+    value: "Memphis, Tennessee"
   },
   {
-    id: "interests",
-    title: "Interests",
-    image: "/images/about/interests-placeholder.svg",
-    alt: "Interests placeholder image",
-    text: [
-      "In my free time, I enjoy staying active whether that means lifting in the gym, running, or playing sports with friends.",
-      "I'm a lifelong sports fan, primarily college football and NBA basketball. My favorite teams are the Memphis Grizzlies and the Georgia Tech Yellow Jackets.",
-      "I also enjoy traveling, culture, history, and languages. I've been learning and practicing Spanish for almost 4 years now and have gotten the chance to solo travel to several Spanish-speaking places to practice, including Mexico, Peru, Puerto Rico, and the Dominican Republic. The next country on my bucket list is Vietnam, where I hope to dive deeper into the cuisine.",
-      "I also consider myself a bit of a foodie, but lately have explored that interest through cooking at home more than dining out. I enjoy shopping at the Buford Highway Farmers Market near Atlanta and trying new recipes, especially those with a Latin American and Southeast Asian influence. Last year, I took a cooking class in Oaxaca, Mexico and learned how to make traditional Oaxacan dishes like mole, tamales, and memelas, which was an incredible experience."
-    ],
-    reverse: true
+    label: "Education",
+    value: "Georgia Tech, Industrial & Systems Engineering"
+  }
+];
+
+const aboutCards = [
+  {
+    eyebrow: "Background",
+    title: "Industrial engineering background, data engineering day job, analytics-heavy side projects.",
+    paragraphs: [
+      "I studied Industrial & Systems Engineering at Georgia Tech, where I became especially interested in optimization, modeling, analytics, and the kinds of technical problems that sit between math, systems, and decision-making.",
+      "That background still shapes how I think. I tend to like work that is structured, measurable, and operationally useful, whether that means data pipelines, ranking models, or trying to explain a messy problem clearly."
+    ]
+  },
+  {
+    eyebrow: "Work",
+    title: "My professional work is centered on reliable data systems and practical delivery.",
+    paragraphs: [
+      "At CapTech, I work in data and analytics consulting. A lot of that work has involved building and supporting data pipelines, improving testing and data quality processes, and contributing to larger migration and platform efforts.",
+      "I care more about stable, understandable systems than cleverness for its own sake. That same preference carries into the project work on this site."
+    ]
+  },
+  {
+    eyebrow: "Interests",
+    title: "Outside of work, most of my energy goes toward sports, fitness, travel, food, and learning.",
+    paragraphs: [
+      "I spend a lot of my free time lifting, running, following sports, traveling, and working on side projects. I am especially interested in college football, NBA basketball, history, languages, and anything that helps me understand how people and systems behave over time.",
+      "That mix is part of why this site exists. The projects here sit at the intersection of technical curiosity and the things I naturally care enough about to keep thinking about after work."
+    ]
+  },
+  {
+    eyebrow: "Why This Site",
+    title: "This site is meant to be a durable home for technical work, not a polished personal brand exercise.",
+    paragraphs: [
+      "The homepage is intentionally compact. The project pages are where the real work lives: methodology, artifacts, archived experiments, and the context behind what I am building.",
+      "If someone lands here for the first time, the main thing I want them to understand is that I am a data engineer with strong analytical interests who likes building useful, technically grounded things."
+    ]
   }
 ];
 ---
 
 <BaseLayout title="About | Wyatt Entrekin">
   <section class="about-shell">
-    <a class="back-link reveal" href="/"><span aria-hidden="true">←</span> Home</a>
-
     <section class="about-hero reveal">
-      <div class="hero-copy">
-        <p class="hero-kicker">About</p>
-        <h1>Engineering background, data delivery mindset, sports analytics focus.</h1>
-        <p class="hero-text">
-          Clear systems, reliable execution, and technical communication shape the portfolio work on this site.
-        </p>
-        <div class="hero-actions">
-          <a class="hero-link primary" href="/projects">View Projects</a>
-          <a class="hero-link" href="https://www.linkedin.com/in/wmentrekin/" target="_blank" rel="noreferrer">LinkedIn</a>
-        </div>
-      </div>
-
-      <aside class="hero-rail">
-        <div class="rail-card glass-card">
-          <span>Location</span>
-          <strong>Atlanta, GA</strong>
-        </div>
-        <div class="rail-card glass-card">
-          <span>Education</span>
-          <strong>Georgia Tech, Industrial &amp; Systems Engineering</strong>
-        </div>
-        <div class="rail-card glass-card">
-          <span>Current Role</span>
-          <strong>Consultant, Data &amp; Analytics</strong>
-        </div>
-        <div class="rail-card glass-card">
-          <span>Focus</span>
-          <strong>Data engineering, optimization, ML systems</strong>
-        </div>
-      </aside>
+      <a class="back-link" href="/">
+        <span aria-hidden="true">←</span>
+        Home
+      </a>
+      <p class="hero-kicker">About</p>
+      <p class="hero-text">
+        I&apos;m Wyatt Entrekin, a data engineer with a strong interest in analytics, operations research, and applied modeling.
+      </p>
+      <p class="hero-text">
+        If the <a href="/now">now page</a> is the current personal snapshot, this page is the broader professional context:
+        where I come from, how I think, and what kind of work I like to do.
+      </p>
     </section>
 
-    <nav class="story-nav reveal" aria-label="About sections">
-      {aboutSections.map((section, index) => (
-        <a class="glass-card" href={`#${section.id}`}>
-          <span>{String(index + 1).padStart(2, "0")}</span>
-          {section.title}
-        </a>
+    <section class="quick-grid reveal" aria-label="Quick facts">
+      {quickFacts.map((fact) => (
+        <article class="fact-card glass-card">
+          <p class="fact-label">{fact.label}</p>
+          <p class="fact-value">{fact.value}</p>
+        </article>
       ))}
-    </nav>
+    </section>
 
-    <SectionBlock
-      eyebrow="Story"
-      title="A chronological view of how the technical portfolio came together."
-      intro="The project work on this site sits on top of a broader background in industrial engineering, consulting, and applied analytics. These sections keep that context visible without turning the page into a resume dump."
-    >
-      <section class="about-story">
-        {aboutSections.map((section, index) => (
-          <article class={`story-row reveal ${section.reverse ? "reverse" : ""}`} id={section.id}>
-            <figure class="story-media glass-card">
-              <img src={section.image} alt={section.alt} loading="lazy" />
-            </figure>
-            <div class="story-copy glass-card">
-              <p class="story-index">{String(index + 1).padStart(2, "0")}</p>
-              <h2>{section.title}</h2>
-              {section.text.map((paragraph) => (
-                <p class="muted">{paragraph}</p>
-              ))}
-            </div>
-          </article>
-        ))}
-      </section>
-    </SectionBlock>
+    <section class="about-grid">
+      {aboutCards.map((card) => (
+        <article class="about-card glass-card reveal">
+          <p class="card-kicker">{card.eyebrow}</p>
+          <h2>{card.title}</h2>
+          {card.paragraphs.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+        </article>
+      ))}
+    </section>
   </section>
 
   <style>
     .about-shell {
       display: grid;
-      gap: 3rem;
+      gap: 1.5rem;
+      max-width: 58rem;
+      margin: 0 auto;
       padding-top: 0.8rem;
     }
 
     .about-hero {
       display: grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.9fr);
-      gap: 1rem;
-      align-items: end;
-    }
-
-    .hero-kicker {
-      margin: 0 0 0.8rem;
-      color: var(--accent);
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .hero-copy h1 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: clamp(2.2rem, 5vw, 3.9rem);
-      line-height: 0.97;
-      letter-spacing: -0.06em;
-      max-width: 11ch;
-      text-wrap: balance;
-    }
-
-    .hero-text {
-      margin: 0.8rem 0 0;
-      max-width: 34rem;
-      color: var(--muted);
-      font-size: 0.98rem;
-      line-height: 1.7;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.7rem;
-      margin-top: 0.95rem;
-    }
-
-    .hero-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 3.1rem;
-      padding: 0.7rem 1.15rem;
-      border-radius: 999px;
-      border: 1px solid var(--line-strong);
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 600;
-      transition: transform 180ms ease, border-color 180ms ease;
-    }
-
-    .hero-link.primary {
-      background: linear-gradient(135deg, rgba(125, 211, 252, 0.22), rgba(96, 165, 250, 0.12));
-      border-color: rgba(125, 211, 252, 0.24);
-    }
-
-    .hero-link:hover {
-      transform: translateY(-2px);
-      border-color: rgba(125, 211, 252, 0.34);
-    }
-
-    .hero-rail {
-      display: grid;
-      gap: 1rem;
-    }
-
-    .rail-card {
-      padding: 1rem 1.1rem;
-    }
-
-    .rail-card span {
-      display: block;
-      margin-bottom: 0.35rem;
-      color: var(--muted);
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .rail-card strong {
-      color: var(--text-soft);
-      line-height: 1.65;
-    }
-
-    .story-nav {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.75rem;
+      padding-top: 0.3rem;
     }
 
-    .story-nav a {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      min-height: 3.4rem;
-      padding: 0.8rem 0.95rem;
-      color: var(--text-soft);
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .story-nav a span {
-      color: var(--accent);
-      font-family: var(--font-mono);
-      font-size: 0.76rem;
-    }
-
-    .story-nav a:hover {
-      color: var(--text);
-    }
-
-    .about-story {
-      display: grid;
-      gap: 1.4rem;
-    }
-
-    .story-row {
-      display: grid;
-      grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr);
-      gap: 1.4rem;
-      align-items: stretch;
-    }
-
-    .story-row.reverse {
-      grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
-    }
-
-    .story-row.reverse .story-media {
-      order: 2;
-    }
-
-    .story-row.reverse .story-copy {
-      order: 1;
-    }
-
-    .story-media {
-      margin: 0;
-      min-height: 15rem;
-      padding: 1rem;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-    }
-
-    .story-media img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center;
-    }
-
-    .story-copy {
-      padding: 1.35rem;
-    }
-
-    .story-index {
+    .hero-kicker,
+    .fact-label,
+    .card-kicker {
       margin: 0;
       color: var(--accent);
       font-family: var(--font-mono);
       font-size: 0.78rem;
-      font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
     }
 
-    .story-copy h2 {
-      margin: 0.45rem 0 0.85rem;
+    .hero-text {
+      margin: 0;
+      max-width: 42rem;
+      color: var(--text-soft);
+      font-size: 1rem;
+      line-height: 1.72;
+    }
+
+    .hero-text a {
+      color: var(--text);
+      text-underline-offset: 0.16em;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .fact-card {
+      padding: 1rem 1.05rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .fact-value {
+      margin: 0;
+      color: var(--text-soft);
+      font-weight: 600;
+      line-height: 1.55;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .about-card {
+      padding: 1.15rem 1.2rem;
+      display: grid;
+      align-content: start;
+      gap: 0.75rem;
+    }
+
+    .about-card h2 {
+      margin: 0;
       font-family: var(--font-display);
-      font-size: 1.9rem;
-      line-height: 1;
-      letter-spacing: -0.04em;
+      font-size: 1.45rem;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      text-wrap: pretty;
     }
 
-    .story-copy p {
-      margin: 0 0 0.95rem;
+    .about-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
     }
 
-    .story-copy p:last-child {
-      margin-bottom: 0;
-    }
-
-    @media (max-width: 980px) {
-      .about-hero,
-      .story-nav,
-      .story-row,
-      .story-row.reverse {
+    @media (max-width: 900px) {
+      .quick-grid,
+      .about-grid {
         grid-template-columns: 1fr;
-      }
-
-      .story-row.reverse .story-media,
-      .story-row.reverse .story-copy {
-        order: initial;
       }
     }
   </style>
