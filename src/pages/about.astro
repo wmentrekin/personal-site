@@ -23,7 +23,6 @@ const quickFacts = [
 const aboutCards = [
   {
     eyebrow: "Background",
-    title: "Foundations",
     paragraphs: [
       "I studied Industrial & Systems Engineering at Georgia Tech, where I became especially interested in optimization, modeling, analytics, and the kinds of technical problems that sit between math, systems, and decision-making.",
       "That background still shapes how I work. I'm drawn to open-ended problems that need measurable, practical, and operationally useful solutions.",
@@ -32,7 +31,6 @@ const aboutCards = [
   },
   {
     eyebrow: "Work",
-    title: "Career",
     paragraphs: [
       "At CapTech, I work as a Consultant in the Data & Analytics Practice. Much of that work has involved building and supporting data pipelines, improving testing and data quality processes, and contributing to large-scale data migration and platform efforts.",
       "I'm most interested in work that makes systems more reliable, understandable, and useful over time. In practice, that usually means focusing on data quality, maintainability, and delivery rather than complexity for its own sake.",
@@ -41,7 +39,6 @@ const aboutCards = [
   },
   {
     eyebrow: "Interests",
-    title: "Interests",
     paragraphs: [
       "Outside of work, a lot of my time goes toward fitness, food, travel, and learning.",
       "I spend much of my free time staying active through lifting, running, and playing sports. I also enjoy cooking, traveling, sports, language learning, and working on side projects. I'm especially interested in college football, NBA basketball, history, languages, and questions about how people and systems behave over time.",
@@ -50,7 +47,6 @@ const aboutCards = [
   },
   {
     eyebrow: "Why This Site",
-    title: "Why This Site",
     paragraphs: [
       "This site is a home for my analytics and technical projects, along with whatever else I’m actively building or exploring.",
       "It gives me a place to document methodology, experiments, writeups, and project artifacts in a way that is more durable than scattered notes or social posts. It is also a way for me to keep learning by building, especially as I spend more time working on web development and interactive project presentation.",
@@ -87,7 +83,6 @@ const aboutCards = [
       {aboutCards.map((card) => (
         <article class="about-card reveal">
           <p class="card-kicker">{card.eyebrow}</p>
-          <h2>{card.title}</h2>
           {card.paragraphs.map((paragraph) => (
             <p>{paragraph}</p>
           ))}
@@ -194,7 +189,15 @@ const aboutCards = [
       line-height: 1.7;
     }
 
-    .about-card p:first-of-type {
+    .about-card .card-kicker {
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .about-card p:not(.card-kicker):first-of-type {
       color: var(--text-soft);
     }
     @media (max-width: 900px) {
