@@ -213,4 +213,5 @@ dist/
 
 # Local agent context
 AGENTS.md
+CLAUDE.md
 agent-context/
