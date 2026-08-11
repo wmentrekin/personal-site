@@ -1,0 +1,90 @@
+artifact: status
+feature: "design-handoff-2026-08"
+mode: "large-initiative"
+stage: "planning"
+owner_skill: work
+
+objective: "Implement a design handoff (7 pages) into the real .astro files, applying a locked design pass from a separate design session: link fixes, hover-state consistency, spacing fixes, Projects hub decluttering, and a significant CFB Rankings + Methodology rework -- including wiring the Rankings page to real data from Cloudflare R2 (season/week dropdowns, full field, not a static snapshot)."
+
+summary:
+  current_focus: "Discovery: read the full design handoff README + 7 HTML references, read the current .astro files being changed, and resolve the R2 public-access open question with the user before finalizing the plan for the CFB Rankings data-wiring page."
+  last_completed: "Design handoff package (zip) delivered by user from a separate Claude design session; extracted for review. cfb-rankings repo (sibling) shipped rankings-artifact-output + rankings-artifact-index this session -- R2 now has real per-week rankings artifacts (2025 backfilled, 2026 will populate via weekly cron) plus a rankings/index.json manifest of what season/weeks exist."
+  current_blocker: "User needs to provision a NEW read-only-scoped R2 API token (distinct from cfb-rankings' write token) plus Cloudflare Pages build env vars and a Deploy Hook, before T2/T3's real-data validation can complete end to end. Not blocking execution start (T2's graceful-skip behavior is itself part of what gets validated first), but blocks full validation."
+
+artifacts:
+  requirements: "docs/design-handoff-2026-08/requirements.yaml"
+  plan: "docs/design-handoff-2026-08/plan.yaml"
+  implementation_report: null
+
+pr:
+  number: null
+  url: null
+  status: "not_opened"
+
+agents:
+  - id: "orchestrator"
+    role: "orchestrator"
+    model_guidance: "xhigh"
+    status: "active"
+    stage: "discovery"
+    task: "coordinating discovery agents"
+    last_update: "2026-08-11"
+    blocker: ""
+  - id: "repo-researcher-1"
+    role: "repo-researcher"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "discovery"
+    task: "read the 4 simple-polish pages (Home, About, Now, Projects hub) -- current .astro source + exact diffs needed per the design handoff README"
+    last_update: "2026-08-11"
+    blocker: ""
+  - id: "repo-researcher-2"
+    role: "repo-researcher"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "discovery"
+    task: "read the 3 CFB/election pages (cfb-rankings.astro, methodology.astro, 2020-election-model.astro) -- current .astro source + exact diffs needed, plus existing RankingsTable.astro component shape and the stub public/data/cfb/latest-rankings.json"
+    last_update: "2026-08-11"
+    blocker: ""
+  - id: "platform-researcher-1"
+    role: "platform-researcher"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "discovery"
+    task: "current (2026) facts on Cloudflare Pages + R2 integration patterns for fetching data server-side/build-time in an Astro site -- Pages Functions R2 bindings, env-var-based S3-compatible fetch from Astro server code, and current caveats/limits of R2's Public Development URL for read-only public JSON fetches"
+    last_update: "2026-08-11"
+    blocker: ""
+
+loops:
+  planning_review:
+    count: 0
+    max: 2
+  execution_verification:
+    count: 0
+    max: 2
+
+checkpoint:
+  pre_execution_required: true
+  pre_execution_status: pending
+  options:
+    - proceed
+    - revise_plan
+    - narrow_scope
+    - stop
+
+blockers:
+  - "R2 public-access method undecided -- see current_blocker above. Must be resolved (with the user) before finalizing plan.yaml for the cfb-rankings.astro task."
+decisions:
+  - "Classified as large-initiative: 7 files across multiple pages, one of which (cfb-rankings.astro) introduces new data-fetching infrastructure -- not a single bounded change, and execution should batch by complexity (simple polish vs. the two CFB pages) with a PR-worthy scope."
+  - "repo-researcher-1 finding: the design handoff README appears written against a STALE/different snapshot of personal-site for several items -- Home's 5 tile hrefs, About's back-link + now-page inline link, Now's back-link + about-page inline link, and Projects hub's back-link are ALL already correct in current source (no # placeholders found). Treat those specific README bullets as no-ops. Real remaining work for the 4 polish pages: Home (remove 'Featured' eyebrow, 1 line), About (add missing :hover rules to .fact-card/.about-card referencing the ALREADY-GLOBAL --shadow-hover token -- do not redefine the token locally; remove .hero-text max-width:42rem; adjust .about-shell padding-bottom, exact target value needs checking against about.html reference since README's '3.5rem' is ambiguous as replace-vs-add-to current 1.5rem), Now (remove .hero-text max-width:40rem), Projects hub (new bordered-chip logo CSS replacing the current borderless project-mark-frame sizing, :has() padding-right on .tile-summary, remove .footer-line divs/CSS, add .icon-link:hover -- currently has none)."
+  - "repo-researcher-1 finding: Projects hub's 'whole card clickable' behavior for CFB Rankings and 2020 Election Model is ALREADY IMPLEMENTED, just via CSS z-index-layered sibling anchors (.tile-overlay at z-index:3 covering the full card + .icon-link at z-index:4 above it) rather than a JS click-handler -- no <a>-nesting violation exists today. The README's JS-click-handler instruction may be moot, OR may be motivated by a keyboard-accessibility gap (currently a keyboard user tabbing through has the overlay-link and icon-link as two separate stops, no single 'whole card' focus target) -- worth asking the user which read is correct before scoping this as a real task or a no-op."
+  - "repo-researcher-2 CRITICAL finding: personal-site is 100% static today -- astro.config.mjs has no `output` field (defaults to SSG), no adapter package installed (no @astrojs/cloudflare, @astrojs/node, etc), zero API routes, zero env-var usage (grep for import.meta.env/process.env returns nothing), zero existing external/authenticated fetch precedent anywhere in src/ (the only fetch() calls are client-side same-origin static-asset fetches in TravelGlobe.astro). This means: without adding an SSR adapter (a real architecture decision, bigger than this page rework), the ONLY R2-data option today is a BUILD-TIME frontmatter fetch (re-fetches R2 only at each `astro build`/deploy) with season/week filtering done client-side over pre-baked JSON. True live per-request R2 queries would require adding output:'server'/'hybrid' + an adapter -- not assumed in scope, must be confirmed with user."
+  - "repo-researcher-2 finding: RankingsTable.astro is fully generic (headers: string[], rows: Array<Array<string|number>>) -- adding a Conference column is trivial (just extend headers/rows from the caller), BUT two coupling issues need handling: (1) `td:not(:nth-child(2))` CSS applies mono font to every column except column index 2 (currently 'Team') -- inserting Conference shifts which column is 'the non-mono one' unless Conference goes after Team; (2) `.rank-col { color: var(--accent-football) }` is a hardcoded accent color on the shared component that conflicts with the README's 'no colored accents on CFB pages' directive -- needs neutralizing to var(--text), and since this is a SHARED component (not page-scoped), confirm no other page consumes RankingsTable before changing its CSS (research found no other current consumers, but worth a fresh grep at implementation time)."
+  - "repo-researcher-2 finding: several README items turned out to be no-ops against current code, same pattern as repo-researcher-1's findings -- /images/projects/2020-election-model/map.png is NOT a placeholder, it's a real existing asset already correctly wired into 2020-election-model.astro (README/reference-HTML's 'placeholder' language describes the design-preview's own limitation, not the real repo state). Also: the reference HTML's .hero-text uses white-space:nowrap+overflow-x:auto (looks like a design-file preview quirk) -- do NOT copy that literally; the correct fix (consistent with About/Now) is just removing the max-width constraint so it wraps at container width."
+  - "repo-researcher-2 open question raised (not yet asked to user): is a Conference column actually wanted on the rankings table? Neither the README nor the cfb-rankings.html reference shows one -- reference table is exactly Rank/Team/Record/Rating/Delta. The orchestrator's original task brief assumed Conference was wanted (per user's earlier stated preference in the cfb-rankings artifact-schema work), but this is worth confirming explicitly during requirements since it's not in the locked design reference itself."
+  - "Design references are 7 standalone .html mirror files at /private/tmp/claude-501/-Users-wentrekin-dev/11a7370c-3905-45f7-84e6-380c775dc6dd/scratchpad/design-handoff/design_handoff_site_updates/ (plus README.md) -- NOT to be copied in directly, only used as a high-fidelity style/structure reference for editing the real .astro files in place."
+  - "This feature is scoped to the design handoff only, not the full Streamlit-to-personal-site migration -- user explicitly wants this done first, as a locked prerequisite from a separate design session. The broader migration context lives in the sibling cfb-rankings repo's docs/cfb-site-migration/requirements.yaml, referenced for context only."
+
+next_action: "Run discovery agents, then resolve the R2 access-method open question with the user, then synthesize into requirements.yaml"
+next_recommended_command: "$work"
+user_input_needed: false
