@@ -17,9 +17,9 @@ artifacts:
   implementation_report: "docs/design-handoff-2026-08/implementation-report.yaml"
 
 pr:
-  number: null
-  url: null
-  status: "not_opened"
+  number: 1
+  url: "https://github.com/wmentrekin/personal-site/pull/1"
+  status: "open"
 
 agents:
   - id: "orchestrator"
