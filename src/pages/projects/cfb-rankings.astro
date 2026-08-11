@@ -40,35 +40,57 @@ function formatDelta(delta: number): string {
   return delta > 0 ? `+${delta}` : `${delta}`;
 }
 
+function readJsonSafe<T>(url: URL): T | null {
+  try {
+    return JSON.parse(readFileSync(url, "utf-8")) as T;
+  } catch {
+    return null;
+  }
+}
+
+// public/data/cfb/ is populated at build time by scripts/fetch-rankings-data.mjs, which
+// requires R2 credentials to actually write anything. If those aren't configured yet (e.g. a
+// fresh checkout, a PR preview build before secrets are set up), this directory won't exist --
+// render an empty state instead of crashing the whole build.
 const indexPath = new URL("../../../public/data/cfb/index.json", import.meta.url);
-const rankingsIndex: RankingsIndex = JSON.parse(readFileSync(indexPath, "utf-8"));
+const rankingsIndex = readJsonSafe<RankingsIndex>(indexPath);
 
-const { latest_season: latestSeason, latest_week: latestWeek, seasons } = rankingsIndex;
+const seasonsForClient = rankingsIndex
+  ? [...rankingsIndex.seasons]
+      .sort((a, b) => b.season - a.season)
+      .map((entry) => ({
+        season: entry.season,
+        weeks: [...entry.weeks].sort((a, b) => b - a)
+      }))
+  : [];
 
-const seasonsForClient = [...seasons]
-  .sort((a, b) => b.season - a.season)
-  .map((entry) => ({
-    season: entry.season,
-    weeks: [...entry.weeks].sort((a, b) => b - a)
-  }));
+const latestSeason = rankingsIndex?.latest_season ?? null;
+const latestWeek = rankingsIndex?.latest_week ?? null;
 
 const weeksForLatestSeason =
   seasonsForClient.find((entry) => entry.season === latestSeason)?.weeks ?? [];
 
-const weekPath = new URL(
-  `../../../public/data/cfb/${latestSeason}/week-${padWeek(latestWeek)}.json`,
-  import.meta.url
-);
-const weekPayload: WeekPayload = JSON.parse(readFileSync(weekPath, "utf-8"));
+const weekPayload =
+  latestSeason !== null && latestWeek !== null
+    ? readJsonSafe<WeekPayload>(
+        new URL(
+          `../../../public/data/cfb/${latestSeason}/week-${padWeek(latestWeek)}.json`,
+          import.meta.url
+        )
+      )
+    : null;
 
-const rows = weekPayload.rankings.map((team) => [
-  team.rank,
-  team.team,
-  team.conference,
-  team.record,
-  Number(team.rating).toFixed(2),
-  formatDelta(Number(team.delta))
-]);
+const rows =
+  weekPayload?.rankings.map((team) => [
+    team.rank,
+    team.team,
+    team.conference,
+    team.record,
+    Number(team.rating).toFixed(2),
+    formatDelta(Number(team.delta))
+  ]) ?? [];
+
+const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
 ---
 
 <BaseLayout title="CFB Rankings Project | Wyatt Entrekin">
@@ -108,30 +130,39 @@ const rows = weekPayload.rankings.map((team) => [
     </section>
 
     <section class="rankings-panel reveal glass-card">
-      <div class="panel-head">
-        <h2>Rankings</h2>
-        <div class="panel-filters">
-          <select class="filter-select" id="season-select" aria-label="Season">
-            {
-              seasonsForClient.map((entry) => (
-                <option value={entry.season} selected={entry.season === latestSeason}>
-                  {entry.season}
-                </option>
-              ))
-            }
-          </select>
-          <select class="filter-select" id="week-select" aria-label="Week">
-            {
-              weeksForLatestSeason.map((week) => (
-                <option value={week} selected={week === latestWeek}>
-                  Week {week}
-                </option>
-              ))
-            }
-          </select>
+      {hasRankingsData ? (
+        <>
+          <div class="panel-head">
+            <h2>Rankings</h2>
+            <div class="panel-filters">
+              <select class="filter-select" id="season-select" aria-label="Season">
+                {
+                  seasonsForClient.map((entry) => (
+                    <option value={entry.season} selected={entry.season === latestSeason}>
+                      {entry.season}
+                    </option>
+                  ))
+                }
+              </select>
+              <select class="filter-select" id="week-select" aria-label="Week">
+                {
+                  weeksForLatestSeason.map((week) => (
+                    <option value={week} selected={week === latestWeek}>
+                      Week {week}
+                    </option>
+                  ))
+                }
+              </select>
+            </div>
+          </div>
+          <RankingsTable headers={["Rank", "Team", "Conference", "Record", "Rating", "Delta"]} rows={rows} />
+        </>
+      ) : (
+        <div class="panel-empty">
+          <h2>Rankings</h2>
+          <p>Rankings data isn't available for this build yet. Check back after the next scheduled update.</p>
         </div>
-      </div>
-      <RankingsTable headers={["Rank", "Team", "Conference", "Record", "Rating", "Delta"]} rows={rows} />
+      )}
     </section>
   </section>
 
@@ -280,6 +311,20 @@ const rows = weekPayload.rankings.map((team) => [
       letter-spacing: -0.03em;
     }
 
+    .panel-empty h2 {
+      margin: 0 0 0.5rem;
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .panel-empty p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
     .panel-filters {
       display: flex;
       gap: 0.55rem;
@@ -319,7 +364,7 @@ const rows = weekPayload.rankings.map((team) => [
     }
   </style>
 
-  <script define:vars={{ seasonsForClient, latestSeason }}>
+  <script is:inline define:vars={{ seasonsForClient, latestSeason }}>
     const seasonSelect = document.getElementById("season-select");
     const weekSelect = document.getElementById("week-select");
     const tableBody = document.querySelector(".rankings-panel .rankings-shell tbody");
