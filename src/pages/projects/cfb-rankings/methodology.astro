@@ -299,10 +299,11 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
       color: var(--text);
       text-decoration: none;
       flex-shrink: 0;
-      transition: transform 180ms ease, box-shadow 180ms ease;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
     }
 
     .icon-link:hover {
+      border-color: rgba(255, 255, 255, 0.2);
       transform: translateY(-3px);
       box-shadow: var(--shadow-hover);
     }

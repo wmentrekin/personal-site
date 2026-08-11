@@ -156,6 +156,7 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
             </div>
           </div>
           <RankingsTable headers={["Rank", "Team", "Conference", "Record", "Rating", "Delta"]} rows={rows} />
+          <p class="table-footnote">Full FBS field renders here, sourced live from the ranking artifacts in R2.</p>
         </>
       ) : (
         <div class="panel-empty">
@@ -350,6 +351,13 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
       outline-offset: 1px;
     }
 
+    .table-footnote {
+      margin: 0.7rem 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+    }
+
     @media (max-width: 920px) {
       .project-hero {
         flex-direction: column;
@@ -369,6 +377,10 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
     const weekSelect = document.getElementById("week-select");
     const tableBody = document.querySelector(".rankings-panel .rankings-shell tbody");
 
+    // Guards against out-of-order renders if the user changes the selects faster than a
+    // fetch resolves -- only the most recently started request is allowed to render.
+    let loadGeneration = 0;
+
     function padWeek(week) {
       return String(week).padStart(2, "0");
     }
@@ -385,35 +397,67 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
 
     function populateWeekOptions(season) {
       const weeks = weeksForSeason(season);
-      weekSelect.innerHTML = weeks
-        .map((week) => `<option value="${week}">Week ${week}</option>`)
-        .join("");
+      weekSelect.textContent = "";
+      for (const week of weeks) {
+        const option = document.createElement("option");
+        option.value = String(week);
+        option.textContent = `Week ${week}`;
+        weekSelect.appendChild(option);
+      }
     }
 
+    // Uses DOM APIs (textContent) rather than innerHTML with interpolated strings, so
+    // team/conference/record values from the fetched JSON can never be interpreted as markup.
     function renderRows(rankings) {
       if (!tableBody) return;
-      tableBody.innerHTML = rankings
-        .map((team) => {
-          const cells = [
-            team.rank,
-            team.team,
-            team.conference,
-            team.record,
-            Number(team.rating).toFixed(2),
-            formatDelta(team.delta)
-          ];
-          return `<tr>${cells
-            .map((cell, index) => `<td class="${index === 0 ? "rank-col" : ""}">${cell}</td>`)
-            .join("")}</tr>`;
-        })
-        .join("");
+      tableBody.textContent = "";
+      for (const team of rankings) {
+        const cells = [
+          team.rank,
+          team.team,
+          team.conference,
+          team.record,
+          Number(team.rating).toFixed(2),
+          formatDelta(team.delta)
+        ];
+        const row = document.createElement("tr");
+        cells.forEach((cell, index) => {
+          const td = document.createElement("td");
+          if (index === 0) td.className = "rank-col";
+          td.textContent = cell;
+          row.appendChild(td);
+        });
+        tableBody.appendChild(row);
+      }
+    }
+
+    function renderLoadError(message) {
+      if (!tableBody) return;
+      tableBody.textContent = "";
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = 6;
+      cell.textContent = message;
+      row.appendChild(cell);
+      tableBody.appendChild(row);
     }
 
     async function loadWeek(season, week) {
-      const response = await fetch(`/data/cfb/${season}/week-${padWeek(week)}.json`);
-      if (!response.ok) return;
-      const data = await response.json();
-      renderRows(data.rankings ?? []);
+      const generation = ++loadGeneration;
+      try {
+        const response = await fetch(`/data/cfb/${season}/week-${padWeek(week)}.json`);
+        if (generation !== loadGeneration) return;
+        if (!response.ok) {
+          renderLoadError("Couldn't load rankings for this selection. Please try again.");
+          return;
+        }
+        const data = await response.json();
+        if (generation !== loadGeneration) return;
+        renderRows(data.rankings ?? []);
+      } catch {
+        if (generation !== loadGeneration) return;
+        renderLoadError("Couldn't load rankings for this selection. Please try again.");
+      }
     }
 
     seasonSelect?.addEventListener("change", () => {
