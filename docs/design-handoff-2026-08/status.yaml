@@ -1,7 +1,7 @@
 artifact: status
 feature: "design-handoff-2026-08"
 mode: "large-initiative"
-stage: "planning"
+stage: "verification"
 owner_skill: work
 
 objective: "Implement a design handoff (7 pages) into the real .astro files, applying a locked design pass from a separate design session: link fixes, hover-state consistency, spacing fixes, Projects hub decluttering, and a significant CFB Rankings + Methodology rework -- including wiring the Rankings page to real data from Cloudflare R2 (season/week dropdowns, full field, not a static snapshot)."
@@ -14,7 +14,7 @@ summary:
 artifacts:
   requirements: "docs/design-handoff-2026-08/requirements.yaml"
   plan: "docs/design-handoff-2026-08/plan.yaml"
-  implementation_report: null
+  implementation_report: "docs/design-handoff-2026-08/implementation-report.yaml"
 
 pr:
   number: null
@@ -26,8 +26,48 @@ agents:
     role: "orchestrator"
     model_guidance: "xhigh"
     status: "active"
-    stage: "discovery"
-    task: "coordinating discovery agents"
+    stage: "execution"
+    task: "coordinating execution agents"
+    last_update: "2026-08-11"
+    blocker: ""
+  - id: "frontend-engineer-1"
+    role: "frontend-engineer"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "execution"
+    task: "T1 -- polish fixes: Home, About, Now, Projects hub (incl. a11y stretch item)"
+    last_update: "2026-08-11"
+    blocker: ""
+  - id: "data-engineer-1"
+    role: "data-engineer"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "execution"
+    task: "T2 -- R2 rankings data fetch script"
+    last_update: "2026-08-11"
+    blocker: "real R2 read-only credentials not yet provisioned -- fetch-succeeds path unvalidated end-to-end, contract/no-creds path fully validated"
+  - id: "frontend-engineer-2"
+    role: "frontend-engineer"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "execution"
+    task: "T4 -- methodology.astro rework"
+    last_update: "2026-08-11"
+    blocker: ""
+  - id: "frontend-engineer-3"
+    role: "frontend-engineer"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "execution"
+    task: "T5 -- 2020-election-model.astro rework"
+    last_update: "2026-08-11"
+    blocker: ""
+  - id: "frontend-engineer-4"
+    role: "frontend-engineer"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "execution"
+    task: "T3 -- cfb-rankings.astro rework + RankingsTable.astro Conference column"
     last_update: "2026-08-11"
     blocker: ""
   - id: "repo-researcher-1"
@@ -65,7 +105,7 @@ loops:
 
 checkpoint:
   pre_execution_required: true
-  pre_execution_status: pending
+  pre_execution_status: accepted
   options:
     - proceed
     - revise_plan
@@ -82,6 +122,8 @@ decisions:
   - "repo-researcher-2 finding: RankingsTable.astro is fully generic (headers: string[], rows: Array<Array<string|number>>) -- adding a Conference column is trivial (just extend headers/rows from the caller), BUT two coupling issues need handling: (1) `td:not(:nth-child(2))` CSS applies mono font to every column except column index 2 (currently 'Team') -- inserting Conference shifts which column is 'the non-mono one' unless Conference goes after Team; (2) `.rank-col { color: var(--accent-football) }` is a hardcoded accent color on the shared component that conflicts with the README's 'no colored accents on CFB pages' directive -- needs neutralizing to var(--text), and since this is a SHARED component (not page-scoped), confirm no other page consumes RankingsTable before changing its CSS (research found no other current consumers, but worth a fresh grep at implementation time)."
   - "repo-researcher-2 finding: several README items turned out to be no-ops against current code, same pattern as repo-researcher-1's findings -- /images/projects/2020-election-model/map.png is NOT a placeholder, it's a real existing asset already correctly wired into 2020-election-model.astro (README/reference-HTML's 'placeholder' language describes the design-preview's own limitation, not the real repo state). Also: the reference HTML's .hero-text uses white-space:nowrap+overflow-x:auto (looks like a design-file preview quirk) -- do NOT copy that literally; the correct fix (consistent with About/Now) is just removing the max-width constraint so it wraps at container width."
   - "repo-researcher-2 open question raised (not yet asked to user): is a Conference column actually wanted on the rankings table? Neither the README nor the cfb-rankings.html reference shows one -- reference table is exactly Rank/Team/Record/Rating/Delta. The orchestrator's original task brief assumed Conference was wanted (per user's earlier stated preference in the cfb-rankings artifact-schema work), but this is worth confirming explicitly during requirements since it's not in the locked design reference itself."
+  - "USER DECISIONS at checkpoint: (1) add Conference column -- placed at table position 3, right after Team, so existing td:not(:nth-child(2)) mono-font CSS needs zero changes. (2) R2 access method: build-time fetch + Cloudflare Pages deploy hook (site stays 100% static, bucket stays fully private). (3) Include the Projects-hub keyboard-accessibility stretch item in T1. (4) Checkpoint accepted -- proceed to execution."
+  - "requirements.yaml + plan.yaml written and committed. Branch work/design-handoff-2026-08 created. Spawning T1 (frontend-engineer, polish pages), T2 (data-engineer, R2 fetch script), T4 (frontend-engineer, methodology.astro), T5 (frontend-engineer, 2020-election-model.astro) in parallel -- all non-overlapping owned_scope, no worktrees needed. T3 (cfb-rankings.astro rework) queued, depends on T2 landing first."
   - "Design references are 7 standalone .html mirror files at /private/tmp/claude-501/-Users-wentrekin-dev/11a7370c-3905-45f7-84e6-380c775dc6dd/scratchpad/design-handoff/design_handoff_site_updates/ (plus README.md) -- NOT to be copied in directly, only used as a high-fidelity style/structure reference for editing the real .astro files in place."
   - "This feature is scoped to the design handoff only, not the full Streamlit-to-personal-site migration -- user explicitly wants this done first, as a locked prerequisite from a separate design session. The broader migration context lives in the sibling cfb-rankings repo's docs/cfb-site-migration/requirements.yaml, referenced for context only."
 

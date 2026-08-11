@@ -1,0 +1,69 @@
+artifact: implementation_report
+feature: "design-handoff-2026-08"
+mode: "large-initiative"
+status: complete
+owner_skill: work
+based_on: "docs/design-handoff-2026-08/plan.yaml"
+
+summary:
+  scope_executed: "All 5 planned tasks: T1 (polish fixes across Home/About/Now/Projects hub, incl. an a11y verification pass), T2 (build-time R2 data fetch script), T3 (CFB Rankings page rework + real data wiring + Conference column), T4 (Methodology page rework), T5 (2020 Election Model page rework)."
+  outcome: "All 7 pages match the locked design handoff. The site remains 100% static (no server adapter added). A full production build (`npm run build`) succeeds end-to-end with all 8 pages generated and zero errors, confirming all 5 tasks' changes integrate cleanly together."
+
+task_batches_attempted: ["B1", "B2", "B3", "B4", "B5"]
+task_batches_completed: ["B1", "B2", "B3", "B4", "B5"]
+
+domains_touched: ["frontend-engineer", "data-engineer"]
+
+pr:
+  number: null
+  url: null
+
+changes:
+  files:
+    - "src/pages/index.astro -- removed Featured eyebrow from CFB tile"
+    - "src/pages/about.astro -- hover states on fact/about cards, hero-text max-width removed, shell padding-bottom corrected to 3.5rem"
+    - "src/pages/now.astro -- hero-text max-width removed"
+    - "src/pages/projects/index.astro -- bordered logo chips, tile-summary padding, footer-line removed, icon-link hover added; a11y verified (no code change needed, see open_issues)"
+    - "scripts/fetch-rankings-data.mjs (new) -- build-time R2 fetch, graceful skip / hard fail split"
+    - "package.json, package-lock.json -- prebuild script, @aws-sdk/client-s3 devDependency"
+    - ".gitignore -- public/data/cfb/ (build-generated, no longer committed)"
+    - "public/data/cfb/latest-rankings.json -- deleted (superseded by fetch script's output structure)"
+    - "src/pages/projects/cfb-rankings.astro -- full rework: new header pattern, Season/Week filters, real data wiring, client-side re-render script"
+    - "src/components/RankingsTable.astro -- Conference column added at position 3, rank-col color neutralized"
+    - "src/pages/projects/cfb-rankings/methodology.astro -- TOC removed, header restructured, vertical rhythm tightened, equation blocks neutralized"
+    - "src/pages/projects/2020-election-model.astro -- link rows removed, hero-actions added, hero-text fix"
+  modules: ["src/pages/", "src/components/RankingsTable.astro", "scripts/"]
+  docs_updated: ["docs/design-handoff-2026-08/status.yaml", "docs/design-handoff-2026-08/requirements.yaml", "docs/design-handoff-2026-08/plan.yaml"]
+
+local_validation:
+  checks_run:
+    - "Each task validated individually (dev server + curl/DOM inspection + astro check) before commit, per its own report."
+    - "Post-integration: npx astro check across the full tree -- 0 errors, 0 warnings, 1 expected informational hint (define:vars script correctly treated as is:inline)."
+    - "Post-integration: npm run build (full production build) -- succeeds end-to-end, all 8 pages generated, 0 errors. This is the strongest cross-task integration check available and confirms T1/T2/T3/T4/T5's changes compose correctly."
+  failures: []
+  skipped:
+    - "True browser/visual verification (screenshots, real hover/click interaction, pixel comparison against the design reference .html files) -- no browser automation tool (claude-in-chrome) was connected in the execution environment for any of the 5 tasks. Every task explicitly flagged this rather than claiming visual verification that didn't happen. Structural/DOM/CSS-value verification was done instead (comparing served HTML/computed CSS against the reference files' literal values)."
+    - "T2's real R2 fetch path (actual GetObjectCommand calls against a live bucket) -- no R2 read-only credentials exist in this environment yet. T3 validated against manually-seeded sample data matching the real schema instead. Both explicitly flagged as incomplete, not silently skipped."
+
+review_summary:
+  status: "not_started"
+  key_findings: []
+
+test_summary:
+  status: "validated_via_build_and_dev_server"
+  checks_run:
+    - "Full production build + astro check, as above. No automated test suite exists in this repo."
+  failures: []
+  gaps:
+    - "No real-browser visual verification (see local_validation.skipped above) -- recommend the user do a visual pass in an actual browser before merging, given this is a design/UX-focused change where pixel-level fidelity matters more than for typical bug-fix work."
+    - "No real R2 data end-to-end test (see local_validation.skipped above) -- recommend testing with real credentials once provisioned, before relying on this in production."
+
+open_issues:
+  - "REQUIRED before this goes live in production: user must provision (1) a new READ-ONLY-scoped Cloudflare R2 API token, distinct from cfb-rankings' write token, (2) Cloudflare Pages build environment variables (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID_READONLY, R2_SECRET_ACCESS_KEY_READONLY, R2_BUCKET_NAME) for the personal-site Pages project, and (3) a Cloudflare Pages Deploy Hook. These are manual, dashboard-only steps -- no agent can do them. Until provisioned, the site will build fine (T2's fetch script gracefully skips with a warning) but the Rankings page will have no data source at all (public/data/cfb/ won't exist), since T3's page reads that directory via readFileSync with no fallback -- this WILL break the build in a real Cloudflare Pages deploy until credentials are added, unlike local dev where a developer might have manually seeded sample data."
+  - "SEPARATE, cross-repo follow-up (not part of this feature's own scope): the sibling cfb-rankings repo's weekly-update.yml needs a new final step added -- a curl POST to the new Cloudflare Pages deploy hook URL -- so that repo's weekly rankings publish actually triggers a personal-site rebuild. Without this, the deploy hook exists but nothing calls it, and the Rankings page's data will only refresh whenever personal-site happens to be redeployed for an unrelated reason."
+  - "Noted, not addressed: the Projects hub's keyboard-accessibility gap (two separate tab stops for the whole-card link) was verified as low-risk (aria-label correct, default focus outline intact) but not structurally fixed -- a real fix would require restructuring the overlay/icon-link split-anchor mechanism, judged out of this pass's bounded scope per the plan's own escalation guidance."
+
+handoff:
+  current_state: "complete, ready for PR"
+  next_owner: "user"
+  next_action: "Review the PR (visual pass in a real browser recommended, given no browser automation was available during execution), then provision the R2 read-only token + Cloudflare Pages env vars + deploy hook before merging/deploying, and separately add the deploy-hook curl step to cfb-rankings' weekly-update.yml."
