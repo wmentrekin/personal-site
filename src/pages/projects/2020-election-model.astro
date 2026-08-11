@@ -51,36 +51,40 @@ const tables = {
 
     <section class="project-hero reveal">
       <div class="hero-copy glass-card">
-        <p class="hero-kicker">Archived Project</p>
-        <h1>2020 Election Model</h1>
-        <p class="hero-text">
-          A state-by-state statistical predictive model for the 2020 U.S. presidential election.
-        </p>
-        <div class="hero-tags">
-          <span>Python</span>
-          <span>Forecasting</span>
-          <span>Statistics</span>
-          <span>Election Modeling</span>
+        <div>
+          <p class="hero-kicker">Archived Project</p>
+          <h1>2020 Election Model</h1>
+          <p class="hero-text">
+            A state-by-state statistical predictive model for the 2020 U.S. presidential election.
+          </p>
+          <div class="hero-tags">
+            <span>Python</span>
+            <span>Forecasting</span>
+            <span>Statistics</span>
+            <span>Election Modeling</span>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a class="pages-link-card" href="https://wmentrekin.github.io/2020election/" target="_blank" rel="noreferrer">
+            GitHub Pages Site
+          </a>
+          <a
+            class="icon-link"
+            href="https://github.com/wmentrekin/2020election"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="2020 Election Model repository"
+            title="Repository"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 2C6.48 2 2 6.58 2 12.24c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-1.05-.01-1.9-2.78.62-3.37-1.21-3.37-1.21-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.55-1.14-4.55-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.86c.85 0 1.71.12 2.51.35 1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.33 4.8-4.56 5.05.36.32.68.95.68 1.92 0 1.39-.01 2.5-.01 2.84 0 .27.18.59.69.49A10.13 10.13 0 0 0 22 12.24C22 6.58 17.52 2 12 2Z"
+                fill="currentColor"
+              ></path>
+            </svg>
+          </a>
         </div>
       </div>
-    </section>
-
-    <div class="link-card-row">
-      <a class="link-card tone-repo" href="https://github.com/wmentrekin/2020election" target="_blank" rel="noreferrer">
-        GitHub Repository
-      </a>
-      <a class="link-card tone-linkedin" href="https://wmentrekin.github.io/2020election/" target="_blank" rel="noreferrer">
-        Original GitHub Pages Site
-      </a>
-      <a class="link-card tone-projects" href="/projects">
-        Back to Projects
-      </a>
-    </div>
-
-    <section class="section-links reveal">
-      <a href="#methods">Methods</a>
-      <a href="#results">Results</a>
-      <a href="#insights">Insights</a>
     </section>
 
     <section class="info-card reveal glass-card">
@@ -267,7 +271,69 @@ const tables = {
     }
 
     .hero-copy {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
       padding: 1.1rem 1.2rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-shrink: 0;
+    }
+
+    .pages-link-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 2.75rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .pages-link-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(255, 255, 255, 0.24);
+      color: var(--text);
+    }
+
+    .icon-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.85rem;
+      height: 1.85rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      text-decoration: none;
+      flex-shrink: 0;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .icon-link:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .icon-link svg {
+      width: 0.95rem;
+      height: 0.95rem;
     }
 
     .hero-kicker {
@@ -290,7 +356,6 @@ const tables = {
 
     .hero-text {
       margin: 0;
-      max-width: 30rem;
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.68;
@@ -303,8 +368,7 @@ const tables = {
       margin-top: 0.8rem;
     }
 
-    .hero-tags span,
-    .section-links a {
+    .hero-tags span {
       display: inline-flex;
       align-items: center;
       min-height: 1.95rem;
@@ -318,17 +382,6 @@ const tables = {
       letter-spacing: 0.05em;
       text-decoration: none;
       text-transform: uppercase;
-    }
-
-    .section-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-    }
-
-    .section-links a:hover {
-      border-color: rgba(125, 211, 252, 0.28);
-      background: rgba(255, 255, 255, 0.06);
     }
 
     .info-card {

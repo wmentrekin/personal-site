@@ -120,10 +120,6 @@ const projects = [
 
             <p class="tile-summary">{project.summaryLines.join("\n")}</p>
 
-            <div class="tile-footer" aria-hidden="true">
-              <span class="footer-line"></span>
-            </div>
-
             {project.markSrc && (
               <span class="project-mark-anchor" aria-hidden="true">
                 <span class="project-mark-frame">
@@ -249,17 +245,8 @@ const projects = [
       text-wrap: pretty;
     }
 
-    .tile-footer {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      min-width: 0;
-    }
-
-    .footer-line {
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.22));
+    .project-tile__inner:has(.project-mark-anchor) .tile-summary {
+      padding-right: 4.4rem;
     }
 
     .project-mark-anchor {
@@ -267,17 +254,21 @@ const projects = [
       right: 1rem;
       bottom: 2.6rem;
       display: flex;
-      align-items: flex-end;
-      justify-content: flex-end;
+      align-items: center;
+      justify-content: center;
       pointer-events: none;
     }
 
     .project-mark-frame {
-      width: 5.25rem;
-      height: 2.25rem;
+      width: 3.4rem;
+      height: 3.4rem;
+      padding: 0.55rem;
       display: flex;
-      align-items: flex-end;
-      justify-content: flex-end;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.045);
     }
 
     .project-mark {
@@ -287,7 +278,6 @@ const projects = [
       width: auto;
       height: auto;
       object-fit: contain;
-      object-position: right bottom;
     }
 
     .icon-link {
@@ -305,6 +295,12 @@ const projects = [
       background: rgba(255, 255, 255, 0.04);
       color: var(--text);
       text-decoration: none;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .icon-link:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
     }
 
     .icon-link svg {
@@ -339,11 +335,6 @@ const projects = [
       .project-mark-anchor {
         right: 0.9rem;
         bottom: 2.2rem;
-      }
-
-      .project-mark-frame {
-        width: 4.6rem;
-        height: 1.95rem;
       }
     }
   </style>

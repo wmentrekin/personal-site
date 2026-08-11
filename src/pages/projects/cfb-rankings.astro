@@ -4,15 +4,93 @@ import { readFileSync } from "node:fs";
 import RankingsTable from "../../components/RankingsTable.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
-const rankingsPath = new URL("../../../public/data/cfb/latest-rankings.json", import.meta.url);
-const rankingsPayload = JSON.parse(readFileSync(rankingsPath, "utf-8"));
-const rows = rankingsPayload.rankings.map((team: Record<string, string | number>) => [
-  team.rank,
-  team.team,
-  team.record,
-  Number(team.rating).toFixed(2),
-  Number(team.delta) > 0 ? `+${team.delta}` : `${team.delta}`
-]);
+interface SeasonEntry {
+  season: number;
+  weeks: number[];
+}
+
+interface RankingsIndex {
+  generated_at_utc: string;
+  latest_season: number;
+  latest_week: number;
+  seasons: SeasonEntry[];
+}
+
+interface RankingRow {
+  rank: number;
+  team: string;
+  conference: string;
+  record: string;
+  rating: number;
+  delta: number;
+}
+
+interface WeekPayload {
+  season: number;
+  week: number;
+  generated_at_utc: string;
+  rankings: RankingRow[];
+}
+
+function padWeek(week: number): string {
+  return String(week).padStart(2, "0");
+}
+
+function formatDelta(delta: number): string {
+  return delta > 0 ? `+${delta}` : `${delta}`;
+}
+
+function readJsonSafe<T>(url: URL): T | null {
+  try {
+    return JSON.parse(readFileSync(url, "utf-8")) as T;
+  } catch {
+    return null;
+  }
+}
+
+// public/data/cfb/ is populated at build time by scripts/fetch-rankings-data.mjs, which
+// requires R2 credentials to actually write anything. If those aren't configured yet (e.g. a
+// fresh checkout, a PR preview build before secrets are set up), this directory won't exist --
+// render an empty state instead of crashing the whole build.
+const indexPath = new URL("../../../public/data/cfb/index.json", import.meta.url);
+const rankingsIndex = readJsonSafe<RankingsIndex>(indexPath);
+
+const seasonsForClient = rankingsIndex
+  ? [...rankingsIndex.seasons]
+      .sort((a, b) => b.season - a.season)
+      .map((entry) => ({
+        season: entry.season,
+        weeks: [...entry.weeks].sort((a, b) => b - a)
+      }))
+  : [];
+
+const latestSeason = rankingsIndex?.latest_season ?? null;
+const latestWeek = rankingsIndex?.latest_week ?? null;
+
+const weeksForLatestSeason =
+  seasonsForClient.find((entry) => entry.season === latestSeason)?.weeks ?? [];
+
+const weekPayload =
+  latestSeason !== null && latestWeek !== null
+    ? readJsonSafe<WeekPayload>(
+        new URL(
+          `../../../public/data/cfb/${latestSeason}/week-${padWeek(latestWeek)}.json`,
+          import.meta.url
+        )
+      )
+    : null;
+
+const rows =
+  weekPayload?.rankings.map((team) => [
+    team.rank,
+    team.team,
+    team.conference,
+    team.record,
+    Number(team.rating).toFixed(2),
+    formatDelta(Number(team.delta))
+  ]) ?? [];
+
+const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
 ---
 
 <BaseLayout title="CFB Rankings Project | Wyatt Entrekin">
@@ -31,57 +109,61 @@ const rows = rankingsPayload.rankings.map((team: Record<string, string | number>
           <span>Static Delivery</span>
         </div>
       </div>
-      <aside class="hero-aside">
-        <div class="glass-card">
-          <span>Snapshot</span>
-          <strong>Season {rankingsPayload.season}, Week {rankingsPayload.week}</strong>
-        </div>
-        <div class="glass-card">
-          <span>Updated</span>
-          <strong>{rankingsPayload.generated_at_utc}</strong>
-        </div>
-      </aside>
+      <div class="hero-actions">
+        <a class="method-link-card" href="/projects/cfb-rankings/methodology">Methodology</a>
+        <a
+          class="icon-link"
+          href="https://github.com/wmentrekin/cfb-rankings"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="GitHub Repository"
+          title="GitHub Repository"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 2C6.48 2 2 6.58 2 12.24c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-1.05-.01-1.9-2.78.62-3.37-1.21-3.37-1.21-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.55-1.14-4.55-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.86c.85 0 1.71.12 2.51.35 1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.33 4.8-4.56 5.05.36.32.68.95.68 1.92 0 1.39-.01 2.5-.01 2.84 0 .27.18.59.69.49A10.13 10.13 0 0 0 22 12.24C22 6.58 17.52 2 12 2Z"
+              fill="currentColor"
+            ></path>
+          </svg>
+        </a>
+      </div>
     </section>
-
-    <div class="link-card-row compact-links">
-      <a class="link-card tone-method" href="/projects/cfb-rankings/methodology">Methodology</a>
-      <a class="link-card tone-repo" href="https://github.com/wmentrekin/cfb-rankings" target="_blank" rel="noreferrer">
-        GitHub Repository
-      </a>
-      <a class="link-card tone-streamlit" href="https://cfb-rankings-wmentrekin.streamlit.app/" target="_blank" rel="noreferrer">
-        Original Streamlit App
-      </a>
-    </div>
 
     <section class="rankings-panel reveal glass-card">
-      <div class="panel-head">
-        <div>
-          <p class="section-label">Current Rankings</p>
-          <h2>Latest Ratings Snapshot</h2>
+      {hasRankingsData ? (
+        <>
+          <div class="panel-head">
+            <h2>Rankings</h2>
+            <div class="panel-filters">
+              <select class="filter-select" id="season-select" aria-label="Season">
+                {
+                  seasonsForClient.map((entry) => (
+                    <option value={entry.season} selected={entry.season === latestSeason}>
+                      {entry.season}
+                    </option>
+                  ))
+                }
+              </select>
+              <select class="filter-select" id="week-select" aria-label="Week">
+                {
+                  weeksForLatestSeason.map((week) => (
+                    <option value={week} selected={week === latestWeek}>
+                      Week {week}
+                    </option>
+                  ))
+                }
+              </select>
+            </div>
+          </div>
+          <RankingsTable headers={["Rank", "Team", "Conference", "Record", "Rating", "Delta"]} rows={rows} />
+          <p class="table-footnote">Full FBS field renders here, sourced live from the ranking artifacts in R2.</p>
+        </>
+      ) : (
+        <div class="panel-empty">
+          <h2>Rankings</h2>
+          <p>Rankings data isn't available for this build yet. Check back after the next scheduled update.</p>
         </div>
-        <p class="panel-meta">{rankingsPayload.generated_at_utc}</p>
-      </div>
-      <RankingsTable headers={["Rank", "Team", "Record", "Rating", "Delta"]} rows={rows} />
-    </section>
-
-    <section class="info-grid">
-      <article class="info-card reveal glass-card">
-        <h2>Project Notes</h2>
-        <p class="muted">
-          Rankings are produced weekly during the season. The current direction is to keep the public surface simple
-          and move the model, architecture, and implementation details into the methodology page.
-        </p>
-        <a class="method-link" href="/projects/cfb-rankings/methodology">Open methodology</a>
-      </article>
-
-      <article class="info-card reveal glass-card">
-        <h2>Next Up</h2>
-        <ul>
-          <li>Migrate rankings storage from Supabase to artifact storage</li>
-          <li>Add outcome probability and simulation layers</li>
-          <li>Extend the model into conference and postseason views</li>
-        </ul>
-      </article>
+      )}
     </section>
   </section>
 
@@ -93,17 +175,16 @@ const rows = rankingsPayload.rankings.map((team: Record<string, string | number>
     }
 
     .project-hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(15rem, 0.7fr);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
       gap: 1rem;
       padding: 1.05rem 1.15rem;
     }
 
-    .hero-kicker,
-    .section-label,
-    .hero-aside span {
+    .hero-kicker {
       margin: 0;
-      color: var(--accent-football);
+      color: var(--text-soft);
       font-family: var(--font-mono);
       font-size: 0.74rem;
       font-weight: 600;
@@ -149,28 +230,65 @@ const rows = rankingsPayload.rankings.map((team: Record<string, string | number>
       text-transform: uppercase;
     }
 
-    .hero-aside {
-      display: grid;
-      gap: 0.7rem;
-      align-content: start;
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-shrink: 0;
     }
 
-    .hero-aside div {
-      padding: 0.75rem 0.85rem;
+    .method-link-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 2.75rem;
+      padding: 0.5rem 0.9rem;
       border-radius: var(--radius-md);
-    }
-
-    .hero-aside strong {
-      display: block;
-      margin-top: 0.55rem;
-      color: var(--text-soft);
-      font-family: var(--font-mono);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      text-decoration: none;
       font-size: 0.82rem;
-      line-height: 1.55;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
     }
 
-    .compact-links {
-      margin: 0;
+    .method-link-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(255, 255, 255, 0.24);
+      color: var(--text);
+    }
+
+    .icon-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.85rem;
+      height: 1.85rem;
+      padding: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      text-decoration: none;
+      flex-shrink: 0;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .icon-link:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .icon-link svg {
+      width: 0.95rem;
+      height: 0.95rem;
+      flex: 0 0 auto;
     }
 
     .rankings-panel {
@@ -182,89 +300,178 @@ const rows = rankingsPayload.rankings.map((team: Record<string, string | number>
       align-items: end;
       justify-content: space-between;
       gap: 0.8rem;
-      margin-bottom: 0.8rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.9rem;
     }
 
     .panel-head h2 {
-      margin: 0.4rem 0 0;
+      margin: 0;
       font-family: var(--font-display);
       font-size: 1.55rem;
       line-height: 1;
       letter-spacing: -0.03em;
     }
 
-    .panel-meta {
-      margin: 0;
-      color: var(--muted);
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
-    }
-
-    .info-card {
-      padding: 1.05rem;
-    }
-
-    .info-card h2 {
-      margin: 0 0 0.55rem;
+    .panel-empty h2 {
+      margin: 0 0 0.5rem;
       font-family: var(--font-display);
-      font-size: 1.28rem;
+      font-size: 1.55rem;
       line-height: 1;
       letter-spacing: -0.03em;
     }
 
-    .info-card ul {
+    .panel-empty p {
       margin: 0;
-      padding-left: 1.1rem;
       color: var(--muted);
-      line-height: 1.7;
+      font-size: 0.9rem;
     }
 
-    .info-card li + li {
-      margin-top: 0.3rem;
+    .panel-filters {
+      display: flex;
+      gap: 0.55rem;
     }
 
-    .method-link {
-      display: inline-flex;
-      margin-top: 0.75rem;
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 600;
-      position: relative;
+    .filter-select {
+      appearance: none;
+      padding: 0.45rem 1.9rem 0.45rem 0.75rem;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03)
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%2396a9bc"><path d="M5.5 7.5l4.5 4.5 4.5-4.5"/></svg>')
+        no-repeat right 0.6rem center;
+      background-size: 0.8rem;
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
     }
 
-    .method-link::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      bottom: -0.12rem;
-      width: 100%;
-      height: 1px;
-      background: currentColor;
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 180ms ease;
+    .filter-select:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
     }
 
-    .method-link:hover::after {
-      transform: scaleX(1);
+    .table-footnote {
+      margin: 0.7rem 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
     }
 
     @media (max-width: 920px) {
-      .project-hero,
-      .info-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .panel-head {
-        align-items: start;
+      .project-hero {
         flex-direction: column;
       }
     }
+
+    @media (max-width: 640px) {
+      .panel-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
+
+  <script is:inline define:vars={{ seasonsForClient, latestSeason }}>
+    const seasonSelect = document.getElementById("season-select");
+    const weekSelect = document.getElementById("week-select");
+    const tableBody = document.querySelector(".rankings-panel .rankings-shell tbody");
+
+    // Guards against out-of-order renders if the user changes the selects faster than a
+    // fetch resolves -- only the most recently started request is allowed to render.
+    let loadGeneration = 0;
+
+    function padWeek(week) {
+      return String(week).padStart(2, "0");
+    }
+
+    function formatDelta(delta) {
+      const value = Number(delta);
+      return value > 0 ? `+${value}` : `${value}`;
+    }
+
+    function weeksForSeason(season) {
+      const entry = seasonsForClient.find((item) => item.season === Number(season));
+      return entry ? entry.weeks : [];
+    }
+
+    function populateWeekOptions(season) {
+      const weeks = weeksForSeason(season);
+      weekSelect.textContent = "";
+      for (const week of weeks) {
+        const option = document.createElement("option");
+        option.value = String(week);
+        option.textContent = `Week ${week}`;
+        weekSelect.appendChild(option);
+      }
+    }
+
+    // Uses DOM APIs (textContent) rather than innerHTML with interpolated strings, so
+    // team/conference/record values from the fetched JSON can never be interpreted as markup.
+    function renderRows(rankings) {
+      if (!tableBody) return;
+      tableBody.textContent = "";
+      for (const team of rankings) {
+        const cells = [
+          team.rank,
+          team.team,
+          team.conference,
+          team.record,
+          Number(team.rating).toFixed(2),
+          formatDelta(team.delta)
+        ];
+        const row = document.createElement("tr");
+        cells.forEach((cell, index) => {
+          const td = document.createElement("td");
+          if (index === 0) td.className = "rank-col";
+          td.textContent = cell;
+          row.appendChild(td);
+        });
+        tableBody.appendChild(row);
+      }
+    }
+
+    function renderLoadError(message) {
+      if (!tableBody) return;
+      tableBody.textContent = "";
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = 6;
+      cell.textContent = message;
+      row.appendChild(cell);
+      tableBody.appendChild(row);
+    }
+
+    async function loadWeek(season, week) {
+      const generation = ++loadGeneration;
+      try {
+        const response = await fetch(`/data/cfb/${season}/week-${padWeek(week)}.json`);
+        if (generation !== loadGeneration) return;
+        if (!response.ok) {
+          renderLoadError("Couldn't load rankings for this selection. Please try again.");
+          return;
+        }
+        const data = await response.json();
+        if (generation !== loadGeneration) return;
+        renderRows(data.rankings ?? []);
+      } catch {
+        if (generation !== loadGeneration) return;
+        renderLoadError("Couldn't load rankings for this selection. Please try again.");
+      }
+    }
+
+    seasonSelect?.addEventListener("change", () => {
+      const season = seasonSelect.value;
+      populateWeekOptions(season);
+      const firstWeekOption = weekSelect?.options[0];
+      if (firstWeekOption) {
+        weekSelect.value = firstWeekOption.value;
+        loadWeek(season, firstWeekOption.value);
+      }
+    });
+
+    weekSelect?.addEventListener("change", () => {
+      loadWeek(seasonSelect?.value ?? latestSeason, weekSelect.value);
+    });
+  </script>
 </BaseLayout>

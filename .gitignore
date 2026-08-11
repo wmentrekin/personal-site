@@ -211,6 +211,9 @@ node_modules/
 .astro/
 dist/
 
+# Build-time fetched rankings data (see scripts/fetch-rankings-data.mjs)
+public/data/cfb/
+
 # Local agent context
 AGENTS.md
 CLAUDE.md
