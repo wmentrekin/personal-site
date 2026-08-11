@@ -46,8 +46,14 @@ local_validation:
     - "T2's real R2 fetch path (actual GetObjectCommand calls against a live bucket) -- no R2 read-only credentials exist in this environment yet. T3 validated against manually-seeded sample data matching the real schema instead. Both explicitly flagged as incomplete, not silently skipped."
 
 review_summary:
-  status: "not_started"
-  key_findings: []
+  status: "complete, fixes applied"
+  key_findings:
+    - "Build-crash bug (public/data/cfb/ missing -> ENOENT crashes entire build) -- found both by the user's Cloudflare Pages build-failure report and independently by the reviewer agent. Fixed commit 562d066."
+    - "XSS-shaped escaping inconsistency in client-side filter script (innerHTML with interpolated strings vs. SSR path's auto-escaping) -- fixed commit ad4d8f6."
+    - "Unhandled fetch failures + render race condition in the same script -- fixed commit ad4d8f6 (error handling + generation-counter guard)."
+    - "Missing .table-footnote element vs. locked design reference -- fixed commit ad4d8f6."
+    - "methodology.astro's .icon-link missing border-color vs. its own reference -- fixed commit ad4d8f6."
+    - "Orphaned .accent-football CSS in index.astro -- fixed commit ad4d8f6."
 
 test_summary:
   status: "validated_via_build_and_dev_server"
