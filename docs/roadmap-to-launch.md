@@ -2,25 +2,25 @@
 
 Reference doc, not a `$work` feature — no `status.yaml`/`requirements.yaml` tracking. Update this file directly as phases complete or plans change.
 
-Last updated: 2026-08-11
+Last updated: 2026-08-12
 
 ## Where things stand
 
 - Design handoff (desktop): **merged** (PR #1). All 7 pages match the locked design.
-- CFB Rankings artifact pipeline: **built, not yet connected**. `cfb-rankings` publishes to R2; `personal-site` has the fetch script and consuming page ready, but no real credentials wired up yet.
+- CFB Rankings artifact pipeline: **done and live**. Real 2025 data renders on the Rankings page, sourced from R2 at build time, and the weekly cron auto-triggers a rebuild after each publish.
 - Mobile: not started. Site is desktop-only right now.
 - Domain: not registered. `astro.config.mjs` still has the placeholder `site: "https://example.com"`.
 
-## Phase 1 — Finish the CFB Rankings migration
+## Phase 1 — Finish the CFB Rankings migration ✅ done (2026-08-12)
 
-Code is done. What's left is dashboard setup on your end, plus one small cross-repo follow-up.
+1. ✅ Read-only R2 API token created (separate from cfb-rankings' write token).
+2. ✅ 4 environment variables added to the personal-site Cloudflare Pages project.
+3. ✅ Cloudflare Pages Deploy Hook created.
+4. ✅ Deploy hook wired into `cfb-rankings`' `weekly-update.yml` as a final step, URL stored as a GitHub secret (`PERSONAL_SITE_DEPLOY_HOOK_URL`). Verified live: fired the hook manually, got a real build back, and confirmed real 2025 data renders in the table.
+5. ✅ End-to-end validation done — real data confirmed populating in the live table (previously only tested against seeded sample data).
+6. **Still open, no rush:** decide when to retire the Streamlit app. Still live and working, no longer the source of truth for anything now that this is validated.
 
-1. **Create a read-only R2 API token.** Cloudflare dashboard → R2 Object Storage → Overview → Account Details → Manage API Tokens → new **Account API token**, scoped to **Object Read only** on the `cfb-rankings` bucket specifically. This must be a *separate* token from the write-scoped one `cfb-rankings` already uses — least privilege, and it means a bug in the read path can never corrupt or delete real data.
-2. **Add 4 environment variables to the personal-site Cloudflare Pages project**: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID_READONLY`, `R2_SECRET_ACCESS_KEY_READONLY`, `R2_BUCKET_NAME`. These are build-time-only (never shipped to the browser) — the fetch script reads them before `astro build` runs.
-3. **Create a Cloudflare Pages Deploy Hook** for personal-site (Pages project → Settings → Builds → Add deploy hook). This gives you a URL that triggers a rebuild on a plain POST.
-4. **Small code follow-up (I can do this):** add one step to `cfb-rankings`' `weekly-update.yml` — a `curl -X POST` to that deploy hook URL, stored as a new GitHub secret in the `cfb-rankings` repo. Without this, the hook exists but nothing calls it, and the Rankings page only refreshes whenever personal-site happens to redeploy for an unrelated reason.
-5. Once real data is flowing, do one real validation pass (the current code was only tested against manually-seeded sample data matching the schema, never a live fetch).
-6. Decide when to actually retire the Streamlit app — no rush, it's still live and working, but it's no longer the source of truth for anything once this is validated.
+**Next on this page specifically:** table design/styling pass (user's call on timing/scope, not yet planned).
 
 ## Phase 2 — Mobile design + implementation
 
@@ -28,7 +28,7 @@ Same pattern as the desktop redesign: a separate Claude design session produces 
 
 - Current site is confirmed desktop-first (the repo's own internal notes already flag this as the top open item).
 - This should happen **before** the domain goes live publicly — you don't want real visitors hitting a broken mobile layout while you're between design sessions.
-- No dependency on Phase 1 — can happen in parallel or before, your call.
+- Phase 1 is now done, so no remaining dependency either way.
 
 ## Phase 3 — Page freeze
 
@@ -63,7 +63,7 @@ I'll help you pick options when you're ready. A few grounded facts for when we g
 
 ## Open sequencing questions
 
-- Timing of the mobile design session — start now, or after Phase 1's R2 connection is fully validated?
+- Timing of the mobile design session — start now, or after the Rankings table design pass?
 - Any domain name ideas already in mind, or starting from scratch when we get to Phase 5?
 
 Sources:
