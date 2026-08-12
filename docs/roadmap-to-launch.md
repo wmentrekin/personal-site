@@ -42,16 +42,17 @@ Your core worry — bots hammering the Rankings page and blowing up a bill — i
 
 What's still worth doing, roughly in order of value for the effort:
 
-| Action | Cost | Effort | Notes |
+| Action | Cost | Effort | Status |
 |---|---|---|---|
-| Enable **Bot Fight Mode** | Free | 1 dashboard toggle | Domain-wide, challenges traffic matching known-bot patterns automatically. No configuration needed on the free tier. |
-| Add a **Rate Limiting rule** on the Rankings page path | Free (1 rule included) | 1 dashboard rule | Free plan includes exactly 1 custom rate-limiting rule (IP-based, fixed window) — enough to throttle/challenge any single path getting hammered. |
-| Add security headers via a `public/_headers` file | Free | Small code change | Cloudflare Pages reads this file natively. Adds things like `Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy`. Not present in the repo today. |
-| Add `robots.txt` + a sitemap | Free | Small code change | Neither exists yet. Low urgency but standard practice before public launch and SEO-relevant. |
-| Confirm secrets hygiene | Free | Already done | R2 credentials are already build-time-only env vars, least-privilege scoped (separate read/write tokens) — no action needed, just confirming the pattern holds as more secrets get added later. |
+| Enable **Bot Fight Mode** | Free | 1 dashboard toggle | **Still on you** — Cloudflare dashboard → your domain/zone → Security → Bots → enable. Domain-wide, no configuration needed on the free tier. (Note: this is a zone-level setting, so it may need the real domain attached first, or may apply to the `pages.dev` subdomain already — check what's available in the dashboard now.) |
+| Add a **Rate Limiting rule** on the Rankings page path | Free (1 rule included) | 1 dashboard rule | **Still on you** — Security → WAF → Rate limiting rules → create a rule matching `/projects/cfb-rankings*`, throttle or challenge above a reasonable threshold (e.g. 60 requests/minute per IP). |
+| Add security headers via `public/_headers` | Free | Small code change | ✅ Done (2026-08-12) — CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy. CSP grounded in the site's actual external resources (Google Fonts + MathJax on the methodology page), not guessed. |
+| Add `robots.txt` + a sitemap | Free | Small code change | ✅ Done (2026-08-12) — `@astrojs/sitemap` generates `sitemap-index.xml` at build time. **Follow-up for Phase 5:** once the real domain replaces the `astro.config.mjs` placeholder, the sitemap will automatically start generating correct URLs (no extra work) — but also add a `Sitemap:` line to `robots.txt` at that point, intentionally left out for now since it would've pointed at the placeholder domain. |
+| Confirm secrets hygiene | Free | Already done | R2 credentials are already build-time-only env vars, least-privilege scoped (separate read/write tokens) — no action needed. |
 | HTTPS/TLS | Free | Already done | Cloudflare Pages provisions this automatically for any domain you attach. |
+| Dependency vulnerabilities (`npm audit`) | Free | Needs its own pass | 20 pre-existing findings in Astro/Vite's own build toolchain (dev-time only, none ship to the browser). Confirmed unrelated to any of this session's changes. Being handled as its own scoped `$work` pass rather than an ad hoc fix, given some fixes may involve version bumps worth reviewing deliberately. |
 
-None of this is urgent relative to Phases 1–2 — it's real but low-risk given the architecture, and cheap to do in a single short session whenever you're ready. I'd suggest doing it right before Phase 5, not before.
+Two dashboard items still need you; everything code-side is done. Not urgent relative to Phases 1–2, but cheap enough that doing it now (rather than waiting for Phase 5) is fine too.
 
 ## Phase 5 — Domain + publish
 
