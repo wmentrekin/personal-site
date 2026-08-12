@@ -20,7 +20,7 @@ Last updated: 2026-08-12
 5. ✅ End-to-end validation done — real data confirmed populating in the live table (previously only tested against seeded sample data).
 6. **Still open, no rush:** decide when to retire the Streamlit app. Still live and working, no longer the source of truth for anything now that this is validated.
 
-**Next on this page specifically:** table design/styling pass (user's call on timing/scope, not yet planned).
+**Next on this page specifically:** a separate, scoped Claude design session focused just on the Rankings table's styling (not folded into the mobile work) — same pattern as the desktop redesign: design externally, then bring the handoff back here to implement.
 
 ## Phase 2 — Mobile design + implementation
 
