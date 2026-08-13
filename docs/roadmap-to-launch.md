@@ -2,7 +2,7 @@
 
 Reference doc, not a `$work` feature — no `status.yaml`/`requirements.yaml` tracking. Update this file directly as phases complete or plans change.
 
-Last updated: 2026-08-12
+Last updated: 2026-08-13
 
 ## Where things stand
 
@@ -44,15 +44,15 @@ What's still worth doing, roughly in order of value for the effort:
 
 | Action | Cost | Effort | Status |
 |---|---|---|---|
-| Enable **Bot Fight Mode** | Free | 1 dashboard toggle | **Still on you** — Cloudflare dashboard → your domain/zone → Security → Bots → enable. Domain-wide, no configuration needed on the free tier. (Note: this is a zone-level setting, so it may need the real domain attached first, or may apply to the `pages.dev` subdomain already — check what's available in the dashboard now.) |
-| Add a **Rate Limiting rule** on the Rankings page path | Free (1 rule included) | 1 dashboard rule | **Still on you** — Security → WAF → Rate limiting rules → create a rule matching `/projects/cfb-rankings*`, throttle or challenge above a reasonable threshold (e.g. 60 requests/minute per IP). |
+| Enable **Bot Fight Mode** | Free | 1 dashboard toggle | **Blocked on Phase 5.** Confirmed (2026-08-13): this is a zone-level setting (dashboard path is `.../:zone/security/settings`) and personal-site has no zone yet — it's pure `*.pages.dev`, no domain attached to the Cloudflare account. There's nothing to toggle until a domain is registered/attached in Phase 5. Do this right after the domain goes live. |
+| Add a **Rate Limiting rule** on the Rankings page path | Free (1 rule included) | 1 dashboard rule | **Blocked on Phase 5**, same reason — Rate limiting rules also live under the zone's Security settings. Do this right after the domain goes live: Security → WAF → Rate limiting rules → create a rule matching `/projects/cfb-rankings*`, throttle or challenge above a reasonable threshold (e.g. 60 requests/minute per IP). |
 | Add security headers via `public/_headers` | Free | Small code change | ✅ Done (2026-08-12) — CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy. CSP grounded in the site's actual external resources (Google Fonts + MathJax on the methodology page), not guessed. |
 | Add `robots.txt` + a sitemap | Free | Small code change | ✅ Done (2026-08-12) — `@astrojs/sitemap` generates `sitemap-index.xml` at build time. **Follow-up for Phase 5:** once the real domain replaces the `astro.config.mjs` placeholder, the sitemap will automatically start generating correct URLs (no extra work) — but also add a `Sitemap:` line to `robots.txt` at that point, intentionally left out for now since it would've pointed at the placeholder domain. |
 | Confirm secrets hygiene | Free | Already done | R2 credentials are already build-time-only env vars, least-privilege scoped (separate read/write tokens) — no action needed. |
 | HTTPS/TLS | Free | Already done | Cloudflare Pages provisions this automatically for any domain you attach. |
 | Dependency vulnerabilities (`npm audit`) | Free | Small code change | ✅ Mostly done (2026-08-12) — `npm audit fix` (no `--force`) resolved 17 of 20 findings cleanly, no breaking changes. **3 remaining, deliberately deferred:** `astro`'s bundled finding (7 named CVEs) and `sharp`'s (bundled under astro) only resolve via `astro` 5→7.2.1 — checked every CVE against this repo's actual usage (no server islands, no dynamic slot names, no spread-prop patterns, no `transition:*` directives despite the router being on, no `astro:assets` usage) and **all 7 are structurally inapplicable or dormant — zero real exploitability today.** Deferred rather than forced through anyway because of two real blockers: Astro ≥6 requires **Node ≥22.12** (this repo/dev machine is on Node 20 — the fix would produce an unbuildable site, unrelated to code risk), and `@astrojs/sitemap`'s latest release has no confirmed Astro 7 compatibility (its own devDependency is pinned to Astro 6.3.8, published before Astro 7 existed). Revisit once a Node runtime bump is on the table for its own reasons. |
 
-Two dashboard items still need you; everything code-side is done. Not urgent relative to Phases 1–2, but cheap enough that doing it now (rather than waiting for Phase 5) is fine too.
+Everything code-side is done. The two remaining dashboard items (Bot Fight Mode, Rate Limiting rule) can't happen yet — they need a zone, which means they're effectively part of Phase 5, not a standalone Phase 4 loose end.
 
 ## Phase 5 — Domain + publish
 
@@ -61,6 +61,7 @@ I'll help you pick options when you're ready. A few grounded facts for when we g
 - **Cloudflare Registrar** is a natural fit given everything else is already on Cloudflare: at-cost pricing (no markup — e.g. a `.com` runs about $10.44/yr, registry fee + the mandatory $0.18 ICANN fee), free WHOIS privacy and DNSSEC included. The catch: it only works if the domain uses Cloudflare's nameservers, which you'd want anyway since Pages/R2/everything else is already there.
 - Attaching a domain to the Pages project is a two-step process (add it in the Pages dashboard, then a DNS record) — automatic if the domain's already on Cloudflare DNS, one manual CNAME if it's registered elsewhere.
 - Concrete leftover TODO for this phase: `astro.config.mjs` still has `site: "https://example.com"` — needs updating to the real domain once chosen (small, but easy to forget).
+- Once the domain is attached (this is what creates the zone), immediately do the two Phase 4 dashboard items that were blocked until now: enable Bot Fight Mode, add the Rate Limiting rule on `/projects/cfb-rankings*`. Both are quick, free, and this is the first point they become possible.
 
 ## Open sequencing questions
 
