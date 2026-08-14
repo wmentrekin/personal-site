@@ -16,12 +16,36 @@ const projects = [
     markAlt: "College football project mark"
   },
   {
+    titleLines: ["Agent Skills"],
+    status: "Active",
+    summaryLines: [
+      "my custom AI coding framework that integrates an agentic /work command natively into Claude Code, OpenAI Codex, and Google Antigravity"
+    ],
+    pageHref: "/projects/agent-skills/",
+    repoHref: "https://github.com/wmentrekin/agent-skills",
+    markSrc: null,
+    markAlt: ""
+  },
+  {
+    titleLines: ["Memphis Grizzlies Asset Lineage"],
+    status: "In Progress",
+    summaryLines: [
+      "a data visualization and journalism project tracing the lineage of franchise player and draft assets since the end of the Grit & Grind era using processed historical transaction data",
+      "",
+      "an attempt to reconcile the present reality of rebuilding with recent memories of success by analyzing the past and present asset management strategies of the franchise"
+    ],
+    pageHref: "/projects/grizzlies-asset-lineage/",
+    repoHref: "https://github.com/wmentrekin/nba-asset-lineage",
+    markSrc: "/images/projects/hub/png-marks/grizzlies.png",
+    markAlt: "Memphis Grizzlies project mark"
+  },
+  {
     titleLines: ["Chronicle"],
     status: "In Progress",
     summaryLines: [
-      "an AI-powered agentic workflow fortranscription, speaker-diarization, and thematic organization that supports my ongoing family history documentation work"
+      "an AI-powered agentic workflow for transcription, speaker-diarization, and thematic organization that supports my ongoing family history documentation work"
     ],
-    pageHref: null,
+    pageHref: "/projects/chronicle/",
     repoHref: "https://github.com/wmentrekin/chronicle/tree/main",
     markSrc: null,
     markAlt: ""
@@ -32,29 +56,16 @@ const projects = [
     summaryLines: [
       "a college basketball adaptation of the optimization framework behind the football ranking model"
     ],
-    pageHref: null,
+    pageHref: "/projects/cbb-rankings/",
     repoHref: "https://github.com/wmentrekin/cbb-rankings",
     markSrc: "/images/projects/hub/png-marks/cbb.png",
     markAlt: "College basketball project mark"
   },
   {
-    titleLines: ["Memphis Grizzlies Asset Lineage"],
-    status: "In Progress",
-    summaryLines: [
-      "a data visualization and journalism project tracing the lineage of franchise player and draft assets since the end of the Grit & Grind era using processed historical transaction data",
-      "",
-      "an attempt to reconcile the present reality of rebuilding with recent memories of success by analyzing the past and present asset management strategies of the franchise"
-    ],
-    pageHref: null,
-    repoHref: "https://github.com/wmentrekin/nba-asset-lineage",
-    markSrc: "/images/projects/hub/png-marks/grizzlies.png",
-    markAlt: "Memphis Grizzlies project mark"
-  },
-  {
     titleLines: ["2020 Election Model"],
     status: "Archived",
     summaryLines: [
-      "an archived state-by-state election forecasting model for the 2020 U.S. presidential election", 
+      "an archived state-by-state election forecasting model for the 2020 U.S. presidential election",
       "",
       "built from historical election results, census data, and polling data"
     ],
@@ -62,17 +73,6 @@ const projects = [
     repoHref: "https://github.com/wmentrekin/2020election",
     markSrc: "/images/projects/hub/png-marks/election.png",
     markAlt: "2020 election project mark"
-  },
-  {
-    titleLines: ["Placeholder"],
-    status: "Planned",
-    summaryLines: [
-      "reserved for the next project page"
-    ],
-    pageHref: null,
-    repoHref: null,
-    markSrc: null,
-    markAlt: ""
   }
 ];
 ---
@@ -120,13 +120,13 @@ const projects = [
 
             <p class="tile-summary">{project.summaryLines.join("\n")}</p>
 
-            {project.markSrc && (
-              <span class="project-mark-anchor" aria-hidden="true">
-                <span class="project-mark-frame">
+            <span class="project-mark-anchor" aria-hidden="true">
+              <span class="project-mark-frame">
+                {project.markSrc && (
                   <img class="project-mark" src={project.markSrc} alt={project.markAlt} loading="lazy" />
-                </span>
+                )}
               </span>
-            )}
+            </span>
           </div>
 
           {project.pageHref && (
