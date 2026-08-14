@@ -1,0 +1,63 @@
+artifact: status
+feature: "design-handoff-mobile-2026-08"
+mode: "large-initiative"
+stage: "planning"
+owner_skill: work
+
+objective: "Implement the new design handoff delivered as /Users/wentrekin/Downloads/Personal Site Design.zip from the user's separate Claude design session: mobile responsiveness across the site, 4 new project pages, a resynced Projects hub, and 5 new Home-tile live-preview widgets. Corresponds to Phase 2 (Mobile) of docs/roadmap-to-launch.md. Promoted from bounded-feature to large-initiative after discovery revealed 3 distinct work areas spanning many files."
+
+summary:
+  current_focus: "Plan complete, 5 execution batches / 6 tasks defined. Awaiting user pre-execution checkpoint (proceed / revise_plan / narrow_scope / stop)."
+  last_completed: "Discovery (repo-researcher catalog of zip contents vs. real repo), requirements.yaml, plan.yaml. Two scope ambiguities resolved by user: (1) Rankings table mobile stacked-card pattern deferred to the future dedicated styling session, NOT included here. (2) Travel page gets a basic mobile pass despite having no provided mockup."
+  current_blocker: "Pre-execution checkpoint pending user response."
+
+artifacts:
+  requirements: "docs/design-handoff-mobile-2026-08/requirements.yaml"
+  plan: "docs/design-handoff-mobile-2026-08/plan.yaml"
+  implementation_report: null
+
+pr:
+  number: null
+  url: null
+  status: "not_opened"
+
+agents:
+  - id: "orchestrator"
+    role: "orchestrator"
+    model_guidance: "xhigh"
+    status: "active"
+    stage: "discovery"
+    task: "coordinating discovery"
+    last_update: "2026-08-14"
+    blocker: ""
+
+loops:
+  planning_review:
+    count: 0
+    max: 2
+  execution_verification:
+    count: 0
+    max: 2
+
+checkpoint:
+  pre_execution_required: true
+  pre_execution_status: pending
+  options:
+    - proceed
+    - revise_plan
+    - narrow_scope
+    - stop
+
+blockers: []
+decisions:
+  - "Named this feature 'design-handoff-mobile-2026-08' to distinguish it from the completed 'design-handoff-2026-08' (desktop) feature."
+  - "Promoted to large-initiative: discovery found 3 distinct work areas (mobile responsiveness on 7 pages, 5 new Home-tile JS widgets, 4 new project pages + hub resync), not a single bounded slice."
+  - "User decision (2026-08-14): Rankings table mobile stacked-card pattern deferred to the future dedicated Rankings table styling session -- RankingsTable.astro is out of scope for this feature."
+  - "User decision (2026-08-14): Travel page gets a basic mobile pass despite the handoff providing no mockup for it -- scoped conservatively (stage sizing, touch-friendly drag) rather than guessing at an undesigned layout."
+  - "Plan sequences new project pages (T1) before the hub resync (T2) since the hub needs real link targets; Home's grid fix (T5) before its widgets (T6) to avoid two rounds of conflicting edits to index.astro."
+  - "All 6 tasks route to frontend-engineer -- no other domain fits an Astro/CSS/client-JS site redesign, so branch-and-pr-workflow.md's worktree-parallelization rule (requires different assigned_domain values) doesn't apply; single branch, sequential execution."
+  - "No live browser available to any agent in this session -- all mobile-layout validation will be structural (source/build-output), not visual. Flagged in plan.yaml risks; user should do a real device/visual pass before considering Phase 2 fully closed."
+
+next_action: "Present plan to user for the pre-execution checkpoint (proceed / revise_plan / narrow_scope / stop)."
+next_recommended_command: "$work"
+user_input_needed: true
