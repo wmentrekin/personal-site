@@ -403,7 +403,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
 
       .home-frame {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto;
         width: 100%;
       }
@@ -432,6 +432,51 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
       .home-frame {
         gap: 0.85rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      /* Explicit per-class reset (not just the shared .placeholder-tile selector) --
+         the desktop placement rules for the two placeholder tiles use
+         .placeholder-tile:nth-of-type(n), which is more specific than a bare
+         .placeholder-tile selector. Resetting only the bare class here would lose
+         the specificity battle and leave stale grid-column/grid-row values,
+         producing exactly the phantom implicit-track bug called out in the
+         design handoff. Every real tile class is covered explicitly below. */
+      .intro-card,
+      .tile-cfb,
+      .tile-projects,
+      .tile-about,
+      .tile-now,
+      .tile-travel,
+      .placeholder-tile:nth-of-type(1),
+      .placeholder-tile:nth-of-type(2) {
+        grid-column: auto;
+        grid-row: auto;
+      }
+
+      .home-frame {
+        gap: 0.75rem;
+      }
+
+      .intro-card {
+        padding: 1.1rem;
+      }
+
+      .social-row a {
+        min-height: 2.75rem;
+        min-width: 2.75rem;
+      }
+
+      .social-row svg {
+        width: 1.1rem;
+        height: 1.1rem;
+      }
+
+      .link-tile,
+      .placeholder-tile {
+        min-height: 6.5rem;
+        padding: 1.1rem;
       }
     }
   </style>
