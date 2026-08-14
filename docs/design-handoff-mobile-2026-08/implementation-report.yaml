@@ -1,0 +1,74 @@
+artifact: implementation_report
+feature: "design-handoff-mobile-2026-08"
+mode: "large-initiative"
+status: complete
+owner_skill: work
+based_on: "docs/design-handoff-mobile-2026-08/plan.yaml"
+
+summary:
+  scope_executed: "All 5 batches / 6 tasks: B1 (new project pages), B2 (Projects hub resync), B3 (mobile breakpoints on 5 existing pages + Travel's basic pass), B4 (Home page mobile grid fix), B5 (5 Home-tile live-preview widgets)."
+  outcome: "Site now has phone-tier (~480px) responsive layouts across all pages, 4 new project pages are live and linked from a resynced Projects hub, and the Home page has 5 new lightweight interactive widgets. Rankings table mobile stacking explicitly deferred per user decision. A real bug was caught and fixed during orchestrator review of T6 before commit (see review_summary) -- all 5 widgets would have leaked timers/animation loops indefinitely under this site's View Transitions navigation without it."
+
+task_batches_attempted: ["B1", "B2", "B3", "B4", "B5"]
+task_batches_completed: ["B1", "B2", "B3", "B4", "B5"]
+
+domains_touched: ["frontend-engineer"]
+
+pr:
+  number: null
+  url: null
+
+changes:
+  files:
+    - "src/pages/projects/agent-skills.astro (new) -- T1"
+    - "src/pages/projects/chronicle.astro (new) -- T1"
+    - "src/pages/projects/cbb-rankings.astro (new) -- T1"
+    - "src/pages/projects/grizzlies-asset-lineage.astro (new) -- T1"
+    - "src/pages/projects/index.astro -- T2: reordered grid, resynced copy, linked 4 new pages, added empty bordered mark slots for Chronicle/Agent Skills, dropped the old reserved 'Placeholder' tile (mockup's grid has 6 real projects, no placeholder)"
+    - "src/pages/about.astro -- T3: 480px breakpoint"
+    - "src/pages/now.astro -- T3: 480px breakpoint"
+    - "src/pages/projects/2020-election-model.astro -- T3: 900px hero-stack tier + 480px breakpoint + 44px touch targets"
+    - "src/pages/projects/cfb-rankings/methodology.astro -- T3: filled in a previously-empty @media block (900px-equivalent hero stack) + 480px breakpoint + 44px touch targets"
+    - "src/pages/projects/cfb-rankings.astro -- T3: hero/panel-only mobile refinements + 480px breakpoint + 44px touch targets. Rankings table itself untouched (deferred)."
+    - "src/pages/travel.astro -- T4: fixed a no-op 900px min-height override (child component's own floors were winning), added 480px tier. No mockup existed for this page; scoped conservatively per user decision."
+    - "src/pages/index.astro -- T5: 480px mobile grid fix (real .tile-*/.intro-card/.placeholder-tile classes, not the mockup's fictional .area-* classes), fixed a pre-existing 1fr->minmax(0,1fr) overflow bug. T6: 5 live-preview widgets (globe/clock/terminal/typing/network-sim) added on top."
+
+  modules: ["personal-site"]
+  docs_updated:
+    - "docs/design-handoff-mobile-2026-08/status.yaml"
+    - "docs/design-handoff-mobile-2026-08/requirements.yaml"
+    - "docs/design-handoff-mobile-2026-08/plan.yaml"
+
+local_validation:
+  checks_run:
+    - "npm run build after every task (T1-T6): succeeded every time, 12 routes, 0 errors."
+    - "npx astro check after every task: 0 errors, 0 warnings, 0 hints throughout."
+    - "Orchestrator diff-reviewed every task's changes before committing (not just accepted agent self-reports) -- confirmed forbidden-scope files untouched in every task, confirmed the earlier-session z-index:4 hover fix on .project-tile__inner survived T2 unchanged, confirmed RankingsTable.astro was never touched by any task."
+    - "Orchestrator manually caught and fixed a real bug in T6 (see review_summary) before committing -- this was found by reading the diff directly, not by the executing agent's own validation."
+  failures: []
+  skipped:
+    - "No live browser available in this session for any task -- all responsive-layout and widget-behavior validation is structural (build output, source inspection, diff review), not visual. Explicitly disclosed in every task's own validation output. User should do a real device/visual pass before considering Phase 2 fully closed."
+
+review_summary:
+  status: "orchestrator_reviewed_pre_pr"
+  key_findings:
+    - "T6 CRITICAL, fixed before commit: the frontend-engineer agent's first pass wired all 5 widgets' init to DOMContentLoaded and cleanup to the pagehide event. This site uses Astro's ClientRouter (View Transitions, confirmed in BaseLayout.astro) for same-document client-side navigation -- pagehide does not fire on that kind of navigation, and DOMContentLoaded only ever fires once per real document load. Left as-is, every widget's timers/rAF loops would have kept running in the background forever after the user navigated away from Home (a real, continuous perf/battery leak on the site's most-visited page), and none would have re-initialized if the user navigated back to Home via client-side routing. Rewired to astro:page-load / astro:before-swap, matching the exact pattern BaseLayout.astro's own reveal-on-scroll script already uses elsewhere in this codebase. Also found and fixed a related gap: the About-tile's infinite typing/erase loop had NO cleanup mechanism at all in the first pass (not even the wrong pagehide-based one) -- added a stop guard."
+    - "All other tasks (T1-T5) reviewed diff-by-diff and found clean -- no scope violations, no regressions to prior-session fixes, CSP-compliant (T6's mini-globe correctly reuses TravelGlobe.astro's real npm d3-geo import + same-origin fetch pattern rather than the mockup's runtime esm.sh CDN import, which would have been silently blocked by this site's script-src CSP)."
+    - "No dedicated `reviewer`/`tester` subagent pass has run yet -- that happens next, against the opened PR, per branch-and-pr-workflow.md."
+
+test_summary:
+  status: "not_started"
+  checks_run: []
+  failures: []
+  gaps:
+    - "No automated test suite exists in this repo (consistent with prior features) -- verification here means build/typecheck/structural review, plus the PR-stage reviewer/tester pass still to come."
+
+open_issues:
+  - "The 4 new project pages ship with real 'under construction' placeholder content since that's what the design mockups specify -- worth a quick look before merge since they'll be live and indexed once merged (flagged in requirements.yaml as non-blocking)."
+  - "No live browser/device validation was possible in this session for any responsive layout or the 5 new widgets -- user should do a real visual/device pass before considering Phase 2 (mobile) fully closed."
+  - "Rankings table mobile stacked-card pattern remains explicitly deferred to the future, separately-planned Rankings table styling session -- RankingsTable.astro untouched."
+
+handoff:
+  current_state: "execution_complete_pending_pr_and_verification"
+  next_owner: "orchestrator (opening PR + spawning reviewer/tester next), then user for final review/merge"
+  next_action: "Open PR, run reviewer + tester agents against it, report findings, then hand to user for review and merge."
