@@ -2,13 +2,13 @@
 
 Reference doc, not a `$work` feature — no `status.yaml`/`requirements.yaml` tracking. Update this file directly as phases complete or plans change.
 
-Last updated: 2026-08-13
+Last updated: 2026-08-14
 
 ## Where things stand
 
 - Design handoff (desktop): **merged** (PR #1). All 7 pages match the locked design.
 - CFB Rankings artifact pipeline: **done and live**. Real 2025 data renders on the Rankings page, sourced from R2 at build time, and the weekly cron auto-triggers a rebuild after each publish.
-- Mobile: not started. Site is desktop-only right now.
+- Mobile: **implemented, PR #2 open for review** (not yet merged). See Phase 2 below.
 - Domain: not registered. `astro.config.mjs` still has the placeholder `site: "https://example.com"`.
 
 ## Phase 1 — Finish the CFB Rankings migration ✅ done (2026-08-12)
@@ -19,17 +19,18 @@ Last updated: 2026-08-13
 4. ✅ Deploy hook wired into `cfb-rankings`' `weekly-update.yml` as a final step, URL stored as a GitHub secret (`PERSONAL_SITE_DEPLOY_HOOK_URL`). Verified live: fired the hook manually, got a real build back, and confirmed real 2025 data renders in the table.
 5. ✅ End-to-end validation done — real data confirmed populating in the live table (previously only tested against seeded sample data).
 6. ✅ Streamlit app deleted and its code/deps cleaned out of cfb-rankings (2026-08-12).
-7. ✅ `daily-keep-alive.yml` question resolved (2026-08-13): investigated and confirmed it's unrelated to Supabase or Streamlit — it only makes empty git commits, and its real purpose is preventing GitHub from auto-disabling scheduled workflows after 60 days of repo inactivity (`weekly-update.yml` itself never commits anything, only writes to Postgres/R2). **Keeping it as-is.**
+7. ✅ `daily-keep-alive.yml` question resolved (2026-08-13): investigated and confirmed it's unrelated to Supabase or Streamlit — it only makes empty git commits, and its real purpose was preventing GitHub from auto-disabling scheduled workflows after 60 days of repo inactivity (`weekly-update.yml` itself never commits anything, only writes to Postgres/R2). User was informed of that risk and chose to **remove it anyway** (2026-08-14, `ae8851c`) — worth remembering this as an accepted tradeoff, not an oversight, if the weekly cron ever goes silently disabled after a long quiet period.
 
 **Next on this page specifically:** a separate, scoped Claude design session focused just on the Rankings table's styling (not folded into the mobile work) — same pattern as the desktop redesign: design externally, then bring the handoff back here to implement.
 
-## Phase 2 — Mobile design + implementation
+## Phase 2 — Mobile design + implementation ✅ implemented, PR open (2026-08-14)
 
-Same pattern as the desktop redesign: a separate Claude design session produces the mobile design, then a build session here implements it.
+Same pattern as the desktop redesign: a separate Claude design session produced the mobile design (`Personal Site Design.zip`), a `$work` large-initiative build session implemented it. See `docs/design-handoff-mobile-2026-08/`.
 
-- Current site is confirmed desktop-first (the repo's own internal notes already flag this as the top open item).
-- This should happen **before** the domain goes live publicly — you don't want real visitors hitting a broken mobile layout while you're between design sessions.
-- Phase 1 is now done, so no remaining dependency either way.
+- PR: [#2](https://github.com/wmentrekin/personal-site/pull/2) — open, ready for review. Reviewer + tester subagent passes both completed (1 required fix found and applied: a widget cleanup gap under `prefers-reduced-motion`).
+- Shipped: phone-tier (~480px) responsive breakpoints + 44px touch targets across About, Now, Election Model, Methodology, CFB Rankings (hero/panel only), Travel (best-effort, no mockup provided), and the Home grid. 4 new project pages (Agent Skills, Chronicle, CBB Rankings, Grizzlies Asset Lineage) as placeholder "under construction" pages, linked from a resynced Projects hub. 5 new Home-tile live-preview widgets (mini-globe, clock, terminal, typing effect, network-sim), all gated on `prefers-reduced-motion` and wired to this site's View Transitions lifecycle (`astro:page-load`/`astro:before-swap`), not the more common but wrong-for-this-site `DOMContentLoaded`/`pagehide`.
+- **Deliberately deferred, not a gap:** the Rankings table's mobile "stacked card" layout (from the same mockup) was explicitly excluded — reserved for the separate Rankings table styling session noted above. `RankingsTable.astro` is untouched by this PR.
+- **Still needed before calling this fully done:** no browser was available to any agent this session — all responsive-layout and widget validation was structural (build output, source inspection), not visual. Do a real device/browser pass over the merged result before treating mobile as launch-ready, and take a look at the 4 new pages' placeholder content before merging (they'll be live/indexed once merged).
 
 ## Phase 3 — Page freeze
 

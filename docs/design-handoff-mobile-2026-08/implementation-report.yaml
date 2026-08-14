@@ -50,18 +50,30 @@ local_validation:
     - "No live browser available in this session for any task -- all responsive-layout and widget-behavior validation is structural (build output, source inspection, diff review), not visual. Explicitly disclosed in every task's own validation output. User should do a real device/visual pass before considering Phase 2 fully closed."
 
 review_summary:
-  status: "orchestrator_reviewed_pre_pr"
+  status: "reviewer_pass_complete_loop_1"
   key_findings:
-    - "T6 CRITICAL, fixed before commit: the frontend-engineer agent's first pass wired all 5 widgets' init to DOMContentLoaded and cleanup to the pagehide event. This site uses Astro's ClientRouter (View Transitions, confirmed in BaseLayout.astro) for same-document client-side navigation -- pagehide does not fire on that kind of navigation, and DOMContentLoaded only ever fires once per real document load. Left as-is, every widget's timers/rAF loops would have kept running in the background forever after the user navigated away from Home (a real, continuous perf/battery leak on the site's most-visited page), and none would have re-initialized if the user navigated back to Home via client-side routing. Rewired to astro:page-load / astro:before-swap, matching the exact pattern BaseLayout.astro's own reveal-on-scroll script already uses elsewhere in this codebase. Also found and fixed a related gap: the About-tile's infinite typing/erase loop had NO cleanup mechanism at all in the first pass (not even the wrong pagehide-based one) -- added a stop guard."
-    - "All other tasks (T1-T5) reviewed diff-by-diff and found clean -- no scope violations, no regressions to prior-session fixes, CSP-compliant (T6's mini-globe correctly reuses TravelGlobe.astro's real npm d3-geo import + same-origin fetch pattern rather than the mockup's runtime esm.sh CDN import, which would have been silently blocked by this site's script-src CSP)."
-    - "No dedicated `reviewer`/`tester` subagent pass has run yet -- that happens next, against the opened PR, per branch-and-pr-workflow.md."
+    - "T6 CRITICAL, fixed before commit (orchestrator, pre-PR): the frontend-engineer agent's first pass wired all 5 widgets' init to DOMContentLoaded and cleanup to the pagehide event. This site uses Astro's ClientRouter (View Transitions, confirmed in BaseLayout.astro) for same-document client-side navigation -- pagehide does not fire on that kind of navigation, and DOMContentLoaded only ever fires once per real document load. Rewired to astro:page-load / astro:before-swap, matching the pattern BaseLayout.astro's own reveal-on-scroll script already uses. Also added a missing stop guard to the About-tile's infinite typing/erase loop, which had no cleanup mechanism at all in the first pass."
+    - "T6 CRITICAL, fixed loop 1 (reviewer subagent found, orchestrator fixed): the orchestrator's own pre-PR fix above missed one path -- initCfbNetwork's astro:before-swap cleanup registration happened AFTER the prefers-reduced-motion early return, so reduced-motion visitors still leaked a dangling ResizeObserver on every Home visit for the rest of the session. Moved cleanup registration before the branch, unconditional like the other 4 widgets. Also fixed 2 minor issues from the same review pass: initProjectsTerminal lacked a stop guard (bounded/self-terminating so not a true leak, added for consistency), and initMiniGlobe's cleanup was registered only after its same-origin fetch resolved, missing astro:before-swap entirely if the user navigated away mid-fetch (closed with a cancelled flag set before the await)."
+    - "Reviewer's full findings posted as a real PR review: https://github.com/wmentrekin/personal-site/pull/2#pullrequestreview-4941848619 (posted as COMMENTED since GitHub blocks REQUEST_CHANGES from the PR's own author account, but treated as required per the review body)."
+    - "Everything else reviewed and found clean: no scope violations across any of the 6 tasks, RankingsTable.astro/public/_headers untouched, the earlier-session z-index:4 hover fix on .project-tile__inner intact, T5's mobile grid explicitly covers every real tile class named in the plan, mini-globe's d3-geo usage confirmed CSP-safe (real npm import + same-origin fetch, not the mockup's esm.sh CDN import), no accessibility regressions (decorative widgets are aria-hidden, non-focusable, don't interfere with tile-link keyboard/SR navigation)."
+    - "Loop count: 1 of max 2 (execution_verification). Fixes verified via npm run build + npx astro check (both clean) and pushed as commit 41479c9; a follow-up PR comment summarizing the fixes was posted. No second review cycle was run -- the required fix was small, well-understood, and mechanically verifiable (same pattern already proven correct on 4 sibling widgets), and the tester's independent build pass (below) confirms nothing broke."
 
 test_summary:
-  status: "not_started"
-  checks_run: []
+  status: "tester_pass_complete"
+  checks_run:
+    - "Full clean-clone simulation: rm -rf node_modules/.astro/dist/public/data/cfb, npm ci, npm run build with no R2 credentials set -- 12/12 routes built, 0 errors."
+    - "npx astro check -- 0 errors/warnings/hints."
+    - "Regression check against this repo's known ENOENT clean-clone bug class (an earlier feature's ungenerated-data-directory build failure) -- confirmed readJsonSafe()'s try/catch guard on cfb-rankings.astro still handles the missing directory gracefully; not reintroduced."
+    - "git diff origin/main -- src/components/RankingsTable.astro: zero diff, confirmed untouched."
+    - "Grepped full diff for esm.sh/unpkg/other runtime CDN script references: none found. public/_headers has zero diff from main."
+    - "Confirmed all 4 new page routes are reachable from dist/projects/index.html's rendered hrefs."
+    - "dist/_headers, dist/robots.txt, dist/sitemap-index.xml/sitemap-0.xml regression-checked: all generate correctly, unchanged from the prior-feature baseline."
+    - "Confirmed astro:page-load/astro:before-swap wiring is present in src/pages/index.astro and no stale DOMContentLoaded/pagehide widget-lifecycle code remains."
+    - "Confirmed local branch HEAD matches the PR's actual head commit via gh pr view."
   failures: []
   gaps:
-    - "No automated test suite exists in this repo (consistent with prior features) -- verification here means build/typecheck/structural review, plus the PR-stage reviewer/tester pass still to come."
+    - "No live browser/device visual or interactive verification -- no browser tooling available in this environment, consistent with the plan's stated limitation. All checks were structural (build output, source/grep inspection)."
+    - "No automated test suite exists in this repo (consistent with prior features)."
 
 open_issues:
   - "The 4 new project pages ship with real 'under construction' placeholder content since that's what the design mockups specify -- worth a quick look before merge since they'll be live and indexed once merged (flagged in requirements.yaml as non-blocking)."
@@ -69,6 +81,6 @@ open_issues:
   - "Rankings table mobile stacked-card pattern remains explicitly deferred to the future, separately-planned Rankings table styling session -- RankingsTable.astro untouched."
 
 handoff:
-  current_state: "execution_complete_pending_pr_and_verification"
-  next_owner: "orchestrator (opening PR + spawning reviewer/tester next), then user for final review/merge"
-  next_action: "Open PR, run reviewer + tester agents against it, report findings, then hand to user for review and merge."
+  current_state: "complete"
+  next_owner: "user"
+  next_action: "Review and merge PR #2 (https://github.com/wmentrekin/personal-site/pull/2). Recommend a real device/browser pass on the 5 Home-tile widgets and every page's mobile layout before considering Phase 2 fully closed, since no browser was available to any agent this session -- all validation was structural."
