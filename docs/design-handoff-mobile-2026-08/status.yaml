@@ -7,9 +7,9 @@ owner_skill: work
 objective: "Implement the new design handoff delivered as /Users/wentrekin/Downloads/Personal Site Design.zip from the user's separate Claude design session: mobile responsiveness across the site, 4 new project pages, a resynced Projects hub, and 5 new Home-tile live-preview widgets. Corresponds to Phase 2 (Mobile) of docs/roadmap-to-launch.md. Promoted from bounded-feature to large-initiative after discovery revealed 3 distinct work areas spanning many files."
 
 summary:
-  current_focus: "Verification: PR #2 open, spawning reviewer + tester agents against it."
-  last_completed: "All 6 tasks (T1-T6) executed and committed to work/design-handoff-mobile-2026-08. Orchestrator caught and fixed a real bug in T6 before commit (widgets wired to DOMContentLoaded/pagehide instead of this site's astro:page-load/astro:before-swap ClientRouter lifecycle -- would have leaked timers indefinitely). implementation-report.yaml written, PR opened."
-  current_blocker: ""
+  current_focus: "Verification loop 1: reviewer's findings fixed and pushed (commit 41479c9). Waiting on tester agent's result."
+  last_completed: "Reviewer subagent reviewed PR #2, found one required fix (initCfbNetwork's astro:before-swap cleanup was skippable via an early return under prefers-reduced-motion -- same leak class the orchestrator had already fixed for the other 4 widgets, missed on this one) plus 2 minor consistency/race issues (initProjectsTerminal missing a stop guard, initMiniGlobe's cleanup registered after its await could miss a mid-fetch navigation). All 3 fixed, verified via build+astro check, pushed, PR comment posted. Everything else in the review passed clean: no scope violations, CSP-safe, z-index hover fix intact, T5's mobile grid covers every real tile class, no a11y regressions."
+  current_blocker: "Waiting on tester subagent's result (still running in background)."
 
 artifacts:
   requirements: "docs/design-handoff-mobile-2026-08/requirements.yaml"
@@ -36,7 +36,7 @@ loops:
     count: 0
     max: 2
   execution_verification:
-    count: 0
+    count: 1
     max: 2
 
 checkpoint:
