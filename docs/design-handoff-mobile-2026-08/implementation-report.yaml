@@ -15,8 +15,8 @@ task_batches_completed: ["B1", "B2", "B3", "B4", "B5"]
 domains_touched: ["frontend-engineer"]
 
 pr:
-  number: null
-  url: null
+  number: 2
+  url: "https://github.com/wmentrekin/personal-site/pull/2"
 
 changes:
   files:
