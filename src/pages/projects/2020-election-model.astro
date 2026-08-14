@@ -488,5 +488,39 @@ const tables = {
         grid-template-columns: 1fr;
       }
     }
+
+    @media (max-width: 900px) {
+      .hero-copy {
+        flex-direction: column;
+      }
+
+      .hero-actions {
+        width: 100%;
+      }
+
+      .pages-link-card {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .archive-banner,
+      .info-card,
+      .result-card,
+      .hero-copy {
+        padding: 1rem;
+      }
+
+      .table-wrap :global(td) {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.8rem;
+      }
+
+      .icon-link {
+        width: 2.75rem;
+        height: 2.75rem;
+      }
+    }
   </style>
 </BaseLayout>
