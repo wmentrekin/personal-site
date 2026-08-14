@@ -83,25 +83,35 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </section>
 
       <a class="link-tile glass-card tile-cfb reveal" href="/projects/cfb-rankings">
+        <canvas class="cfb-network" data-cfb-network aria-hidden="true"></canvas>
         <h2>College Football Rankings</h2>
         <p>ranking college football teams using convex optimization</p>
       </a>
 
       <a class="link-tile glass-card tile-projects reveal" href="/projects">
+        <div class="heatmap" data-projects-terminal aria-hidden="true"></div>
         <h2>Projects</h2>
         <p>all my projects</p>
       </a>
 
       <a class="link-tile glass-card tile-about reveal" href="/about">
+        <div class="fact-ticker" aria-hidden="true">
+          <span class="type-name" data-about-typed></span><span class="type-cursor">|</span>
+        </div>
         <h2>About</h2>
         <p>more about me</p>
       </a>
 
       <a class="link-tile glass-card tile-now reveal" href="/now">
+        <div class="now-clock" aria-hidden="true">
+          <span class="now-time" data-now-time></span>
+          <span class="now-date" data-now-date></span>
+        </div>
         <h2>Now</h2>
         <p>what I&apos;m up to</p>
       </a>
       <a class="link-tile glass-card tile-travel reveal" href="/travel">
+        <canvas class="mini-globe" data-mini-globe aria-hidden="true"></canvas>
         <h2>Travel</h2>
         <p>where I&apos;ve been</p>
       </a>
@@ -331,6 +341,156 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     .tile-travel {
       grid-column: 2;
       grid-row: 3;
+      position: relative;
+    }
+
+    /* Live-preview widgets: each tile keeps its grid placement above, but switches
+       its own internal layout to a flex column so the widget occupies the flexible
+       upper region while the heading/description stay pinned below it -- never
+       absolutely positioned, so nothing overlaps regardless of tile height. */
+    .tile-cfb,
+    .tile-projects,
+    .tile-about,
+    .tile-now {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tile-cfb h2,
+    .tile-cfb p,
+    .tile-projects h2,
+    .tile-projects p,
+    .tile-about h2,
+    .tile-about p,
+    .tile-now h2,
+    .tile-now p,
+    .tile-travel h2,
+    .tile-travel p {
+      position: relative;
+      z-index: 1;
+      flex-shrink: 0;
+    }
+
+    .cfb-network {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .heatmap {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 0.15rem;
+      padding: 0.3rem 0.2rem;
+      opacity: 0.6;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .heatmap :global(.log-line) {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      line-height: 1.3;
+      color: var(--text-soft);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .heatmap :global(.log-line .prompt) {
+      color: var(--accent);
+      margin-right: 0.4rem;
+    }
+
+    .fact-ticker {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.6;
+      pointer-events: none;
+      overflow: hidden;
+      padding: 0 0.4rem;
+    }
+
+    .fact-ticker .type-name {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .fact-ticker .type-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.05em;
+      margin-left: 3px;
+      background: var(--accent);
+      vertical-align: -0.18em;
+      animation: home-cursor-blink 900ms steps(1) infinite;
+    }
+
+    @keyframes home-cursor-blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fact-ticker .type-cursor {
+        animation: none;
+        opacity: 1;
+      }
+    }
+
+    .now-clock {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      place-content: center;
+      gap: 0.15rem;
+      justify-items: center;
+      opacity: 0.55;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .now-clock .now-time {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+
+    .now-clock .now-date {
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .mini-globe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.55;
+      -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 32%, transparent 62%);
+      mask-image: radial-gradient(circle at 50% 45%, #000 32%, transparent 62%);
+      pointer-events: none;
     }
 
     .link-tile h2 {
@@ -480,4 +640,509 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
     }
   </style>
+
+  <script>
+    // Home-tile live-preview widgets (design-handoff-mobile-2026-08, T6).
+    // Fidelity reference: docs/design-handoff-mobile-2026-08 mockup zip, home.html.
+    // Ported to real client-side behavior against this site's actual tile markup --
+    // not copied from the mockup HTML. Each widget: no-ops if its target element is
+    // missing, respects prefers-reduced-motion before starting continuous animation,
+    // and initializes off the main render path via requestIdleCallback.
+    import { geoOrthographic, geoPath, geoGraticule10 } from "d3-geo";
+
+    type CountryFeature = {
+      type?: string;
+      geometry?: {
+        type: string;
+        coordinates: unknown;
+      };
+      properties: {
+        ISO_A2?: string;
+      };
+    };
+
+    const prefersReducedMotion = () =>
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const runWhenIdle = (callback: () => void) => {
+      const requestIdle = (window as Window & { requestIdleCallback?: (cb: () => void) => number })
+        .requestIdleCallback;
+
+      if (typeof requestIdle === "function") {
+        requestIdle(callback);
+      } else {
+        setTimeout(callback, 200);
+      }
+    };
+
+    // Mini-globe (Travel tile): reuses the same visited-countries data and
+    // same-origin geojson fetch as TravelGlobe.astro (src/components/TravelGlobe.astro),
+    // duplicated here rather than imported since travel.astro/TravelGlobe.astro are
+    // out of scope to modify for this task. d3-geo is a real npm package import
+    // (Vite-bundled at build time), not a runtime CDN import -- no CSP exception needed.
+    const initMiniGlobe = async () => {
+      const canvas = document.querySelector("[data-mini-globe]");
+      if (!(canvas instanceof HTMLCanvasElement)) {
+        return;
+      }
+
+      const context = canvas.getContext("2d");
+      if (!context) {
+        return;
+      }
+
+      let countries: CountryFeature[];
+      try {
+        const response = await fetch("/data/travel/ne_110m_admin_0_countries.geojson");
+        if (!response.ok) {
+          return;
+        }
+
+        const geojson = (await response.json()) as { features: CountryFeature[] };
+        countries = geojson.features.filter(
+          (feature) => feature.properties.ISO_A2 && feature.properties.ISO_A2 !== "AQ"
+        );
+      } catch {
+        return;
+      }
+
+      const visitedIso2 = new Set([
+        "MX",
+        "PE",
+        "DO",
+        "IT",
+        "ES",
+        "FR",
+        "NL",
+        "GB",
+        "DE",
+        "AT",
+        "IS",
+        "IE",
+        "CR",
+        "JM",
+        "BS",
+        "KY"
+      ]);
+
+      const projection = geoOrthographic();
+      const path = geoPath(projection, context);
+      const graticule = geoGraticule10();
+      const rotation: [number, number, number] = [10, -18, 0];
+      let width = 0;
+      let height = 0;
+
+      const draw = () => {
+        context.clearRect(0, 0, width, height);
+
+        context.save();
+        context.beginPath();
+        path({ type: "Sphere" } as never);
+        context.fillStyle = "rgba(16, 24, 33, 0.9)";
+        context.fill();
+        context.clip();
+
+        context.beginPath();
+        path(graticule);
+        context.strokeStyle = "rgba(173, 196, 221, 0.12)";
+        context.lineWidth = 0.6;
+        context.stroke();
+
+        countries.forEach((feature) => {
+          const code = feature.properties.ISO_A2;
+          const visited = (code ? visitedIso2.has(code) : false) || code === "US";
+
+          context.beginPath();
+          path(feature as never);
+          context.fillStyle = visited ? "rgba(217, 67, 67, 0.85)" : "rgba(74, 86, 102, 0.35)";
+          context.fill();
+        });
+
+        context.restore();
+
+        context.beginPath();
+        path({ type: "Sphere" } as never);
+        context.strokeStyle = "rgba(173, 196, 221, 0.2)";
+        context.lineWidth = 1;
+        context.stroke();
+      };
+
+      const resize = () => {
+        width = Math.max(1, canvas.clientWidth);
+        height = Math.max(1, canvas.clientHeight);
+        const ratio = window.devicePixelRatio || 1;
+
+        canvas.width = Math.round(width * ratio);
+        canvas.height = Math.round(height * ratio);
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.scale(ratio, ratio);
+
+        projection
+          .translate([width / 2, height * 0.45])
+          .scale(Math.min(width, height) * 0.42)
+          .clipAngle(90)
+          .rotate(rotation);
+
+        draw();
+      };
+
+      const resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(canvas);
+      resize();
+
+      let frame = 0;
+
+      if (!prefersReducedMotion()) {
+        const spin = () => {
+          rotation[0] += 0.12;
+          projection.rotate(rotation);
+          draw();
+          frame = requestAnimationFrame(spin);
+        };
+        frame = requestAnimationFrame(spin);
+      }
+
+      document.addEventListener(
+        "astro:before-swap",
+        () => {
+          resizeObserver.disconnect();
+          if (frame) {
+            cancelAnimationFrame(frame);
+          }
+        },
+        { once: true }
+      );
+    };
+
+    // Live clock (Now tile). Text updates are not "motion" -- runs regardless of
+    // prefers-reduced-motion, matching the handoff's stated exception.
+    const initNowClock = () => {
+      const timeEl = document.querySelector("[data-now-time]");
+      const dateEl = document.querySelector("[data-now-date]");
+      if (!(timeEl instanceof HTMLElement) || !(dateEl instanceof HTMLElement)) {
+        return;
+      }
+
+      const tick = () => {
+        const now = new Date();
+        timeEl.textContent = now.toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+        dateEl.textContent = now.toLocaleDateString([], {
+          month: "long",
+          day: "numeric",
+          year: "numeric"
+        });
+      };
+
+      tick();
+      const interval = setInterval(tick, 1000);
+      document.addEventListener("astro:before-swap", () => clearInterval(interval), { once: true });
+    };
+
+    // Fake terminal (Projects tile): types `cd projects` / `ls` / the real folder
+    // list, one line at a time, then stops -- no loop.
+    const initProjectsTerminal = () => {
+      const container = document.querySelector("[data-projects-terminal]");
+      if (!(container instanceof HTMLElement)) {
+        return;
+      }
+
+      const commands: { type: "cmd" | "out"; text: string }[] = [
+        { type: "cmd", text: "cd projects" },
+        { type: "cmd", text: "ls" },
+        { type: "out", text: "cfb-rankings/" },
+        { type: "out", text: "nba-asset-lineage/" },
+        { type: "out", text: "chronicle/" },
+        { type: "out", text: "2020election/" },
+        { type: "out", text: "cbb-rankings/" },
+        { type: "out", text: "agent-skills/" }
+      ];
+
+      const renderLine = (line: (typeof commands)[number]) => {
+        const div = document.createElement("div");
+        div.className = "log-line";
+
+        if (line.type === "cmd") {
+          const prompt = document.createElement("span");
+          prompt.className = "prompt";
+          prompt.textContent = "$";
+          div.append(prompt, document.createTextNode(` ${line.text}`));
+        } else {
+          div.textContent = line.text;
+        }
+
+        container.appendChild(div);
+      };
+
+      if (prefersReducedMotion()) {
+        commands.forEach(renderLine);
+        return;
+      }
+
+      let i = 0;
+      const step = () => {
+        if (i >= commands.length) {
+          return;
+        }
+
+        renderLine(commands[i]);
+        i++;
+        setTimeout(step, 750);
+      };
+      step();
+    };
+
+    // Typing/erasing loop (About tile).
+    const initAboutTyping = () => {
+      const el = document.querySelector("[data-about-typed]");
+      if (!(el instanceof HTMLElement)) {
+        return;
+      }
+
+      const full = "Wyatt Entrekin";
+
+      if (prefersReducedMotion()) {
+        el.textContent = full;
+        return;
+      }
+
+      let c = 0;
+      let deleting = false;
+      let stopped = false;
+
+      const tick = () => {
+        if (stopped) {
+          return;
+        }
+
+        if (deleting) {
+          c--;
+          el.textContent = full.slice(0, c);
+        } else {
+          el.textContent = full.slice(0, c);
+          c++;
+        }
+
+        let delay = deleting ? 45 : 90;
+        if (!deleting && c === full.length + 1) {
+          delay = 1800;
+          deleting = true;
+        } else if (deleting && c === 0) {
+          deleting = false;
+          delay = 500;
+        }
+
+        setTimeout(tick, delay);
+      };
+
+      tick();
+      document.addEventListener("astro:before-swap", () => (stopped = true), { once: true });
+    };
+
+    // Network-sim (CFB Rankings tile): 36 nodes, round-robin "circle method"
+    // 1-factorization adds one edge per node every ~3s until each node has 8 edges,
+    // then resets with fresh random rest-lengths. A simple spring simulation relaxes
+    // layout continuously; edge color/thickness scale with distance from rest length.
+    const initCfbNetwork = () => {
+      const canvas = document.querySelector("[data-cfb-network]");
+      if (!(canvas instanceof HTMLCanvasElement)) {
+        return;
+      }
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        return;
+      }
+
+      const N = 36;
+      const nodes = Array.from({ length: N }, () => ({ x: Math.random(), y: Math.random(), vx: 0, vy: 0 }));
+
+      const buildRounds = () => {
+        const players = Array.from({ length: N }, (_, i) => i);
+        const rounds: [number, number][][] = [];
+
+        for (let r = 0; r < N - 1; r++) {
+          const pairs: [number, number][] = [];
+          for (let i = 0; i < N / 2; i++) {
+            pairs.push([players[i], players[N - 1 - i]]);
+          }
+          rounds.push(pairs);
+
+          const fixed = players[0];
+          const rest = players.slice(1);
+          rest.unshift(rest.pop() as number);
+          players.splice(0, N, fixed, ...rest);
+        }
+
+        return rounds.slice(0, 8);
+      };
+
+      let edges: { a: number; b: number; rest: number }[] = [];
+      let roundIdx = 0;
+      const timers: ReturnType<typeof setTimeout>[] = [];
+
+      const addRound = (rounds: [number, number][][]) => {
+        if (roundIdx >= rounds.length) {
+          timers.push(
+            setTimeout(() => {
+              edges = [];
+              nodes.forEach((n) => {
+                n.x = Math.random();
+                n.y = Math.random();
+              });
+              roundIdx = 0;
+              addRound(buildRounds());
+            }, 3200)
+          );
+          return;
+        }
+
+        rounds[roundIdx].forEach(([a, b]) => edges.push({ a, b, rest: 0.14 + Math.random() * 0.4 }));
+        roundIdx++;
+        timers.push(setTimeout(() => addRound(rounds), 3000));
+      };
+
+      let width = 0;
+      let height = 0;
+
+      const resize = () => {
+        width = canvas.clientWidth;
+        height = canvas.clientHeight;
+        const ratio = window.devicePixelRatio || 1;
+
+        canvas.width = Math.round(width * ratio);
+        canvas.height = Math.round(height * ratio);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(ratio, ratio);
+      };
+
+      const step = () => {
+        edges.forEach((edge) => {
+          const a = nodes[edge.a];
+          const b = nodes[edge.b];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy) || 0.001;
+          const force = (dist - edge.rest) * 0.02;
+          const fx = (dx / dist) * force;
+          const fy = (dy / dist) * force;
+
+          a.vx += fx;
+          a.vy += fy;
+          b.vx -= fx;
+          b.vy -= fy;
+        });
+
+        nodes.forEach((n) => {
+          n.vx += (0.5 - n.x) * 0.0025;
+          n.vy += (0.5 - n.y) * 0.0025;
+          n.vx *= 0.92;
+          n.vy *= 0.92;
+          n.x += n.vx;
+          n.y += n.vy;
+          n.x = Math.max(0.06, Math.min(0.94, n.x));
+          n.y = Math.max(0.1, Math.min(0.9, n.y));
+        });
+      };
+
+      const draw = () => {
+        ctx.clearRect(0, 0, width, height);
+
+        edges.forEach((edge) => {
+          const a = nodes[edge.a];
+          const b = nodes[edge.b];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy);
+          const tension = Math.min(1, Math.abs(dist - edge.rest) / edge.rest);
+
+          ctx.beginPath();
+          ctx.moveTo(a.x * width, a.y * height);
+          ctx.lineTo(b.x * width, b.y * height);
+          ctx.strokeStyle = `rgba(125, 211, 252, ${0.15 + tension * 0.55})`;
+          ctx.lineWidth = 0.6 + tension * 1.4;
+          ctx.stroke();
+        });
+
+        nodes.forEach((n) => {
+          ctx.beginPath();
+          ctx.arc(n.x * width, n.y * height, 2.6, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(243, 247, 251, 0.85)";
+          ctx.fill();
+        });
+      };
+
+      const resizeObserver = new ResizeObserver(() => {
+        resize();
+        draw();
+      });
+      resizeObserver.observe(canvas);
+      resize();
+
+      if (prefersReducedMotion()) {
+        // Static frame only: draw the fully-built network once, no timers, no
+        // continuous spring simulation.
+        edges = buildRounds()
+          .flat()
+          .map(([a, b]) => ({ a, b, rest: 0.14 + Math.random() * 0.4 }));
+        draw();
+        return;
+      }
+
+      addRound(buildRounds());
+
+      let perturbTimer: ReturnType<typeof setTimeout> | undefined;
+      const perturb = () => {
+        const n = nodes[Math.floor(Math.random() * N)];
+        n.vx += (Math.random() - 0.5) * 0.05;
+        n.vy += (Math.random() - 0.5) * 0.05;
+        perturbTimer = setTimeout(perturb, 2200 + Math.random() * 2200);
+      };
+      perturb();
+
+      let frame = 0;
+      const loop = () => {
+        step();
+        draw();
+        frame = requestAnimationFrame(loop);
+      };
+      frame = requestAnimationFrame(loop);
+
+      document.addEventListener(
+        "astro:before-swap",
+        () => {
+          resizeObserver.disconnect();
+          timers.forEach(clearTimeout);
+          if (perturbTimer) {
+            clearTimeout(perturbTimer);
+          }
+          if (frame) {
+            cancelAnimationFrame(frame);
+          }
+        },
+        { once: true }
+      );
+    };
+
+    const initHomeWidgets = () => {
+      runWhenIdle(() => void initMiniGlobe());
+      runWhenIdle(initNowClock);
+      runWhenIdle(initCfbNetwork);
+      runWhenIdle(initProjectsTerminal);
+      runWhenIdle(initAboutTyping);
+    };
+
+    // astro:page-load (not DOMContentLoaded) -- this site uses ClientRouter
+    // (View Transitions, see BaseLayout.astro), which performs same-document
+    // navigation. DOMContentLoaded only ever fires once, and pagehide doesn't
+    // fire on same-document swaps, so both the init trigger and every widget's
+    // cleanup above are wired to Astro's transition lifecycle events instead
+    // (astro:page-load / astro:before-swap) -- the same pattern BaseLayout.astro
+    // already uses for its own reveal-on-scroll script.
+    document.addEventListener("astro:page-load", initHomeWidgets);
+  </script>
 </BaseLayout>
