@@ -1,0 +1,189 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Agent Skills | Wyatt Entrekin">
+  <section class="project-shell">
+    <a class="back-link reveal" href="/projects"><span aria-hidden="true">←</span> Projects</a>
+
+    <section class="project-hero reveal glass-card">
+      <div class="hero-copy">
+        <p class="hero-kicker">Active Project</p>
+        <h1>Agent Skills</h1>
+        <p class="hero-text">
+          My custom AI coding framework that integrates an agentic /work command natively into Claude Code, OpenAI
+          Codex, and Google Antigravity.
+        </p>
+        <div class="hero-tags">
+          <span>Agentic Workflows</span>
+          <span>Developer Tooling</span>
+          <span>Claude Code</span>
+          <span>OpenAI Codex</span>
+          <span>Google Antigravity</span>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <span class="status-pill">Active</span>
+        <a
+          class="icon-link"
+          href="https://github.com/wmentrekin/agent-skills"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="GitHub Repository"
+          title="GitHub Repository"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 2C6.48 2 2 6.58 2 12.24c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-1.05-.01-1.9-2.78.62-3.37-1.21-3.37-1.21-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.55-1.14-4.55-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.86c.85 0 1.71.12 2.51.35 1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.33 4.8-4.56 5.05.36.32.68.95.68 1.92 0 1.39-.01 2.5-.01 2.84 0 .27.18.59.69.49A10.13 10.13 0 0 0 22 12.24C22 6.58 17.52 2 12 2Z"
+              fill="currentColor"
+            ></path>
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <p class="construction-note reveal glass-card">
+      <strong>Status</strong>This page is still under construction while I work on this project — check back soon.
+    </p>
+  </section>
+
+  <style>
+    .project-shell {
+      display: grid;
+      gap: 1rem;
+      padding-top: 0.8rem;
+    }
+
+    .project-hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.05rem 1.15rem;
+    }
+
+    .hero-kicker {
+      margin: 0;
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .hero-copy h1 {
+      margin: 0.35rem 0 0.45rem;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+    }
+
+    .hero-text {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.65;
+      max-width: 34rem;
+      text-wrap: pretty;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.8rem;
+    }
+
+    .hero-tags span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.75rem;
+      padding: 0.1rem 0.58rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-soft);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-shrink: 0;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.85rem;
+      padding: 0.14rem 0.68rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-soft);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .icon-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.85rem;
+      height: 1.85rem;
+      padding: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      text-decoration: none;
+      flex-shrink: 0;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .icon-link:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .icon-link svg {
+      width: 0.95rem;
+      height: 0.95rem;
+      flex: 0 0 auto;
+    }
+
+    .construction-note {
+      margin: 0;
+      padding: 0.85rem 1.1rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.55;
+    }
+
+    .construction-note strong {
+      display: inline-block;
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-right: 0.5rem;
+    }
+
+    @media (max-width: 920px) {
+      .project-hero {
+        flex-direction: column;
+      }
+    }
+  </style>
+</BaseLayout>

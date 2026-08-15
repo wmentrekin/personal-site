@@ -83,6 +83,40 @@ const visitedUsStates = ["GA", "TN", "PR", "AL", "AZ", "AR", "CA", "CO", "CT", "
       .globe-stage {
         min-height: 30rem;
       }
+
+      /* TravelGlobe.astro sets its own min-height floors on the shell/canvas
+         (32rem / 36rem) that are taller than the value above, so without this
+         override the stage never actually shrinks below ~36rem. Reach into
+         the child component's classes from here rather than editing that
+         shared file, since it stays reusable (e.g. for the Home mini-globe). */
+      .globe-stage :global(.travel-globe-shell),
+      .globe-stage :global(.travel-globe-canvas) {
+        min-height: 26rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .travel-shell {
+        gap: 1.1rem;
+        padding-top: 0.5rem;
+      }
+
+      .globe-card {
+        gap: 0.5rem;
+      }
+
+      .globe-stage {
+        min-height: 20rem;
+      }
+
+      .globe-stage :global(.travel-globe-shell),
+      .globe-stage :global(.travel-globe-canvas) {
+        min-height: 18rem;
+      }
+
+      .globe-note {
+        font-size: 0.66rem;
+      }
     }
   </style>
 </BaseLayout>
