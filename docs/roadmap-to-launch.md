@@ -8,7 +8,7 @@ Last updated: 2026-08-14
 
 - Design handoff (desktop): **merged** (PR #1). All 7 pages match the locked design.
 - CFB Rankings artifact pipeline: **done and live**. Real 2025 data renders on the Rankings page, sourced from R2 at build time, and the weekly cron auto-triggers a rebuild after each publish.
-- Mobile: **implemented, PR #2 open for review** (not yet merged). See Phase 2 below.
+- Mobile: **merged** (PR #2). See Phase 2 below — a real device/browser pass is still recommended before treating it as launch-ready.
 - Domain: not registered. `astro.config.mjs` still has the placeholder `site: "https://example.com"`.
 
 ## Phase 1 — Finish the CFB Rankings migration ✅ done (2026-08-12)
@@ -23,14 +23,14 @@ Last updated: 2026-08-14
 
 **Next on this page specifically:** a separate, scoped Claude design session focused just on the Rankings table's styling (not folded into the mobile work) — same pattern as the desktop redesign: design externally, then bring the handoff back here to implement.
 
-## Phase 2 — Mobile design + implementation ✅ implemented, PR open (2026-08-14)
+## Phase 2 — Mobile design + implementation ✅ merged (2026-08-14)
 
 Same pattern as the desktop redesign: a separate Claude design session produced the mobile design (`Personal Site Design.zip`), a `$work` large-initiative build session implemented it. See `docs/design-handoff-mobile-2026-08/`.
 
-- PR: [#2](https://github.com/wmentrekin/personal-site/pull/2) — open, ready for review. Reviewer + tester subagent passes both completed (1 required fix found and applied: a widget cleanup gap under `prefers-reduced-motion`).
+- PR: [#2](https://github.com/wmentrekin/personal-site/pull/2) — merged, branch deleted. Reviewer + tester subagent passes both completed before merge (1 required fix found and applied: a widget cleanup gap under `prefers-reduced-motion`).
 - Shipped: phone-tier (~480px) responsive breakpoints + 44px touch targets across About, Now, Election Model, Methodology, CFB Rankings (hero/panel only), Travel (best-effort, no mockup provided), and the Home grid. 4 new project pages (Agent Skills, Chronicle, CBB Rankings, Grizzlies Asset Lineage) as placeholder "under construction" pages, linked from a resynced Projects hub. 5 new Home-tile live-preview widgets (mini-globe, clock, terminal, typing effect, network-sim), all gated on `prefers-reduced-motion` and wired to this site's View Transitions lifecycle (`astro:page-load`/`astro:before-swap`), not the more common but wrong-for-this-site `DOMContentLoaded`/`pagehide`.
 - **Deliberately deferred, not a gap:** the Rankings table's mobile "stacked card" layout (from the same mockup) was explicitly excluded — reserved for the separate Rankings table styling session noted above. `RankingsTable.astro` is untouched by this PR.
-- **Still needed before calling this fully done:** no browser was available to any agent this session — all responsive-layout and widget validation was structural (build output, source inspection), not visual. Do a real device/browser pass over the merged result before treating mobile as launch-ready, and take a look at the 4 new pages' placeholder content before merging (they'll be live/indexed once merged).
+- **Still needed before calling this fully done:** no browser was available to any agent this session — all responsive-layout and widget validation was structural (build output, source inspection), not visual. Do a real device/browser pass over the live site before treating mobile as launch-ready.
 
 ## Phase 3 — Page freeze
 
