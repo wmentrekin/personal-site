@@ -1,0 +1,63 @@
+artifact: status
+feature: "rankings-table-redesign-2026-08"
+mode: "bounded-feature"
+stage: "execution"
+owner_skill: work
+
+objective: >
+  Fix column alignment, add team-logo rendering (with a required CSP img-src
+  allowance), and redesign row separation on the Rankings table. Paired with
+  cfb-rankings' rankings-artifact-fixes-2026-08, which supplies the logo/standardized-
+  conference fields this feature renders.
+
+summary:
+  current_focus: "User approved 'proceed with everything'. Branch work/rankings-table-redesign-2026-08 created off main. Spawning frontend-engineer for T1."
+  last_completed: "Discovery: read RankingsTable.astro, cfb-rankings.astro (both SSR row-building and the client-side renderRows()), public/_headers -- caught that the current CSP img-src ('self' data: only) would silently block the new logo images in production before any code was written."
+  current_blocker: ""
+
+artifacts:
+  requirements: "docs/rankings-table-redesign-2026-08/requirements.yaml"
+  plan: "docs/rankings-table-redesign-2026-08/plan.yaml"
+  implementation_report: null
+
+pr:
+  number: null
+  url: null
+  status: "not_opened"
+
+agents:
+  - id: "orchestrator"
+    role: "orchestrator"
+    model_guidance: "xhigh"
+    status: "active"
+    stage: "execution"
+    task: "spawning frontend-engineer for T1"
+    last_update: "2026-08-16"
+    blocker: ""
+
+loops:
+  planning_review:
+    count: 0
+    max: 2
+  execution_verification:
+    count: 0
+    max: 2
+
+checkpoint:
+  pre_execution_required: true
+  pre_execution_status: approved
+  options:
+    - proceed
+    - revise_plan
+    - narrow_scope
+    - stop
+
+blockers: []
+decisions:
+  - "Paired with cfb-rankings' rankings-artifact-fixes-2026-08 -- this feature renders whatever fields that one adds to the artifact schema (logo, standardized conference)."
+  - "Row-separation styling is an unspec'd design judgment call (user asked to 'design the space' rather than specifying it) -- kept conservative, within the existing visual language, flagged explicitly rather than treated as authoritative spec."
+  - "Mobile stacking for this table remains deferred to a future dedicated session, consistent with the decision already recorded in design-handoff-mobile-2026-08."
+
+next_action: "Spawn frontend-engineer execution agent for T1."
+next_recommended_command: "$work"
+user_input_needed: false
