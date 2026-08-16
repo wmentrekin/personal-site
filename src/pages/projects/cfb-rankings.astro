@@ -23,6 +23,7 @@ interface RankingRow {
   record: string;
   rating: number;
   delta: number;
+  logo: string | null;
 }
 
 interface WeekPayload {
@@ -83,7 +84,7 @@ const weekPayload =
 const rows =
   weekPayload?.rankings.map((team) => [
     team.rank,
-    team.team,
+    { logo: team.logo ?? null, name: team.team },
     team.conference,
     team.record,
     Number(team.rating).toFixed(2),
@@ -430,15 +431,16 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
       }
     }
 
-    // Uses DOM APIs (textContent) rather than innerHTML with interpolated strings, so
-    // team/conference/record values from the fetched JSON can never be interpreted as markup.
+    // Uses DOM APIs (textContent/createElement + property assignment) rather than innerHTML
+    // with interpolated strings, so team/conference/record values from the fetched JSON can
+    // never be interpreted as markup.
     function renderRows(rankings) {
       if (!tableBody) return;
       tableBody.textContent = "";
       for (const team of rankings) {
         const cells = [
           team.rank,
-          team.team,
+          { logo: team.logo ?? null, name: team.team },
           team.conference,
           team.record,
           Number(team.rating).toFixed(2),
@@ -448,7 +450,25 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
         cells.forEach((cell, index) => {
           const td = document.createElement("td");
           if (index === 0) td.className = "rank-col";
-          td.textContent = cell;
+          if (cell !== null && typeof cell === "object") {
+            if (cell.logo) {
+              const span = document.createElement("span");
+              span.className = "team-cell";
+              const img = document.createElement("img");
+              img.className = "team-logo";
+              img.src = cell.logo;
+              img.alt = "";
+              img.loading = "lazy";
+              img.decoding = "async";
+              span.appendChild(img);
+              span.appendChild(document.createTextNode(cell.name));
+              td.appendChild(span);
+            } else {
+              td.textContent = cell.name;
+            }
+          } else {
+            td.textContent = cell;
+          }
           row.appendChild(td);
         });
         tableBody.appendChild(row);

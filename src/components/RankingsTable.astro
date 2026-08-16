@@ -1,10 +1,16 @@
 ---
+type TeamCell = { logo: string | null; name: string };
+
 interface Props {
   headers: string[];
-  rows: Array<Array<string | number>>;
+  rows: Array<Array<string | number | TeamCell>>;
 }
 
 const { headers, rows } = Astro.props;
+
+function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
+  return typeof cell === "object" && cell !== null;
+}
 ---
 
 <div class="rankings-shell">
@@ -18,7 +24,20 @@ const { headers, rows } = Astro.props;
       {rows.map((row) => (
         <tr>
           {row.map((cell, index) => (
-            <td class={index === 0 ? "rank-col" : ""}>{cell}</td>
+            <td class={index === 0 ? "rank-col" : ""}>
+              {isTeamCell(cell) ? (
+                cell.logo ? (
+                  <span class="team-cell">
+                    <img class="team-logo" src={cell.logo} alt="" loading="lazy" decoding="async" />
+                    {cell.name}
+                  </span>
+                ) : (
+                  cell.name
+                )
+              ) : (
+                cell
+              )}
+            </td>
           ))}
         </tr>
       ))}
@@ -42,8 +61,23 @@ const { headers, rows } = Astro.props;
 
   th,
   td {
-    padding: 0.72rem 0.85rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.85rem 0.85rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+  }
+
+  th:nth-child(1),
+  td:nth-child(1),
+  th:nth-child(4),
+  td:nth-child(4),
+  th:nth-child(6),
+  td:nth-child(6) {
+    text-align: center;
+  }
+
+  th:nth-child(5),
+  td:nth-child(5) {
+    text-align: right;
   }
 
   th {
@@ -69,6 +103,23 @@ const { headers, rows } = Astro.props;
   .rank-col {
     color: var(--text);
     font-weight: 700;
+  }
+
+  .team-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .team-logo {
+    width: 1.25rem;
+    height: 1.25rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
   }
 
   tbody tr:hover {

@@ -1,0 +1,66 @@
+artifact: implementation_report
+feature: "rankings-table-redesign-2026-08"
+mode: "bounded-feature"
+status: complete
+owner_skill: work
+based_on: "docs/rankings-table-redesign-2026-08/plan.yaml"
+
+summary:
+  scope_executed: "T1 (only task): column alignment, team logo rendering (SSR + client-side switcher), CSP img-src allowance, row-separation redesign."
+  outcome: >
+    RankingsTable.astro now aligns each column under its header (Rank/Record/Delta
+    centered, Rating right, Team/Conference left), renders a small team logo before
+    the team name when the artifact provides one, and has a clearer row rhythm
+    (stronger divider, more padding, subtle even-row zebra tint). public/_headers'
+    CSP now allows cdn.collegefootballdata.com for img-src -- without this the logos
+    would have silently failed to load in production.
+
+task_batches_attempted: ["B1"]
+task_batches_completed: ["B1"]
+
+domains_touched: ["frontend-engineer"]
+
+pr:
+  number: null
+  url: null
+
+changes:
+  files:
+    - "src/components/RankingsTable.astro -- per-column text-align, TeamCell type + rendering, row-separation styles"
+    - "src/pages/projects/cfb-rankings.astro -- RankingRow.logo field, SSR rows mapping and client-side renderRows() both pass {logo, name} for the Team column, DOM-safe img construction"
+    - "public/_headers -- CSP img-src gains https://cdn.collegefootballdata.com"
+
+  modules: ["personal-site"]
+  docs_updated:
+    - "docs/rankings-table-redesign-2026-08/status.yaml"
+    - "docs/rankings-table-redesign-2026-08/plan.yaml"
+
+local_validation:
+  checks_run:
+    - "npm run build after the agent's changes: orchestrator re-ran independently -- 0 errors, 12 routes."
+    - "npx astro check after the agent's changes: orchestrator re-ran independently -- 0 errors/warnings/hints."
+    - "Orchestrator diff-reviewed both component and page changes directly (not just the agent's self-report) -- confirmed no innerHTML/string-concatenated HTML introduced in the client-side script, confirmed the CSP diff is a single narrow addition with every other directive untouched, confirmed no mobile/responsive breakpoint or other-page changes."
+    - "Agent-side: built a throwaway synthetic fixture (2 teams with real cdn.collegefootballdata.com logo URLs, 1 team with logo:null) and inspected the built dist/ HTML output for correct <img> attributes, alignment CSS, and row styling; fixture removed afterward, confirmed via git status."
+  failures: []
+  skipped:
+    - "No live browser/device visual verification -- same limitation as the prior design-handoff-mobile-2026-08 feature. All validation is structural (build output, source diff)."
+
+review_summary:
+  status: not_started
+  key_findings: []
+
+test_summary:
+  status: not_started
+  checks_run: []
+  failures: []
+  gaps: []
+
+open_issues:
+  - "Row-separation styling (padding, border contrast, zebra tint) is a design judgment call made without a fresh mockup -- flagged explicitly for the user to react to, not treated as authoritative spec."
+  - "Logos will only show real data once cfb-rankings' paired rankings-artifact-fixes-2026-08 feature's backfill has run and personal-site rebuilds against the refreshed R2 artifacts."
+  - "No live browser/device validation possible in this session -- recommend a real device pass once both paired PRs are live, same as the prior mobile feature."
+
+handoff:
+  current_state: "complete"
+  next_owner: "user"
+  next_action: "Review PR once opened; do a real device/browser pass on the Rankings table alongside cfb-rankings' data changes once both are live."

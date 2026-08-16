@@ -1,7 +1,7 @@
 artifact: status
 feature: "rankings-table-redesign-2026-08"
 mode: "bounded-feature"
-stage: "execution"
+stage: "verification"
 owner_skill: work
 
 objective: >
@@ -11,14 +11,14 @@ objective: >
   conference fields this feature renders.
 
 summary:
-  current_focus: "User approved 'proceed with everything'. Branch work/rankings-table-redesign-2026-08 created off main. Spawning frontend-engineer for T1."
-  last_completed: "Discovery: read RankingsTable.astro, cfb-rankings.astro (both SSR row-building and the client-side renderRows()), public/_headers -- caught that the current CSP img-src ('self' data: only) would silently block the new logo images in production before any code was written."
+  current_focus: "T1 executed and orchestrator-reviewed clean (build + astro check re-run independently, both 0 errors). Opening PR next."
+  last_completed: "frontend-engineer implemented column alignment, logo rendering (SSR + client switcher), CSP fix, and row-separation redesign; orchestrator diff-reviewed and independently re-validated before committing."
   current_blocker: ""
 
 artifacts:
   requirements: "docs/rankings-table-redesign-2026-08/requirements.yaml"
   plan: "docs/rankings-table-redesign-2026-08/plan.yaml"
-  implementation_report: null
+  implementation_report: "docs/rankings-table-redesign-2026-08/implementation-report.yaml"
 
 pr:
   number: null
@@ -30,8 +30,8 @@ agents:
     role: "orchestrator"
     model_guidance: "xhigh"
     status: "active"
-    stage: "execution"
-    task: "spawning frontend-engineer for T1"
+    stage: "verification"
+    task: "opening PR"
     last_update: "2026-08-16"
     blocker: ""
 
@@ -58,6 +58,6 @@ decisions:
   - "Row-separation styling is an unspec'd design judgment call (user asked to 'design the space' rather than specifying it) -- kept conservative, within the existing visual language, flagged explicitly rather than treated as authoritative spec."
   - "Mobile stacking for this table remains deferred to a future dedicated session, consistent with the decision already recorded in design-handoff-mobile-2026-08."
 
-next_action: "Spawn frontend-engineer execution agent for T1."
+next_action: "Open PR, then run reviewer + tester passes against it."
 next_recommended_command: "$work"
 user_input_needed: false
