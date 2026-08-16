@@ -16,8 +16,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         </p>
         <div class="hero-tags">
           <span>Agentic Workflows</span>
-          <span>Transcription</span>
-          <span>Speaker Diarization</span>
+          <span>AI Engineering</span>
           <span>Family History</span>
         </div>
       </div>
@@ -41,9 +40,39 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       </div>
     </section>
 
-    <p class="construction-note reveal glass-card">
-      <strong>Status</strong>This page is still under construction while I work on this project — check back soon.
-    </p>
+    <section class="info-card reveal glass-card">
+      <h2>Overview</h2>
+      <p class="muted">
+        I have always been interested in ancestry research and personal family history. I am lucky enough
+        to have a number of family members who have spent a lot of time before me documenting and recording our family's history.
+        I was specifically inspired by some of my great uncle's work creating a life story document of his father, my great-grandfather,
+        helped immensely by recordings and writings taken during his lifetime. I was amazed at how much I felt like I got to know about him,
+        despite never having met him. When I have children one day, I want them to be able to know who my grandparents actually were, not just see them
+        as characters in a story. So I decided that when I'm able, I want to interview my grandparents and eventually other family members to capture their stories and memories.
+      </p>
+      <p class="muted">
+        Chronicle exists to solve a very specific personal problem: I am collecting hours of recorded interviews with family
+        members about our family's history, and turning raw audio like that into something actually reviewable 
+        (a real transcript, with the right person's name attached to the right words) is slow, tedious
+        work if done by hand, and not something I wanted to hand over wholesale to a third-party cloud service given
+        how personal the subject matter is. Chronicle is my answer: a multi-stage agentic pipeline,
+        driven entirely through a CLI (<code>chronicle &lt;command&gt; &lt;session_id&gt;</code>), that takes a
+        session's raw audio and, stage by stage, turns it into structured, reviewable source material.
+      </p>
+      <p class="muted">
+        The pipeline is organized into four stages, and each one only ever depends on the stage before it. Stage 1
+        transcribes the raw audio (with interchangeable backends: faster-whisper and Parakeet are both
+        supported). Stage 2 diarizes it, working out who was speaking and when, using a local SpeechBrain model by
+        default, with Pyannote available for benchmarking against it. Stage 3 is where it gets interesting: it takes
+        those anonymous diarized speakers and maps them to real people from a participants roster, using a local
+        LLM (Ollama running <code>qwen3:8b</code>) that reasons over transcript excerpts, evidence, and session
+        context. Stage 4, still just a scaffold today, is where an identified transcript will eventually become an organized narrative rather than a flat wall of text.
+      </p>
+      <p class="muted">
+        This project is still very much a work in progress as I continue to refine each stage, experiment with different models, and running them locally vs with cloud VMs.
+        Its been a fun way to explore my family history while also learning more about agentic workflows and AI Engineering. Keep checking in to see updates as this project evolves!
+      </p>
+    </section>
   </section>
 
   <style>
@@ -179,9 +208,47 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       margin-right: 0.5rem;
     }
 
+    .info-card {
+      padding: 1.3rem;
+    }
+
+    .info-card h2 {
+      margin: 0 0 0.7rem;
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .info-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .info-card p + p {
+      margin-top: 0.85rem;
+    }
+
+    .info-card code {
+      padding: 0.08rem 0.32rem;
+      border-radius: 0.35rem;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+    }
+
     @media (max-width: 920px) {
       .project-hero {
         flex-direction: column;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .info-card {
+        padding: 1rem;
       }
     }
   </style>
