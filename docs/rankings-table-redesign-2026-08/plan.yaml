@@ -1,0 +1,87 @@
+artifact: plan
+feature: "rankings-table-redesign-2026-08"
+mode: "bounded-feature"
+status: draft
+owner_skill: work
+based_on: "docs/rankings-table-redesign-2026-08/requirements.yaml"
+
+objective: >
+  Fix column alignment, add team-logo rendering (with the required CSP allowance), and
+  redesign row separation on the Rankings table, keeping the SSR and client-side render
+  paths in sync.
+
+approach:
+  summary: >
+    Single-branch bounded-feature, one frontend-engineer task since all changes are
+    small, interdependent edits to 3 files (component + page + CSP header) that only
+    make sense shipped together -- the CSP change is pointless without the logo
+    markup, and the logo markup is broken without the CSP change.
+  key_decisions:
+    - "RankingsTable's row-cell type extended to `string | number | {logo: string | null, name: string}` rather than adding a separate dedicated 'TeamCell' component -- keeps the table generic-ish while only special-casing the one column that needs it, matches the existing lightweight pattern (index===0 rank-col special case)."
+    - "Both cfb-rankings.astro row-building paths (SSR + client-side renderRows()) updated together in the same task, not split across two tasks -- an agent editing one without the other would immediately break parity between initial load and switcher-driven reloads."
+    - "CSP img-src gets exactly one host added (cdn.collegefootballdata.com), not a broader relaxation -- keeps the 'grounded in actual external resources' discipline the existing CSP was built with."
+    - "Row-separation values (padding bump, border contrast, zebra tint) are the agent's design judgment within the existing token/rgba-overlay language, not a fresh mockup -- flagged to the user as a judgment call in the implementation report, same as travel.astro's basic mobile pass was in the prior feature."
+
+contracts:
+  interfaces:
+    - "RankingsTable.astro rows prop: Array<Array<string | number | {logo: string | null, name: string}>> (was Array<Array<string | number>>) -- additive, backward compatible since string/number cells render exactly as before."
+  schemas: []
+  config_changes:
+    - "public/_headers Content-Security-Policy img-src: 'self' data: -> 'self' data: https://cdn.collegefootballdata.com"
+
+branching:
+  strategy: "single-branch"
+  branch_name: "work/rankings-table-redesign-2026-08"
+  worktrees: []
+
+execution_batches:
+  - id: "B1"
+    goal: "Column alignment, logo rendering, row separation, CSP allowance"
+    tasks:
+      - id: "T1"
+        title: "Redesign RankingsTable columns/rows and wire logo rendering end-to-end"
+        objective: >
+          Add per-column text-align (Rank/Record/Delta centered, Rating right,
+          Team/Conference left) to RankingsTable.astro's th/td; extend its cell type
+          to support {logo, name} objects rendered as <img>+name (alt="" since the
+          name text is already visible); redesign row separation (stronger
+          border-bottom, ~0.85rem vertical padding, subtle even-row zebra tint); update
+          cfb-rankings.astro's SSR rows mapping AND its client-side renderRows() to
+          pass {logo, name} for the Team column, using createElement/appendChild for
+          the <img> (no textContent/innerHTML string building, matching the existing
+          DOM-safety comment in that file); add cdn.collegefootballdata.com to
+          public/_headers' CSP img-src.
+        assigned_domain: "frontend-engineer"
+        owned_scope:
+          - "src/components/RankingsTable.astro"
+          - "src/pages/projects/cfb-rankings.astro"
+          - "public/_headers"
+        forbidden_scope:
+          - "src/pages/index.astro, and every other page touched by design-handoff-mobile-2026-08 -- out of scope, already shipped"
+          - "any mobile/responsive breakpoint work on this page -- desktop-only per non_goals, mobile stacking is a separate future feature"
+          - "cfb-rankings' pipeline/schema code -- this task only consumes whatever `logo`/`conference` fields the artifact provides, it doesn't produce them"
+        dependencies: []
+        parallelizable: false
+        expected_validation:
+          - "npm run build -- 0 errors, confirm the Rankings route still builds with the current (pre-backfill, still-empty-for-2026) public/data/cfb/ state."
+          - "npx astro check -- 0 errors/warnings/hints."
+          - "Create a throwaway local fixture (e.g. temporarily drop a hand-written week JSON with 2-3 teams carrying real cdn.collegefootballdata.com logo URLs and standardized conference strings into public/data/cfb/) and inspect the built dist/ HTML output to confirm: img src/alt correct, column classes/alignment present on both th and td, row styling present. Remove the fixture before finishing (or confirm it matches what the real pipeline will publish, if the paired cfb-rankings feature has landed by then)."
+          - "Grep the diff for any innerHTML/string-concatenation cell building in the client-side script -- must remain DOM-API-only."
+
+ordering_notes:
+  - "No hard dependency for *building* this against cfb-rankings' rankings-artifact-fixes-2026-08 -- the component/page code just needs the field names (logo, conference) which are already decided and documented in that feature's requirements.yaml. Real end-to-end correctness (actual logos showing on the live site) needs that feature's backfill to have run, which can happen before or after this PR merges."
+
+risks:
+  - "The CSP img-src change is the one piece of this task that's easy to silently skip (nothing fails locally without it -- images just don't load, and a build/astro-check pass either way) -- called out explicitly as a required expected_validation item, not left implicit."
+  - "Row-separation is unspecified/undesigned by the user beyond 'design the space' -- risk of the agent's choice not matching the user's taste; mitigated by keeping the change small and within the existing visual language rather than a dramatic redesign, and flagging it clearly as a judgment call for the user to react to."
+
+open_questions: []
+
+review:
+  status: draft
+  loop_count: 0
+  notes: []
+
+checkpoint:
+  required_before_execution: true
+  status: approved
