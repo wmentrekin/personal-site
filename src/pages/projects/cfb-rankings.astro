@@ -398,124 +398,135 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
   </style>
 
   <script is:inline define:vars={{ seasonsForClient, latestSeason }}>
-    const seasonSelect = document.getElementById("season-select");
-    const weekSelect = document.getElementById("week-select");
-    const tableBody = document.querySelector(".rankings-panel .rankings-shell tbody");
+    // This site uses Astro's ClientRouter (View Transitions) for same-document navigation.
+    // A bare top-level inline script only runs on the initial hard page load, not on
+    // subsequent client-side transitions into this page -- so wire everything up inside
+    // astro:page-load (fires on first load AND every transition into this page), matching
+    // BaseLayout.astro's reveal-on-scroll script and the Home page's widget init pattern.
+    function initRankingsSelector() {
+      const seasonSelect = document.getElementById("season-select");
+      const weekSelect = document.getElementById("week-select");
+      const tableBody = document.querySelector(".rankings-panel .rankings-shell tbody");
 
-    // Guards against out-of-order renders if the user changes the selects faster than a
-    // fetch resolves -- only the most recently started request is allowed to render.
-    let loadGeneration = 0;
+      if (!seasonSelect || !weekSelect) return;
 
-    function padWeek(week) {
-      return String(week).padStart(2, "0");
-    }
+      // Guards against out-of-order renders if the user changes the selects faster than a
+      // fetch resolves -- only the most recently started request is allowed to render.
+      let loadGeneration = 0;
 
-    function formatDelta(delta) {
-      const value = Number(delta);
-      return value > 0 ? `+${value}` : `${value}`;
-    }
-
-    function weeksForSeason(season) {
-      const entry = seasonsForClient.find((item) => item.season === Number(season));
-      return entry ? entry.weeks : [];
-    }
-
-    function populateWeekOptions(season) {
-      const weeks = weeksForSeason(season);
-      weekSelect.textContent = "";
-      for (const week of weeks) {
-        const option = document.createElement("option");
-        option.value = String(week);
-        option.textContent = `Week ${week}`;
-        weekSelect.appendChild(option);
+      function padWeek(week) {
+        return String(week).padStart(2, "0");
       }
-    }
 
-    // Uses DOM APIs (textContent/createElement + property assignment) rather than innerHTML
-    // with interpolated strings, so team/conference/record values from the fetched JSON can
-    // never be interpreted as markup.
-    function renderRows(rankings) {
-      if (!tableBody) return;
-      tableBody.textContent = "";
-      for (const team of rankings) {
-        const cells = [
-          team.rank,
-          { logo: team.logo ?? null, name: team.team },
-          team.conference,
-          team.record,
-          Number(team.rating).toFixed(2),
-          formatDelta(team.delta)
-        ];
-        const row = document.createElement("tr");
-        cells.forEach((cell, index) => {
-          const td = document.createElement("td");
-          if (index === 0) td.className = "rank-col";
-          if (cell !== null && typeof cell === "object") {
-            if (cell.logo) {
-              const span = document.createElement("span");
-              span.className = "team-cell";
-              const img = document.createElement("img");
-              img.className = "team-logo";
-              img.src = cell.logo;
-              img.alt = "";
-              img.loading = "lazy";
-              img.decoding = "async";
-              span.appendChild(img);
-              span.appendChild(document.createTextNode(cell.name));
-              td.appendChild(span);
+      function formatDelta(delta) {
+        const value = Number(delta);
+        return value > 0 ? `+${value}` : `${value}`;
+      }
+
+      function weeksForSeason(season) {
+        const entry = seasonsForClient.find((item) => item.season === Number(season));
+        return entry ? entry.weeks : [];
+      }
+
+      function populateWeekOptions(season) {
+        const weeks = weeksForSeason(season);
+        weekSelect.textContent = "";
+        for (const week of weeks) {
+          const option = document.createElement("option");
+          option.value = String(week);
+          option.textContent = `Week ${week}`;
+          weekSelect.appendChild(option);
+        }
+      }
+
+      // Uses DOM APIs (textContent/createElement + property assignment) rather than innerHTML
+      // with interpolated strings, so team/conference/record values from the fetched JSON can
+      // never be interpreted as markup.
+      function renderRows(rankings) {
+        if (!tableBody) return;
+        tableBody.textContent = "";
+        for (const team of rankings) {
+          const cells = [
+            team.rank,
+            { logo: team.logo ?? null, name: team.team },
+            team.conference,
+            team.record,
+            Number(team.rating).toFixed(2),
+            formatDelta(team.delta)
+          ];
+          const row = document.createElement("tr");
+          cells.forEach((cell, index) => {
+            const td = document.createElement("td");
+            if (index === 0) td.className = "rank-col";
+            if (cell !== null && typeof cell === "object") {
+              if (cell.logo) {
+                const span = document.createElement("span");
+                span.className = "team-cell";
+                const img = document.createElement("img");
+                img.className = "team-logo";
+                img.src = cell.logo;
+                img.alt = "";
+                img.loading = "lazy";
+                img.decoding = "async";
+                span.appendChild(img);
+                span.appendChild(document.createTextNode(cell.name));
+                td.appendChild(span);
+              } else {
+                td.textContent = cell.name;
+              }
             } else {
-              td.textContent = cell.name;
+              td.textContent = cell;
             }
-          } else {
-            td.textContent = cell;
-          }
-          row.appendChild(td);
-        });
+            row.appendChild(td);
+          });
+          tableBody.appendChild(row);
+        }
+      }
+
+      function renderLoadError(message) {
+        if (!tableBody) return;
+        tableBody.textContent = "";
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 6;
+        cell.textContent = message;
+        row.appendChild(cell);
         tableBody.appendChild(row);
       }
-    }
 
-    function renderLoadError(message) {
-      if (!tableBody) return;
-      tableBody.textContent = "";
-      const row = document.createElement("tr");
-      const cell = document.createElement("td");
-      cell.colSpan = 6;
-      cell.textContent = message;
-      row.appendChild(cell);
-      tableBody.appendChild(row);
-    }
-
-    async function loadWeek(season, week) {
-      const generation = ++loadGeneration;
-      try {
-        const response = await fetch(`/data/cfb/${season}/week-${padWeek(week)}.json`);
-        if (generation !== loadGeneration) return;
-        if (!response.ok) {
+      async function loadWeek(season, week) {
+        const generation = ++loadGeneration;
+        try {
+          const response = await fetch(`/data/cfb/${season}/week-${padWeek(week)}.json`);
+          if (generation !== loadGeneration) return;
+          if (!response.ok) {
+            renderLoadError("Couldn't load rankings for this selection. Please try again.");
+            return;
+          }
+          const data = await response.json();
+          if (generation !== loadGeneration) return;
+          renderRows(data.rankings ?? []);
+        } catch {
+          if (generation !== loadGeneration) return;
           renderLoadError("Couldn't load rankings for this selection. Please try again.");
-          return;
         }
-        const data = await response.json();
-        if (generation !== loadGeneration) return;
-        renderRows(data.rankings ?? []);
-      } catch {
-        if (generation !== loadGeneration) return;
-        renderLoadError("Couldn't load rankings for this selection. Please try again.");
       }
+
+      seasonSelect.addEventListener("change", () => {
+        const season = seasonSelect.value;
+        populateWeekOptions(season);
+        const firstWeekOption = weekSelect.options[0];
+        if (firstWeekOption) {
+          weekSelect.value = firstWeekOption.value;
+          loadWeek(season, firstWeekOption.value);
+        }
+      });
+
+      weekSelect.addEventListener("change", () => {
+        loadWeek(seasonSelect.value ?? latestSeason, weekSelect.value);
+      });
     }
 
-    seasonSelect?.addEventListener("change", () => {
-      const season = seasonSelect.value;
-      populateWeekOptions(season);
-      const firstWeekOption = weekSelect?.options[0];
-      if (firstWeekOption) {
-        weekSelect.value = firstWeekOption.value;
-        loadWeek(season, firstWeekOption.value);
-      }
-    });
-
-    weekSelect?.addEventListener("change", () => {
-      loadWeek(seasonSelect?.value ?? latestSeason, weekSelect.value);
-    });
+    document.addEventListener("astro:page-load", initRankingsSelector);
   </script>
 </BaseLayout>
