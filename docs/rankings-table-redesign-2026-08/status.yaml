@@ -1,7 +1,7 @@
 artifact: status
 feature: "rankings-table-redesign-2026-08"
 mode: "bounded-feature"
-stage: "verification"
+stage: "complete"
 owner_skill: work
 
 objective: >
@@ -31,7 +31,7 @@ agents:
     model_guidance: "xhigh"
     status: "active"
     stage: "verification"
-    task: "opening PR"
+    task: "complete, awaiting user review/merge of PR #3"
     last_update: "2026-08-16"
     blocker: ""
 
@@ -58,6 +58,6 @@ decisions:
   - "Row-separation styling is an unspec'd design judgment call (user asked to 'design the space' rather than specifying it) -- kept conservative, within the existing visual language, flagged explicitly rather than treated as authoritative spec."
   - "Mobile stacking for this table remains deferred to a future dedicated session, consistent with the decision already recorded in design-handoff-mobile-2026-08."
 
-next_action: "Run reviewer + tester passes against PR #3."
+next_action: "User review + merge of PR #3."
 next_recommended_command: "$work"
 user_input_needed: false
