@@ -21,9 +21,9 @@ artifacts:
   implementation_report: "docs/rankings-table-redesign-2026-08/implementation-report.yaml"
 
 pr:
-  number: null
-  url: null
-  status: "not_opened"
+  number: 3
+  url: "https://github.com/wmentrekin/personal-site/pull/3"
+  status: "open"
 
 agents:
   - id: "orchestrator"
@@ -58,6 +58,6 @@ decisions:
   - "Row-separation styling is an unspec'd design judgment call (user asked to 'design the space' rather than specifying it) -- kept conservative, within the existing visual language, flagged explicitly rather than treated as authoritative spec."
   - "Mobile stacking for this table remains deferred to a future dedicated session, consistent with the decision already recorded in design-handoff-mobile-2026-08."
 
-next_action: "Open PR, then run reviewer + tester passes against it."
+next_action: "Run reviewer + tester passes against PR #3."
 next_recommended_command: "$work"
 user_input_needed: false
