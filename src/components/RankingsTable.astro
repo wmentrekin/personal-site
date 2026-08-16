@@ -45,7 +45,14 @@ function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
   </table>
 </div>
 
-<style>
+<style is:global>
+  /*
+    Global, not scoped: the season/week switcher on the consuming page rebuilds table rows
+    client-side via document.createElement, and those elements never get Astro's scoped-style
+    data-astro-cid-* attribute -- scoped selectors would silently stop matching them the moment
+    a user changes the selection, breaking padding/alignment/borders on every re-rendered row.
+    This component is only ever used on the CFB Rankings page, so going global here is safe.
+  */
   .rankings-shell {
     overflow-x: auto;
     border: 1px solid var(--line);
