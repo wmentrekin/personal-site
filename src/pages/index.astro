@@ -914,19 +914,38 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         return;
       }
 
-      let i = 0;
       let stopped = false;
-      const step = () => {
-        if (stopped || i >= commands.length) {
-          return;
-        }
+      const RESTART_MS = 30000;
 
-        renderLine(commands[i]);
-        i++;
-        setTimeout(step, 750);
+      const runCycle = () => {
+        container.textContent = "";
+        let i = 0;
+        const step = () => {
+          if (stopped || i >= commands.length) {
+            return;
+          }
+
+          renderLine(commands[i]);
+          i++;
+          setTimeout(step, 750);
+        };
+        step();
       };
-      step();
-      document.addEventListener("astro:before-swap", () => (stopped = true), { once: true });
+
+      runCycle();
+      const intervalId = setInterval(() => {
+        if (!stopped) {
+          runCycle();
+        }
+      }, RESTART_MS);
+      document.addEventListener(
+        "astro:before-swap",
+        () => {
+          stopped = true;
+          clearInterval(intervalId);
+        },
+        { once: true }
+      );
     };
 
     // Typing/erasing loop (About tile).
@@ -977,7 +996,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     };
 
     // Network-sim (CFB Rankings tile): 68 nodes, round-robin "circle method"
-    // 1-factorization adds one edge per node every ~5s until each node has 11 edges,
+    // 1-factorization adds one edge per node every ~8s until each node has 11 edges,
     // then resets with fresh random rest-lengths. A simple spring simulation relaxes
     // layout continuously; edge color/thickness scale with distance from rest length.
     const initCfbNetwork = () => {
@@ -1029,14 +1048,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               });
               roundIdx = 0;
               addRound(buildRounds());
-            }, 5000)
+            }, 8000)
           );
           return;
         }
 
         rounds[roundIdx].forEach(([a, b]) => edges.push({ a, b, rest: 0.14 + Math.random() * 0.4 }));
         roundIdx++;
-        timers.push(setTimeout(() => addRound(rounds), 5000));
+        timers.push(setTimeout(() => addRound(rounds), 8000));
       };
 
       let width = 0;
