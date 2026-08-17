@@ -590,8 +590,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       flex: 0 0 auto;
       width: 0.5rem;
       border-radius: 999px;
-      background: linear-gradient(180deg, var(--accent-football), rgba(163, 230, 53, 0.28));
-      transition: height 900ms ease-in-out;
+      background: linear-gradient(180deg, #16a34a, rgba(22, 163, 74, 0.22));
+      transform-origin: bottom;
+      transform: scaleY(0.7);
+      transition: transform 2600ms ease-in-out;
+      will-change: transform;
     }
 
     .stats-bar:nth-child(1) {
@@ -1279,31 +1282,56 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       frame = requestAnimationFrame(loop);
     };
 
-    // Stats tile: 8 bars re-randomize their heights independently on an
-    // interval (CSS transition animates the change) instead of all pulsing
-    // around the same fixed skyline shape.
+    // Stats tile: each of the 8 bars re-randomizes its own scale on its own
+    // staggered, slow timer (transform, not height, so the change is a smooth
+    // GPU-composited transition instead of a layout-thrashing reflow).
     const initStatsBars = () => {
-      const bars = document.querySelectorAll("[data-stats-bars] .stats-bar");
+      const bars = Array.from(document.querySelectorAll("[data-stats-bars] .stats-bar"));
       if (!bars.length) {
         return;
       }
 
-      const randomize = () => {
-        bars.forEach((bar) => {
-          if (bar instanceof HTMLElement) {
-            bar.style.height = `${1 + Math.random() * 3.2}rem`;
-          }
-        });
+      const randomize = (bar: HTMLElement) => {
+        const scale = 0.32 + Math.random() * 0.75;
+        bar.style.transform = `scaleY(${scale.toFixed(2)})`;
       };
 
-      randomize();
+      bars.forEach((bar) => {
+        if (bar instanceof HTMLElement) {
+          randomize(bar);
+        }
+      });
 
       if (prefersReducedMotion()) {
         return;
       }
 
-      const intervalId = setInterval(randomize, 1100);
-      document.addEventListener("astro:before-swap", () => clearInterval(intervalId), { once: true });
+      const timers: ReturnType<typeof setTimeout>[] = [];
+
+      bars.forEach((bar) => {
+        if (!(bar instanceof HTMLElement)) {
+          return;
+        }
+
+        const schedule = () => {
+          timers.push(
+            setTimeout(
+              () => {
+                randomize(bar);
+                schedule();
+              },
+              3600 + Math.random() * 2400
+            )
+          );
+        };
+        schedule();
+      });
+
+      document.addEventListener(
+        "astro:before-swap",
+        () => timers.forEach(clearTimeout),
+        { once: true }
+      );
     };
 
     const initHomeWidgets = () => {
