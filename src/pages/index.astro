@@ -960,13 +960,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           c++;
         }
 
-        let delay = deleting ? 45 : 90;
+        let delay = deleting ? 107 : 215;
         if (!deleting && c === full.length + 1) {
-          delay = 1800;
+          delay = 4300;
           deleting = true;
         } else if (deleting && c === 0) {
           deleting = false;
-          delay = 500;
+          delay = 1200;
         }
 
         setTimeout(tick, delay);
@@ -976,8 +976,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       document.addEventListener("astro:before-swap", () => (stopped = true), { once: true });
     };
 
-    // Network-sim (CFB Rankings tile): 36 nodes, round-robin "circle method"
-    // 1-factorization adds one edge per node every ~3s until each node has 8 edges,
+    // Network-sim (CFB Rankings tile): 68 nodes, round-robin "circle method"
+    // 1-factorization adds one edge per node every ~5s until each node has 11 edges,
     // then resets with fresh random rest-lengths. A simple spring simulation relaxes
     // layout continuously; edge color/thickness scale with distance from rest length.
     const initCfbNetwork = () => {
@@ -991,7 +991,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         return;
       }
 
-      const N = 36;
+      const N = 68;
       const nodes = Array.from({ length: N }, () => ({ x: Math.random(), y: Math.random(), vx: 0, vy: 0 }));
 
       const buildRounds = () => {
@@ -1011,7 +1011,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           players.splice(0, N, fixed, ...rest);
         }
 
-        return rounds.slice(0, 8);
+        return rounds.slice(0, 11);
       };
 
       let edges: { a: number; b: number; rest: number }[] = [];
@@ -1029,14 +1029,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               });
               roundIdx = 0;
               addRound(buildRounds());
-            }, 3200)
+            }, 5000)
           );
           return;
         }
 
         rounds[roundIdx].forEach(([a, b]) => edges.push({ a, b, rest: 0.14 + Math.random() * 0.4 }));
         roundIdx++;
-        timers.push(setTimeout(() => addRound(rounds), 3000));
+        timers.push(setTimeout(() => addRound(rounds), 5000));
       };
 
       let width = 0;
