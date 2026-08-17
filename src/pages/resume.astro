@@ -1,0 +1,336 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+type TimelineEntry = {
+  start: string;
+  end: string;
+  title: string;
+  org: string;
+  location: string;
+  kind: "education" | "work";
+  description?: string;
+  status?: "current" | "upcoming";
+};
+
+const timeline: TimelineEntry[] = [
+  {
+    start: "Aug 2014",
+    end: "May 2018",
+    title: "High School Diploma",
+    org: "Christian Brothers High School",
+    location: "Memphis, TN",
+    kind: "education"
+  },
+  {
+    start: "Aug 2018",
+    end: "May 2023",
+    title: "B.S., Industrial & Systems Engineering",
+    org: "Georgia Institute of Technology",
+    location: "Atlanta, GA",
+    kind: "education",
+    description: "Foundation in optimization, statistics, simulation, and systems thinking."
+  },
+  {
+    start: "May 2019",
+    end: "Jan 2020",
+    title: "Lead Counselor",
+    org: "WeAdmit Technologies, Inc.",
+    location: "San Francisco Bay Area",
+    kind: "work"
+  },
+  {
+    start: "Jan 2020",
+    end: "Mar 2020",
+    title: "Industrial Engineer",
+    org: "Printpack",
+    location: "Atlanta Metropolitan Area",
+    kind: "work"
+  },
+  {
+    start: "May 2020",
+    end: "Aug 2020",
+    title: "Programming Instructor",
+    org: "Code Ninjas",
+    location: "Memphis Metropolitan Area",
+    kind: "work"
+  },
+  {
+    start: "May 2021",
+    end: "Aug 2021",
+    title: "Data Analyst",
+    org: "Assurant",
+    location: "Atlanta Metropolitan Area",
+    kind: "work"
+  },
+  {
+    start: "May 2022",
+    end: "Aug 2022",
+    title: "Data Analyst",
+    org: "CapTech Consulting",
+    location: "Washington DC-Baltimore Area",
+    kind: "work"
+  },
+  {
+    start: "Jul 2023",
+    end: "Dec 2023",
+    title: "Industrial Engineer",
+    org: "GreatNeck Tools",
+    location: "Memphis Metropolitan Area",
+    kind: "work"
+  },
+  {
+    start: "Jan 2024",
+    end: "Jan 2025",
+    title: "Associate Data Engineer",
+    org: "CapTech",
+    location: "Atlanta Metropolitan Area",
+    kind: "work"
+  },
+  {
+    start: "Jan 2025",
+    end: "Present",
+    title: "Data Engineer",
+    org: "CapTech",
+    location: "Atlanta Metropolitan Area",
+    kind: "work",
+    status: "current",
+    description:
+      "Building and operating production data platforms with Python, SQL, Databricks, Spark, Airflow, and AWS."
+  },
+  {
+    start: "Jan 2027",
+    end: "Expected",
+    title: "M.S., Analytics",
+    org: "Georgia Institute of Technology",
+    location: "Atlanta, GA",
+    kind: "education",
+    status: "upcoming",
+    description: "Intending to complete the Computational Data Analytics track."
+  }
+];
+---
+
+<BaseLayout title="Resume | Wyatt Entrekin">
+  <section class="resume-shell">
+    <section class="resume-hero reveal">
+      <a class="back-link" href="/">
+        <span aria-hidden="true">←</span>
+        Home
+      </a>
+      <p class="hero-kicker">Resume</p>
+      <h1>Career Timeline</h1>
+      <p class="hero-text">
+        A chronological walk through my work and education history, in place of a static PDF. Pulled from my{" "}
+        <a href="https://www.linkedin.com/in/wmentrekin/" target="_blank" rel="noreferrer">LinkedIn</a>{" "}
+        and filled in by hand.
+      </p>
+    </section>
+
+    <ol class="timeline reveal">
+      {timeline.map((entry) => (
+        <li class:list={["timeline-item", entry.status]}>
+          <div class="timeline-marker">
+            <span class="timeline-dot"></span>
+          </div>
+          <article class="timeline-content">
+            <p class="timeline-range">
+              {entry.start} &ndash; {entry.end}
+              {entry.status === "current" && <span class="timeline-badge">Current</span>}
+              {entry.status === "upcoming" && <span class="timeline-badge">Upcoming</span>}
+            </p>
+            <h2>{entry.title}</h2>
+            <p class="timeline-org">
+              {entry.org} <span class="timeline-dot-sep">&middot;</span> {entry.location}
+            </p>
+            {entry.description && <p class="timeline-desc">{entry.description}</p>}
+          </article>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <style>
+    .resume-shell {
+      display: grid;
+      gap: 1.75rem;
+      max-width: 42rem;
+      margin: 0 auto;
+      padding-top: 0.8rem;
+      padding-bottom: 3.5rem;
+    }
+
+    .resume-hero {
+      display: grid;
+      gap: 0.6rem;
+      padding-top: 0.3rem;
+    }
+
+    .hero-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .resume-hero h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-text {
+      margin: 0;
+      max-width: 34rem;
+      color: var(--text-soft);
+      font-size: 1rem;
+      line-height: 1.72;
+    }
+
+    .hero-text a {
+      color: var(--text);
+      text-underline-offset: 0.16em;
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      gap: 1.5rem;
+      margin: 0;
+      padding: 0 0 0 1.6rem;
+      list-style: none;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      top: 0.4rem;
+      bottom: 0.4rem;
+      left: 0.34rem;
+      width: 1px;
+      background: linear-gradient(
+        180deg,
+        rgba(125, 211, 252, 0.06),
+        var(--line-strong) 8%,
+        var(--line-strong) 92%,
+        rgba(125, 211, 252, 0.06)
+      );
+    }
+
+    .timeline-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 0 1fr;
+    }
+
+    .timeline-marker {
+      position: absolute;
+      top: 0.35rem;
+      left: -1.6rem;
+      width: 1.6rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .timeline-dot {
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 999px;
+      background: var(--muted);
+      box-shadow: 0 0 0 4px var(--bg-1);
+    }
+
+    .timeline-item.current .timeline-dot {
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--bg-1), 0 0 0 6px rgba(125, 211, 252, 0.25);
+    }
+
+    .timeline-item.upcoming .timeline-dot {
+      background: transparent;
+      border: 1px dashed var(--accent);
+    }
+
+    .timeline-content {
+      padding: 0.95rem 1.1rem;
+      display: grid;
+      gap: 0.35rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+        linear-gradient(160deg, rgba(19, 28, 39, 0.94), rgba(11, 18, 26, 0.98));
+      box-shadow: var(--shadow-card);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .timeline-content:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .timeline-range {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .timeline-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.06rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-soft);
+      font-size: 0.66rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+
+    .timeline-content h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      text-wrap: pretty;
+    }
+
+    .timeline-org {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .timeline-dot-sep {
+      color: var(--muted);
+    }
+
+    .timeline-desc {
+      margin: 0.15rem 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 480px) {
+      .resume-shell {
+        gap: 1.4rem;
+      }
+
+      .timeline-content {
+        padding: 0.85rem 0.95rem;
+      }
+    }
+  </style>
+</BaseLayout>
