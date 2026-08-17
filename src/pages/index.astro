@@ -85,19 +85,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </a>
 
       <a class="link-tile glass-card tile-resume reveal" href="/resume">
-        <div class="resume-badge" aria-hidden="true">
-          <svg class="resume-briefcase" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" />
-            <rect x="3.5" y="7" width="17" height="12" rx="2" />
-            <path d="M3.5 12.5h17M10.5 12.5v1.6a1.5 1.5 0 0 0 3 0v-1.6" />
+        <div class="resume-doc" aria-hidden="true">
+          <svg class="resume-doc-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 3.5h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z" />
+            <path d="M15 3.5v4h4" />
           </svg>
-          <span class="resume-pulse-anchor">
-            <span class="resume-pulse">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m5 12 4.5 4.5L19 7" />
-              </svg>
-            </span>
-          </span>
+          <svg class="resume-doc-front" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 3.5h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z" />
+            <path d="M15 3.5v4h4" />
+            <path d="M8.5 12h7M8.5 15h7M8.5 18h4" />
+          </svg>
         </div>
         <h2>Resume</h2>
         <p>my professional & academic history</p>
@@ -124,7 +121,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p>where I&apos;ve been</p>
       </a>
       <a class="link-tile glass-card tile-stats reveal" href="/stats">
-        <div class="stats-bars" aria-hidden="true">
+        <div class="stats-bars" data-stats-bars aria-hidden="true">
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
           <span class="stats-bar"></span>
           <span class="stats-bar"></span>
           <span class="stats-bar"></span>
@@ -523,135 +523,112 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       pointer-events: none;
     }
 
-    .resume-badge {
+    .resume-doc {
       flex: 1 1 auto;
       min-height: 0;
       display: grid;
       place-items: center;
-      position: relative;
-      opacity: 0.85;
+      perspective: 60rem;
+      opacity: 0.88;
       pointer-events: none;
     }
 
-    .resume-briefcase {
-      width: 3.4rem;
-      height: 3.4rem;
+    .resume-doc-back,
+    .resume-doc-front {
+      grid-area: 1 / 1;
+      width: 4.4rem;
+      height: 4.4rem;
+    }
+
+    .resume-doc-back {
+      transform: translate(0.4rem, 0.4rem);
+      color: rgba(216, 226, 237, 0.32);
+    }
+
+    .resume-doc-front {
       color: var(--text-soft);
+      transform-origin: 15% 50%;
+      backface-visibility: hidden;
+      animation: resume-page-turn 5.5s ease-in-out infinite;
     }
 
-    .resume-pulse-anchor {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(0.7rem, -1.9rem);
-    }
-
-    .resume-pulse {
-      display: grid;
-      place-items: center;
-      width: 1.5rem;
-      height: 1.5rem;
-      border-radius: 999px;
-      background: var(--accent);
-      color: #0b121a;
-      animation: resume-badge-pulse 4.5s ease-in-out infinite;
-    }
-
-    .resume-pulse svg {
-      width: 0.85rem;
-      height: 0.85rem;
-    }
-
-    @keyframes resume-badge-pulse {
+    @keyframes resume-page-turn {
       0%,
-      65% {
-        transform: scale(0.55);
-        opacity: 0.3;
+      55% {
+        transform: rotateY(0deg);
       }
-      78% {
-        transform: scale(1.15);
-        opacity: 1;
+      72% {
+        transform: rotateY(-130deg);
       }
-      90% {
-        transform: scale(1);
-        opacity: 1;
-      }
+      88%,
       100% {
-        transform: scale(0.55);
-        opacity: 0.3;
+        transform: rotateY(0deg);
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .resume-pulse {
+      .resume-doc-front {
         animation: none;
-        transform: scale(1);
-        opacity: 1;
       }
     }
 
     .stats-bars {
       flex: 1 1 auto;
       min-height: 0;
+      width: 100%;
       display: flex;
       align-items: flex-end;
-      justify-content: center;
-      gap: 0.55rem;
-      padding-bottom: 0.3rem;
+      justify-content: space-between;
+      gap: 0.3rem;
+      padding: 0 0.1rem 0.3rem;
       opacity: 0.85;
       pointer-events: none;
+      overflow: hidden;
     }
 
     .stats-bar {
-      width: 0.65rem;
+      flex: 0 0 auto;
+      width: 0.5rem;
       border-radius: 999px;
-      background: linear-gradient(180deg, var(--accent), rgba(125, 211, 252, 0.3));
-      transform-origin: bottom;
-      animation: stats-bar-pulse 2.6s ease-in-out infinite;
+      background: linear-gradient(180deg, var(--accent-football), rgba(163, 230, 53, 0.28));
+      transition: height 900ms ease-in-out;
     }
 
     .stats-bar:nth-child(1) {
-      height: 1.6rem;
-      animation-delay: 0s;
+      height: 1.8rem;
     }
 
     .stats-bar:nth-child(2) {
-      height: 2.5rem;
-      animation-delay: 0.2s;
+      height: 3.2rem;
     }
 
     .stats-bar:nth-child(3) {
-      height: 3.4rem;
-      animation-delay: 0.4s;
+      height: 2rem;
     }
 
     .stats-bar:nth-child(4) {
-      height: 2.3rem;
-      animation-delay: 0.6s;
+      height: 3.8rem;
     }
 
     .stats-bar:nth-child(5) {
-      height: 1.8rem;
-      animation-delay: 0.8s;
+      height: 1.4rem;
     }
 
-    @keyframes stats-bar-pulse {
-      0%,
-      100% {
-        transform: scaleY(0.82);
-        opacity: 0.65;
-      }
-      50% {
-        transform: scaleY(1.12);
-        opacity: 1;
-      }
+    .stats-bar:nth-child(6) {
+      height: 2.6rem;
+    }
+
+    .stats-bar:nth-child(7) {
+      height: 3.4rem;
+    }
+
+    .stats-bar:nth-child(8) {
+      height: 2.2rem;
     }
 
     @media (prefers-reduced-motion: reduce) {
       .stats-bar {
-        animation: none;
-        transform: scaleY(1);
-        opacity: 0.85;
+        transition: none;
       }
     }
 
@@ -1302,12 +1279,40 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       frame = requestAnimationFrame(loop);
     };
 
+    // Stats tile: 8 bars re-randomize their heights independently on an
+    // interval (CSS transition animates the change) instead of all pulsing
+    // around the same fixed skyline shape.
+    const initStatsBars = () => {
+      const bars = document.querySelectorAll("[data-stats-bars] .stats-bar");
+      if (!bars.length) {
+        return;
+      }
+
+      const randomize = () => {
+        bars.forEach((bar) => {
+          if (bar instanceof HTMLElement) {
+            bar.style.height = `${1 + Math.random() * 3.2}rem`;
+          }
+        });
+      };
+
+      randomize();
+
+      if (prefersReducedMotion()) {
+        return;
+      }
+
+      const intervalId = setInterval(randomize, 1100);
+      document.addEventListener("astro:before-swap", () => clearInterval(intervalId), { once: true });
+    };
+
     const initHomeWidgets = () => {
       runWhenIdle(() => void initMiniGlobe());
       runWhenIdle(initNowClock);
       runWhenIdle(initCfbNetwork);
       runWhenIdle(initProjectsTerminal);
       runWhenIdle(initAboutTyping);
+      runWhenIdle(initStatsBars);
     };
 
     // astro:page-load (not DOMContentLoaded) -- this site uses ClientRouter
