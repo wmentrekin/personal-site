@@ -1,0 +1,84 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Stats | Wyatt Entrekin">
+  <section class="stats-shell">
+    <section class="stats-hero reveal">
+      <a class="back-link" href="/">
+        <span aria-hidden="true">←</span>
+        Home
+      </a>
+      <p class="hero-kicker">Stats</p>
+      <h1>Life in Numbers</h1>
+      <p class="hero-text">
+        A running dashboard of personal stats and streaks -- fitness, language learning, books, and whatever
+        else I end up tracking.
+      </p>
+    </section>
+
+    <p class="construction-note reveal glass-card">
+      <strong>Status</strong>This page is still under construction while I figure out what goes here. Check back soon.
+    </p>
+  </section>
+
+  <style>
+    .stats-shell {
+      display: grid;
+      gap: 1.75rem;
+      max-width: 58rem;
+      margin: 0 auto;
+      padding-top: 0.8rem;
+      padding-bottom: 3.5rem;
+    }
+
+    .stats-hero {
+      display: grid;
+      gap: 0.6rem;
+      padding-top: 0.3rem;
+    }
+
+    .hero-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .stats-hero h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-text {
+      margin: 0;
+      max-width: 42rem;
+      color: var(--text-soft);
+      font-size: 1rem;
+      line-height: 1.72;
+    }
+
+    .construction-note {
+      margin: 0;
+      padding: 0.85rem 1.1rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.55;
+    }
+
+    .construction-note strong {
+      display: inline-block;
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-right: 0.5rem;
+    }
+  </style>
+</BaseLayout>

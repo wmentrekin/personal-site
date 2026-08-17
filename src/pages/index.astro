@@ -94,7 +94,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           </span>
         </div>
         <h2>Resume</h2>
-        <p>career timeline</p>
+        <p>my professional & academic history</p>
       </a>
 
       <a class="link-tile glass-card tile-now reveal" href="/now">
@@ -117,9 +117,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <h2>Travel</h2>
         <p>where I&apos;ve been</p>
       </a>
-      <article class="placeholder-tile glass-card reveal">
-        <p class="eyebrow">Placeholder</p>
-      </article>
+      <a class="link-tile glass-card tile-stats reveal" href="/stats">
+        <h2>Stats</h2>
+        <p>personal dashboard</p>
+      </a>
     </div>
     <a class="site-note" href="https://astro.build" target="_blank" rel="noreferrer">
       <img
@@ -348,6 +349,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       position: relative;
     }
 
+    .tile-stats {
+      grid-column: 4;
+      grid-row: 3;
+    }
+
     /* Live-preview widgets: each tile keeps its grid placement above, but switches
        its own internal layout to a flex column so the widget occupies the flexible
        upper region while the heading/description stay pinned below it -- never
@@ -549,22 +555,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       line-height: 1.55;
     }
 
-    .placeholder-tile {
-      min-height: 0;
-      padding: 1rem;
-      display: grid;
-      align-content: start;
-    }
-
-    .placeholder-tile {
-      grid-column: 4;
-      grid-row: 3;
-    }
-
-    .placeholder-tile .eyebrow {
-      color: rgba(150, 169, 188, 0.7);
-    }
-
     .site-note {
       position: fixed;
       right: 1rem;
@@ -611,7 +601,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       .tile-projects,
       .tile-about,
       .tile-resume,
-      .placeholder-tile {
+      .tile-stats {
         grid-column: auto;
         grid-row: auto;
       }
@@ -640,7 +630,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       .tile-now,
       .tile-travel,
       .tile-resume,
-      .placeholder-tile {
+      .tile-stats {
         grid-column: auto;
         grid-row: auto;
       }
@@ -663,8 +653,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         height: 1.1rem;
       }
 
-      .link-tile,
-      .placeholder-tile {
+      .link-tile {
         min-height: 6.5rem;
         padding: 1.1rem;
       }
