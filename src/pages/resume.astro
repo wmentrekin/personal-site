@@ -151,8 +151,8 @@ const rangeLabel = (entry: TimelineEntry): string => {
   return `${entry.start} – ${entry.end} · ${formatDuration(effectiveEndMonths(entry) - startMonths)}`;
 };
 
-const SLOT_HEIGHT = 132;
-const SLOT_GAP = 22;
+const SLOT_HEIGHT = 160;
+const SLOT_GAP = 34;
 
 type Positioned = TimelineEntry & {
   top: number;
@@ -437,6 +437,7 @@ const mobileEntries = [...timeline]
       position: absolute;
       left: 0;
       right: 0;
+      box-sizing: border-box;
       display: grid;
       align-content: start;
       gap: 0.3rem;
