@@ -7,8 +7,8 @@ owner_skill: work
 objective: "Replace the resume timeline's time-proportional (Gantt-style) card sizing with uniform, fixed-size slots and fixed gaps per entry, in both the work and education columns, while preserving a visual top/bottom node-and-line connector between the CapTech Associate Data Engineer -> Data Engineer promotion cards. Ship as an additional commit on the existing open PR #8 / branch home-layout-reorder-2026-08 -- no new branch or PR."
 
 summary:
-  current_focus: "Committing uniform-slot layout rework and pushing to PR #8"
-  last_completed: "frontend-engineer implemented uniform SLOT_HEIGHT/SLOT_GAP stacking, node-and-line CapTech connector, removed dead date-proportional/tier code; npm run build verified clean, diff reviewed"
+  current_focus: "Follow-up fix landed: cards were overlapping after the uniform-slot rework"
+  last_completed: "Diagnosed via live dev server + browser devtools: .gantt-card had an explicit inline height but resolved to box-sizing:content-box (BaseLayout's box-sizing:border-box reset is Astro-scoped to BaseLayout itself, never reached page content), so padding/border added ~31px on top of every card's height uniformly, overlapping every consecutive card by a constant amount. Fixed by adding box-sizing:border-box to .gantt-card, bumping SLOT_HEIGHT 132->160 (no more description-text clipping), and SLOT_GAP 22->34 for clearer separation. Verified in-browser: consistent 34px gaps, zero clipped cards, connector intact."
   current_blocker: ""
 
 artifacts:
@@ -62,6 +62,6 @@ decisions:
   - "CapTech promotion continuity is preserved via a node+line connector between the two cards despite uniform sizing."
   - "Stays on existing branch home-layout-reorder-2026-08 / PR #8, no new branch or PR."
 
-next_action: "None -- commit 0de0faf pushed to home-layout-reorder-2026-08; PR #8 ready for user review"
+next_action: "None -- commits 0de0faf and 7b0c4c4 pushed to home-layout-reorder-2026-08; PR #8 ready for user review"
 next_recommended_command: "$work"
 user_input_needed: false
