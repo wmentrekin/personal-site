@@ -1,0 +1,92 @@
+artifact: status
+feature: "resume-org-logos-2026-08"
+mode: "bounded-feature"
+stage: "complete"
+owner_skill: work
+
+objective: >
+  Add real company/school logos to the resume timeline cards (src/pages/resume.astro,
+  both desktop gantt-card and mobile-content markup), and rework the home page's Resume
+  tile (src/pages/index.astro) to show a small overlapping badge cluster of the CapTech
+  and Georgia Tech logos in place of the current dot-spine widget. Ship as an additional
+  commit on the existing open PR #8 / branch home-layout-reorder-2026-08 -- no new branch
+  or PR.
+
+summary:
+  current_focus: "Logo assets sourced, downloaded, and visually spot-checked. Handing off card/tile integration to frontend-engineer."
+  last_completed: >
+    Researched official/well-licensed logo sources for all 8 unique orgs/schools in the
+    timeline (platform-researcher subagent). Downloaded all 8 into
+    public/images/resume-logos/ after user confirmation. Cropped the CapTech asset
+    (was a full 1200x630 social-share image with decorative background) down to a clean
+    tight wordmark crop using Pillow. Spot-checked all 8 rendered inside a light rounded
+    chip via a throwaway local test page in the dev server + browser screenshot -- all 8
+    read cleanly at ~64px; CBHS and Georgia Tech are horizontal icon+wordmark lockups so
+    should get a reasonably sized badge (~36-40px), not a tiny one, to stay legible.
+  current_blocker: ""
+
+artifacts:
+  requirements: null
+  plan: null
+  implementation_report: "docs/resume-org-logos-2026-08/implementation-report.yaml"
+
+pr:
+  number: 8
+  url: "https://github.com/wmentrekin/personal-site/pull/8"
+  status: "open"
+
+agents:
+  - id: "orchestrator"
+    role: "orchestrator"
+    model_guidance: "xhigh"
+    status: "active"
+    stage: "complete"
+    task: "reviewed diff, own visual spot-check, committing and pushing to PR #8"
+    last_update: "2026-08-17"
+    blocker: ""
+  - id: "frontend-engineer-2"
+    role: "frontend-engineer"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "execution"
+    task: "logo integration in resume cards + home tile, browser-verified (desktop 160px/34px, mobile, connector)"
+    last_update: "2026-08-17"
+    blocker: ""
+  - id: "platform-researcher-1"
+    role: "platform-researcher"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "discovery"
+    task: "found official/well-licensed logo source URLs for 8 orgs/schools"
+    last_update: "2026-08-17"
+    blocker: ""
+
+loops:
+  planning_review:
+    count: 0
+    max: 2
+  execution_verification:
+    count: 0
+    max: 2
+
+checkpoint:
+  pre_execution_required: true
+  pre_execution_status: accepted
+  options:
+    - proceed
+    - revise_plan
+    - narrow_scope
+    - stop
+
+blockers: []
+decisions:
+  - "Logos downloaded as real asset files into public/images/resume-logos/, not hotlinked from a third-party API, per user's explicit choice."
+  - "WeAdmit Technologies has no reliable official source (their site is unreachable by tooling); user approved using the low-res third-party theorg.com thumbnail as-is."
+  - "CapTech's only found asset was a full social-share image with decorative background; cropped locally to an isolated wordmark rather than re-sourcing, to stay on the confirmed source."
+  - "Every logo renders inside a uniform light rounded chip/badge so mixed source backgrounds (transparent, white, brand-color) read consistently."
+  - "Home tile redesign uses only 2 of the 8 logos (CapTech + Georgia Tech) per user's explicit pick of the 'logo cluster teaser' pitch."
+  - "Stays on existing branch home-layout-reorder-2026-08 / PR #8, no new branch or PR."
+
+next_action: "None -- committing and pushing to home-layout-reorder-2026-08; PR #8 ready for user review"
+next_recommended_command: "$work"
+user_input_needed: false

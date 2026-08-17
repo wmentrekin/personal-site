@@ -85,11 +85,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </a>
 
       <a class="link-tile glass-card tile-resume reveal" href="/resume">
-        <div class="resume-spine" aria-hidden="true">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
+        <div class="resume-logo-cluster" aria-hidden="true">
+          <span class="cluster-chip cluster-chip-back">
+            <img src="/images/resume-logos/georgia-tech.svg" alt="" loading="lazy" />
+          </span>
+          <span class="cluster-chip cluster-chip-front">
+            <img src="/images/resume-logos/captech.jpg" alt="" loading="lazy" />
+          </span>
         </div>
         <h2>Resume</h2>
         <p>career timeline</p>
@@ -498,39 +500,46 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       pointer-events: none;
     }
 
-    .resume-spine {
+    /* Resume tile preview: an overlapping 2-logo "stacked avatar" cluster
+       (Georgia Tech behind, CapTech in front) teasing the real career-
+       timeline logos used on /resume, replacing the old dot-spine widget. */
+    .resume-logo-cluster {
       flex: 1 1 auto;
       min-height: 0;
       display: flex;
-      flex-direction: column;
-      justify-content: space-evenly;
-      align-items: flex-start;
+      align-items: center;
       padding: 0.3rem 0 0.3rem 0.55rem;
-      opacity: 0.6;
+      opacity: 0.9;
       pointer-events: none;
     }
 
-    .resume-spine span {
-      position: relative;
-      width: 0.5rem;
-      height: 0.5rem;
-      border-radius: 999px;
-      background: var(--accent);
+    .cluster-chip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0.32rem;
+      border-radius: 0.6rem;
+      background: #f5f5f0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
     }
 
-    .resume-spine span::before {
-      content: "";
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      width: 1px;
-      height: 1.1rem;
-      background: rgba(125, 211, 252, 0.32);
-      transform: translateX(-50%);
+    .cluster-chip img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
-    .resume-spine span:last-child::before {
-      content: none;
+    .cluster-chip-back {
+      z-index: 1;
+    }
+
+    .cluster-chip-front {
+      z-index: 2;
+      margin-left: -0.95rem;
+      margin-top: 1rem;
     }
 
     .link-tile h2 {
