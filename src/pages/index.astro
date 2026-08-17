@@ -85,7 +85,20 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </a>
 
       <a class="link-tile glass-card tile-resume reveal" href="/resume">
-        <canvas class="resume-sparkline" data-resume-sparkline aria-hidden="true"></canvas>
+        <div class="resume-badge" aria-hidden="true">
+          <svg class="resume-briefcase" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" />
+            <rect x="3.5" y="7" width="17" height="12" rx="2" />
+            <path d="M3.5 12.5h17M10.5 12.5v1.6a1.5 1.5 0 0 0 3 0v-1.6" />
+          </svg>
+          <span class="resume-pulse-anchor">
+            <span class="resume-pulse">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m5 12 4.5 4.5L19 7" />
+              </svg>
+            </span>
+          </span>
+        </div>
         <h2>Resume</h2>
         <p>my professional & academic history</p>
       </a>
@@ -111,20 +124,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p>where I&apos;ve been</p>
       </a>
       <a class="link-tile glass-card tile-stats reveal" href="/stats">
-        <div class="stats-glyphs" aria-hidden="true">
-          <svg class="stats-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M2.5 9.5v5M4.5 8v8M7 10v4M17 10v4M19.5 8v8M21.5 9.5v5M7 12h10" />
-          </svg>
-          <svg class="stats-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 5.5c2-1 4.8-1 8 0v13c-3.2-1-6-1-8 0v-13ZM20 5.5c-2-1-4.8-1-8 0v13c3.2-1 6-1 8 0v-13Z" />
-          </svg>
-          <svg class="stats-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 3 3 10.5l7 2.5 2.5 7L21 3Z" />
-          </svg>
-          <svg class="stats-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 5h16v10H9l-4 3v-3H4V5Z" />
-            <path d="M8 9h8M8 12h5" />
-          </svg>
+        <div class="stats-bars" aria-hidden="true">
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
         </div>
         <h2>Stats</h2>
         <p>personal dashboard</p>
@@ -518,74 +523,135 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       pointer-events: none;
     }
 
-    .resume-sparkline {
-      flex: 1 1 auto;
-      min-height: 0;
-      width: 100%;
-      opacity: 0.7;
-      pointer-events: none;
-    }
-
-    .stats-glyphs {
+    .resume-badge {
       flex: 1 1 auto;
       min-height: 0;
       display: grid;
       place-items: center;
-      opacity: 0.8;
+      position: relative;
+      opacity: 0.85;
       pointer-events: none;
     }
 
-    .stats-glyph {
-      grid-area: 1 / 1;
-      width: 3.6rem;
-      height: 3.6rem;
-      color: var(--accent);
-      opacity: 0;
-      animation: stats-glyph-cycle 9.6s ease-in-out infinite;
+    .resume-briefcase {
+      width: 3.4rem;
+      height: 3.4rem;
+      color: var(--text-soft);
     }
 
-    .stats-glyph:nth-child(1) {
-      animation-delay: 0s;
+    .resume-pulse-anchor {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(0.7rem, -1.9rem);
     }
 
-    .stats-glyph:nth-child(2) {
-      animation-delay: 2.4s;
+    .resume-pulse {
+      display: grid;
+      place-items: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #0b121a;
+      animation: resume-badge-pulse 4.5s ease-in-out infinite;
     }
 
-    .stats-glyph:nth-child(3) {
-      animation-delay: 4.8s;
+    .resume-pulse svg {
+      width: 0.85rem;
+      height: 0.85rem;
     }
 
-    .stats-glyph:nth-child(4) {
-      animation-delay: 7.2s;
-    }
-
-    @keyframes stats-glyph-cycle {
+    @keyframes resume-badge-pulse {
       0%,
-      100% {
-        opacity: 0;
-        transform: scale(0.85);
+      65% {
+        transform: scale(0.55);
+        opacity: 0.3;
       }
-      3%,
-      22% {
+      78% {
+        transform: scale(1.15);
         opacity: 1;
-        transform: scale(1);
       }
-      25% {
-        opacity: 0;
-        transform: scale(0.85);
+      90% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(0.55);
+        opacity: 0.3;
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .stats-glyph {
+      .resume-pulse {
         animation: none;
-        opacity: 0;
-      }
-
-      .stats-glyph:first-child {
+        transform: scale(1);
         opacity: 1;
-        transform: none;
+      }
+    }
+
+    .stats-bars {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 0.55rem;
+      padding-bottom: 0.3rem;
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    .stats-bar {
+      width: 0.65rem;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--accent), rgba(125, 211, 252, 0.3));
+      transform-origin: bottom;
+      animation: stats-bar-pulse 2.6s ease-in-out infinite;
+    }
+
+    .stats-bar:nth-child(1) {
+      height: 1.6rem;
+      animation-delay: 0s;
+    }
+
+    .stats-bar:nth-child(2) {
+      height: 2.5rem;
+      animation-delay: 0.2s;
+    }
+
+    .stats-bar:nth-child(3) {
+      height: 3.4rem;
+      animation-delay: 0.4s;
+    }
+
+    .stats-bar:nth-child(4) {
+      height: 2.3rem;
+      animation-delay: 0.6s;
+    }
+
+    .stats-bar:nth-child(5) {
+      height: 1.8rem;
+      animation-delay: 0.8s;
+    }
+
+    @keyframes stats-bar-pulse {
+      0%,
+      100% {
+        transform: scaleY(0.82);
+        opacity: 0.65;
+      }
+      50% {
+        transform: scaleY(1.12);
+        opacity: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .stats-bar {
+        animation: none;
+        transform: scaleY(1);
+        opacity: 0.85;
       }
     }
 
@@ -1236,137 +1302,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       frame = requestAnimationFrame(loop);
     };
 
-    // Resume tile: an abstract upward-trending sparkline (no logos) that draws
-    // itself in left-to-right, holds, then redraws on a loop.
-    const initResumeSparkline = () => {
-      const canvas = document.querySelector("[data-resume-sparkline]");
-      if (!(canvas instanceof HTMLCanvasElement)) {
-        return;
-      }
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        return;
-      }
-
-      const points = [0.82, 0.76, 0.68, 0.72, 0.5, 0.56, 0.34, 0.4, 0.16, 0.12].map((y, i, arr) => ({
-        x: i / (arr.length - 1),
-        y
-      }));
-
-      let width = 0;
-      let height = 0;
-
-      const resize = () => {
-        width = canvas.clientWidth;
-        height = canvas.clientHeight;
-        const ratio = window.devicePixelRatio || 1;
-
-        canvas.width = Math.round(width * ratio);
-        canvas.height = Math.round(height * ratio);
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(ratio, ratio);
-      };
-
-      const pathAt = (progress: number) => {
-        const scaled = progress * (points.length - 1);
-        const idx = Math.floor(scaled);
-        const frac = scaled - idx;
-        const path = points.slice(0, idx + 1);
-
-        if (idx < points.length - 1 && frac > 0) {
-          const a = points[idx];
-          const b = points[idx + 1];
-          path.push({ x: a.x + (b.x - a.x) * frac, y: a.y + (b.y - a.y) * frac });
-        }
-
-        return path;
-      };
-
-      const margin = 0.12;
-      const plotY = (y: number) => (margin + y * (1 - margin * 2)) * height;
-
-      const draw = (progress: number) => {
-        ctx.clearRect(0, 0, width, height);
-        const path = pathAt(progress);
-        if (path.length < 2) {
-          return;
-        }
-
-        ctx.beginPath();
-        ctx.moveTo(path[0].x * width, plotY(path[0].y));
-        path.slice(1).forEach((p) => ctx.lineTo(p.x * width, plotY(p.y)));
-        const tip = path[path.length - 1];
-        ctx.lineTo(tip.x * width, height);
-        ctx.lineTo(path[0].x * width, height);
-        ctx.closePath();
-        const gradient = ctx.createLinearGradient(0, 0, 0, height);
-        gradient.addColorStop(0, "rgba(125, 211, 252, 0.28)");
-        gradient.addColorStop(1, "rgba(125, 211, 252, 0)");
-        ctx.fillStyle = gradient;
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(path[0].x * width, plotY(path[0].y));
-        path.slice(1).forEach((p) => ctx.lineTo(p.x * width, plotY(p.y)));
-        ctx.strokeStyle = "rgba(125, 211, 252, 0.9)";
-        ctx.lineWidth = 2;
-        ctx.lineJoin = "round";
-        ctx.lineCap = "round";
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(tip.x * width, plotY(tip.y), 3, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(243, 247, 251, 0.95)";
-        ctx.fill();
-      };
-
-      let lastProgress = 1;
-      const resizeObserver = new ResizeObserver(() => {
-        resize();
-        draw(prefersReducedMotion() ? 1 : lastProgress);
-      });
-      resizeObserver.observe(canvas);
-      resize();
-
-      let frame = 0;
-
-      document.addEventListener(
-        "astro:before-swap",
-        () => {
-          resizeObserver.disconnect();
-          if (frame) {
-            cancelAnimationFrame(frame);
-          }
-        },
-        { once: true }
-      );
-
-      if (prefersReducedMotion()) {
-        draw(1);
-        return;
-      }
-
-      const DRAW_MS = 2200;
-      const CYCLE_MS = 5600;
-      const start = performance.now();
-
-      const loop = (now: number) => {
-        const elapsed = (now - start) % CYCLE_MS;
-        lastProgress = elapsed < DRAW_MS ? elapsed / DRAW_MS : 1;
-        draw(lastProgress);
-        frame = requestAnimationFrame(loop);
-      };
-      frame = requestAnimationFrame(loop);
-    };
-
     const initHomeWidgets = () => {
       runWhenIdle(() => void initMiniGlobe());
       runWhenIdle(initNowClock);
       runWhenIdle(initCfbNetwork);
       runWhenIdle(initProjectsTerminal);
       runWhenIdle(initAboutTyping);
-      runWhenIdle(initResumeSparkline);
     };
 
     // astro:page-load (not DOMContentLoaded) -- this site uses ClientRouter
