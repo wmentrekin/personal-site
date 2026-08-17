@@ -110,9 +110,12 @@ const timeline: TimelineEntry[] = [
 ];
 
 // -- Time-axis math -----------------------------------------------------
-// Everything below positions entries on a shared vertical axis (most
-// recent at the top) so that the gap between two cards reflects the
-// real gap in time between them, not just list order.
+// Cards occupy the EXACT vertical span their start/end dates map to on the
+// shared year axis (no min-height floor, no collision-avoidance stacking).
+// Since a person can't hold two jobs or be in two degree programs at once,
+// entries within a column never overlap in time, so exact positioning is
+// safe. Very short stints render tiny -- that's handled by shrinking the
+// card's own typography/padding (see `tier`), not by inflating its height.
 const MONTH_INDEX: Record<string, number> = {
   Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
   Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
@@ -135,41 +138,105 @@ const formatDuration = (months: number): string => {
 const today = new Date();
 const todayMonths = today.getFullYear() * 12 + today.getMonth();
 
-const rangeLabel = (entry: TimelineEntry, startMonths: number): string => {
+const effectiveEndMonths = (entry: TimelineEntry): number => {
+  const startMonths = parseMonth(entry.start);
+  if (entry.end === "Present") return todayMonths;
+  if (entry.end === "Expected") return startMonths;
+  return parseMonth(entry.end);
+};
+
+const rangeLabel = (entry: TimelineEntry): string => {
   if (entry.end === "Expected") {
     return `${entry.start} · Expected`;
   }
-  const endMonths = entry.end === "Present" ? todayMonths : parseMonth(entry.end);
-  return `${entry.start} – ${entry.end} · ${formatDuration(endMonths - startMonths)}`;
+  const startMonths = parseMonth(entry.start);
+  return `${entry.start} – ${entry.end} · ${formatDuration(effectiveEndMonths(entry) - startMonths)}`;
 };
 
 const axisTopMonths = Math.max(todayMonths, ...timeline.map((entry) => parseMonth(entry.start)));
 const axisBottomMonths = Math.min(...timeline.map((entry) => parseMonth(entry.start)));
 
-const PX_PER_MONTH = 9;
+const PX_PER_MONTH = 11;
 const AXIS_PAD_TOP = 24;
 const AXIS_PAD_BOTTOM = 24;
-const CARD_GAP = 18;
-const CARD_HEIGHT_PLAIN = 108;
-const CARD_HEIGHT_DESC = 150;
+const MIN_HEIGHT = 28;
 
-type Positioned = TimelineEntry & { top: number; height: number; range: string };
+type Tier = "full" | "compact" | "micro";
+
+const tierFor = (height: number): Tier => {
+  if (height >= 110) return "full";
+  if (height >= 55) return "compact";
+  return "micro";
+};
+
+type Positioned = TimelineEntry & {
+  top: number;
+  height: number;
+  range: string;
+  tier: Tier;
+  mergeTop: boolean;
+  mergeBottom: boolean;
+};
 
 const layoutColumn = (entries: TimelineEntry[]): Positioned[] => {
   const sorted = [...entries].sort((a, b) => parseMonth(b.start) - parseMonth(a.start));
-  let cursor = -Infinity;
-  return sorted.map((entry) => {
+
+  const positioned: Positioned[] = sorted.map((entry) => {
     const startMonths = parseMonth(entry.start);
-    const idealTop = AXIS_PAD_TOP + (axisTopMonths - startMonths) * PX_PER_MONTH;
-    const top = Math.max(idealTop, cursor);
-    const height = entry.description ? CARD_HEIGHT_DESC : CARD_HEIGHT_PLAIN;
-    cursor = top + height + CARD_GAP;
-    return { ...entry, top, height, range: rangeLabel(entry, startMonths) };
+    const endMonths = effectiveEndMonths(entry);
+    const top = AXIS_PAD_TOP + (axisTopMonths - endMonths) * PX_PER_MONTH;
+    const bottom = AXIS_PAD_TOP + (axisTopMonths - startMonths) * PX_PER_MONTH;
+    const height = Math.max(bottom - top, MIN_HEIGHT);
+    return {
+      ...entry,
+      top,
+      height,
+      range: rangeLabel(entry),
+      tier: tierFor(height),
+      mergeTop: false,
+      mergeBottom: false
+    };
   });
+
+  // Consecutive same-org entries where one starts exactly when the other
+  // ends (e.g. a promotion) get their touching corners squared off so they
+  // read as one continuous block, plus a connecting accent bar (below).
+  for (let i = 0; i < positioned.length - 1; i++) {
+    const upper = positioned[i];
+    const lower = positioned[i + 1];
+    if (upper.org === lower.org && parseMonth(upper.start) === effectiveEndMonths(lower)) {
+      upper.mergeBottom = true;
+      lower.mergeTop = true;
+    }
+  }
+
+  return positioned;
 };
 
 const workColumn = layoutColumn(timeline.filter((entry) => entry.kind === "work"));
 const eduColumn = layoutColumn(timeline.filter((entry) => entry.kind === "education"));
+
+type Spine = { top: number; height: number };
+
+const mergeSpines = (col: Positioned[]): Spine[] => {
+  const spines: Spine[] = [];
+  let i = 0;
+  while (i < col.length) {
+    if (col[i].mergeBottom) {
+      const start = i;
+      let end = i;
+      while (end < col.length - 1 && col[end].mergeBottom) end++;
+      spines.push({ top: col[start].top, height: col[end].top + col[end].height - col[start].top });
+      i = end + 1;
+    } else {
+      i++;
+    }
+  }
+  return spines;
+};
+
+const workSpines = mergeSpines(workColumn);
+const eduSpines = mergeSpines(eduColumn);
 
 const columnBottom = (col: Positioned[]) =>
   col.length ? Math.max(...col.map((entry) => entry.top + entry.height)) : 0;
@@ -190,10 +257,15 @@ const yearTicks = (() => {
 
 const mobileEntries: Positioned[] = [...timeline]
   .sort((a, b) => parseMonth(b.start) - parseMonth(a.start))
-  .map((entry) => {
-    const startMonths = parseMonth(entry.start);
-    return { ...entry, top: 0, height: 0, range: rangeLabel(entry, startMonths) };
-  });
+  .map((entry) => ({
+    ...entry,
+    top: 0,
+    height: 0,
+    range: rangeLabel(entry),
+    tier: "full" as Tier,
+    mergeTop: false,
+    mergeBottom: false
+  }));
 ---
 
 <BaseLayout title="Resume | Wyatt Entrekin">
@@ -208,7 +280,8 @@ const mobileEntries: Positioned[] = [...timeline]
       <p class="hero-text">
         A chronological walk through my work and education history, most recent first, in place of a static PDF.
         Pulled from my <a href="https://www.linkedin.com/in/wmentrekin/" target="_blank" rel="noreferrer">LinkedIn</a>
-        and filled in by hand.
+        and filled in by hand. Card height maps directly to time spent — short stints render as thin slivers rather
+        than being padded out.
       </p>
     </section>
 
@@ -227,33 +300,75 @@ const mobileEntries: Positioned[] = [...timeline]
         ))}
 
         <div class="gantt-col">
+          {workSpines.map((spine) => (
+            <div class="merge-spine" style={`top: ${spine.top}px; height: ${spine.height}px`}></div>
+          ))}
           {workColumn.map((entry) => (
-            <article class:list={["gantt-card", entry.status]} style={`top: ${entry.top}px`}>
-              <p class="card-range">
-                {entry.range}
-                {entry.status === "current" && <span class="card-badge">Current</span>}
-              </p>
-              <h2>{entry.title}</h2>
-              <p class="card-org">
-                {entry.org} <span class="card-dot">&middot;</span> {entry.location}
-              </p>
-              {entry.description && <p class="card-desc">{entry.description}</p>}
+            <article
+              class:list={[
+                "gantt-card",
+                `tier-${entry.tier}`,
+                entry.status,
+                entry.mergeTop && "merge-top",
+                entry.mergeBottom && "merge-bottom"
+              ]}
+              style={`top: ${entry.top}px; height: ${entry.height}px`}
+              title={entry.tier === "micro" ? `${entry.range} — ${entry.org}, ${entry.location}` : undefined}
+            >
+              {entry.tier === "micro" ? (
+                <p class="micro-line">
+                  {entry.title} <span class="card-dot">&middot;</span> {entry.org}
+                </p>
+              ) : (
+                <>
+                  <p class="card-range">
+                    {entry.range}
+                    {entry.status === "current" && <span class="card-badge">Current</span>}
+                  </p>
+                  <h2>{entry.title}</h2>
+                  <p class="card-org">
+                    {entry.org} <span class="card-dot">&middot;</span> {entry.location}
+                  </p>
+                  {entry.tier === "full" && entry.description && <p class="card-desc">{entry.description}</p>}
+                </>
+              )}
             </article>
           ))}
         </div>
 
         <div class="gantt-col">
+          {eduSpines.map((spine) => (
+            <div class="merge-spine" style={`top: ${spine.top}px; height: ${spine.height}px`}></div>
+          ))}
           {eduColumn.map((entry) => (
-            <article class:list={["gantt-card", entry.status]} style={`top: ${entry.top}px`}>
-              <p class="card-range">
-                {entry.range}
-                {entry.status === "upcoming" && <span class="card-badge">Upcoming</span>}
-              </p>
-              <h2>{entry.title}</h2>
-              <p class="card-org">
-                {entry.org} <span class="card-dot">&middot;</span> {entry.location}
-              </p>
-              {entry.description && <p class="card-desc">{entry.description}</p>}
+            <article
+              class:list={[
+                "gantt-card",
+                `tier-${entry.tier}`,
+                entry.status,
+                entry.mergeTop && "merge-top",
+                entry.mergeBottom && "merge-bottom"
+              ]}
+              style={`top: ${entry.top}px; height: ${entry.height}px`}
+              title={entry.tier === "micro" ? `${entry.range} — ${entry.org}, ${entry.location}` : undefined}
+            >
+              {entry.tier === "micro" ? (
+                <p class="micro-line">
+                  {entry.title} <span class="card-dot">&middot;</span> {entry.org}
+                </p>
+              ) : (
+                <>
+                  <p class="card-range">
+                    {entry.range}
+                    {entry.status === "upcoming" && <span class="card-badge">Upcoming</span>}
+                  </p>
+                  <h2>{entry.title}</h2>
+                  <p class="card-org">
+                    {entry.org} <span class="card-dot">&middot;</span> {entry.location}
+                  </p>
+                  {entry.tier === "full" && entry.description && <p class="card-desc">{entry.description}</p>}
+                </>
+              )}
             </article>
           ))}
         </div>
@@ -383,6 +498,15 @@ const mobileEntries: Positioned[] = [...timeline]
       position: relative;
     }
 
+    .merge-spine {
+      position: absolute;
+      left: -0.5rem;
+      width: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      opacity: 0.55;
+    }
+
     .gantt-card {
       position: absolute;
       left: 0;
@@ -391,6 +515,7 @@ const mobileEntries: Positioned[] = [...timeline]
       align-content: start;
       gap: 0.3rem;
       padding: 0.9rem 1.05rem;
+      overflow: hidden;
       border: 1px solid var(--line);
       border-radius: var(--radius-md);
       background:
@@ -403,6 +528,7 @@ const mobileEntries: Positioned[] = [...timeline]
     .gantt-card:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-hover);
+      z-index: 2;
     }
 
     .gantt-card.current {
@@ -412,6 +538,54 @@ const mobileEntries: Positioned[] = [...timeline]
     .gantt-card.upcoming {
       border-style: dashed;
       border-color: rgba(125, 211, 252, 0.35);
+    }
+
+    .gantt-card.merge-bottom {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .gantt-card.merge-top {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    .gantt-card.tier-compact {
+      padding: 0.5rem 0.75rem;
+      gap: 0.15rem;
+    }
+
+    .gantt-card.tier-compact .card-range {
+      font-size: 0.62rem;
+    }
+
+    .gantt-card.tier-compact h2 {
+      font-size: 0.92rem;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .gantt-card.tier-compact .card-org {
+      font-size: 0.76rem;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .gantt-card.tier-micro {
+      display: flex;
+      align-items: center;
+      padding: 0.15rem 0.65rem;
+    }
+
+    .micro-line {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 0.68rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .card-range {
