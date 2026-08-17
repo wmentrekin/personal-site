@@ -86,10 +86,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
       <a class="link-tile glass-card tile-resume reveal" href="/resume">
         <div class="resume-logo-cluster" aria-hidden="true">
-          <span class="cluster-chip cluster-chip-back">
+          <span class="cluster-chip">
             <img src="/images/resume-logos/georgia-tech.svg" alt="" loading="lazy" />
           </span>
-          <span class="cluster-chip cluster-chip-front">
+          <span class="cluster-chip">
             <img src="/images/resume-logos/captech.jpg" alt="" loading="lazy" />
           </span>
         </div>
@@ -500,15 +500,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       pointer-events: none;
     }
 
-    /* Resume tile preview: an overlapping 2-logo "stacked avatar" cluster
-       (Georgia Tech behind, CapTech in front) teasing the real career-
-       timeline logos used on /resume, replacing the old dot-spine widget. */
+    /* Resume tile preview: a centered, side-by-side 2-logo pair (Georgia
+       Tech, CapTech) teasing the real career-timeline logos used on
+       /resume, replacing the old dot-spine widget. */
     .resume-logo-cluster {
       flex: 1 1 auto;
       min-height: 0;
       display: flex;
       align-items: center;
-      padding: 0.3rem 0 0.3rem 0.55rem;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 0.3rem 0;
       opacity: 0.9;
       pointer-events: none;
     }
@@ -530,16 +532,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       width: 100%;
       height: 100%;
       object-fit: contain;
-    }
-
-    .cluster-chip-back {
-      z-index: 1;
-    }
-
-    .cluster-chip-front {
-      z-index: 2;
-      margin-left: -0.95rem;
-      margin-top: 1rem;
     }
 
     .link-tile h2 {
