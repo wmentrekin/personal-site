@@ -1,0 +1,130 @@
+artifact: task_handoff
+feature: "resume-timeline-uniform-slots-2026-08"
+mode: "quick-fix"
+execution_batch_id: "1"
+task_id: "uniform-slot-timeline"
+assigned_domain: "frontend-engineer"
+branch: "home-layout-reorder-2026-08"
+owner_skill: work
+
+objective: >
+  Replace the date/time-proportional Gantt-style sizing in the resume timeline
+  (src/pages/resume.astro) with uniform, fixed-size card slots and fixed gaps,
+  in both the "Work" and "Education" columns, while preserving a distinct visual
+  connector (node + line) between the two CapTech cards that represent a single
+  person's internal promotion.
+
+why_this_matters: >
+  The current layout maps each card's height/position exactly to real start/end
+  months on a shared year axis. The user (repo owner) says this reads as buggy
+  and inconsistent -- short stints render as slivers, long ones as huge blocks,
+  and the visual rhythm feels arbitrary rather than clean. They want every card
+  in a column to occupy the same vertical space with the same gap between cards,
+  regardless of how long the person was actually in that role/program, which is
+  the standard "vertical spine timeline" pattern they originally chose for this
+  page. The one thing that must survive the change: the CapTech Associate Data
+  Engineer (Jan 2024 - Jan 2025) -> Data Engineer (Jan 2025 - Present) entries
+  are the same person's internal promotion, not two separate jobs, and that
+  needs to stay visually obvious even though the cards are no longer flush/merged.
+
+inputs:
+  requirements: null
+  plan: null
+  implementation_report: "docs/resume-timeline-uniform-slots-2026-08/implementation-report.yaml"
+  relevant_paths:
+    - "src/pages/resume.astro"
+
+scope:
+  owned:
+    - "src/pages/resume.astro"
+  forbidden:
+    - "src/pages/index.astro"
+    - "any other page or component"
+    - "opening a new branch or PR (stay on home-layout-reorder-2026-08 / PR #8)"
+
+implementation_notes:
+  - "Current state: layoutColumn() computes `top`/`height` per entry from real
+     start/end months against a shared axis (axisTopMonths/axisBottomMonths,
+     PX_PER_MONTH=11, AXIS_PAD_TOP/BOTTOM=24). Replace this with fixed-slot
+     stacking: sort each column's entries reverse-chronologically (unchanged),
+     then for entry index i, top = i * (SLOT_HEIGHT + SLOT_GAP), height =
+     SLOT_HEIGHT, for a shared SLOT_HEIGHT (try ~132px) and SLOT_GAP (try
+     ~22px) constant used by both the work column and the education column so
+     the two columns share the same rhythm."
+  - "Drop the tier system's height-derived sizing (tierFor(height) keyed off
+     computed pixel height) since every card is now the same height -- either
+     remove tiering entirely and let every card render as the current 'full'
+     tier content (range/title/org/description), or keep a single fixed tier.
+     Do NOT keep the tier thresholds keyed to a `height` value that no longer
+     varies -- that logic is dead once sizing is uniform."
+  - "Drop the shared year-axis ticks (`yearTicks`, axisTopMonths/axisBottomMonths,
+     .gantt-axis-line's role as a date ruler, .axis-tick elements) -- once
+     card position no longer maps to real dates, year tick marks placed by
+     date would misalign with the cards and mislead. The per-card date range
+     (`card-range`, already rendered from `rangeLabel()`) remains the source
+     of truth for when something happened. The plain vertical center divider
+     line between the two columns (.gantt-axis-line) can stay purely as a
+     decorative spine if desired, just disconnected from any date math."
+  - "CapTech promotion connector (the part that must NOT regress): keep the
+     existing mergeTop/mergeBottom detection (same org, adjacent index, and
+     the upper entry's start === the lower entry's effective end) but change
+     what it renders. Currently it flattens touching corners and draws a
+     flush accent bar assuming zero gap between merged cards. With a uniform
+     SLOT_GAP now separating every card (including this pair), instead render
+     a small circular node centered on the bottom edge of the upper
+     (mergeBottom) card, a matching node centered on the top edge of the
+     lower (mergeTop) card, and a short vertical connecting line between
+     those two nodes spanning exactly that SLOT_GAP -- i.e. a node-and-line
+     connector living entirely inside the gap between those two specific
+     cards, not a full-height spine and not flush/flattened corners. Every
+     other adjacent pair in the column just gets the plain uniform gap with
+     no connector."
+  - "The hero paragraph currently says 'Card height maps directly to time
+     spent — short stints render as thin slivers rather than being padded
+     out.' -- this is no longer true and must be rewritten or removed."
+  - "Mobile view (<=820px, .timeline-mobile / mobile-item / mobile-content)
+     already renders as a plain flow list with natural equal-ish spacing via
+     CSS `gap`, not date-proportional -- it should NOT need structural
+     changes. Optional nice-to-have: add the same node+line connector styling
+     between the two CapTech mobile-item entries for consistency, but this is
+     not required if it adds meaningful complexity -- flag it as a note if
+     skipped rather than silently dropping it."
+  - "Keep entry ordering, current/upcoming badges, descriptions, and the
+     existing `timeline` data array untouched -- this is a pure layout/CSS +
+     layout-math change, not a content change."
+
+success_criteria:
+  - "Every card in the Work column has the same height and the same gap to
+     its neighbors, regardless of the entry's real duration."
+  - "Every card in the Education column has the same height and the same gap
+     to its neighbors, regardless of the entry's real duration."
+  - "The CapTech Associate Data Engineer and Data Engineer cards are visually
+     linked via a node-and-line connector spanning the gap between them, and
+     no other pair of cards has that connector."
+  - "No dead code left behind: date-proportional-only helpers/constants that
+     are no longer used (axis tick generation, height-driven tier logic) are
+     removed rather than left unreferenced."
+  - "The page still builds (`npm run build`) with no Astro/TS errors."
+
+validation_expected:
+  - "npm run build, then inspect the generated dist/resume/index.html (or
+     equivalent) to confirm every gantt-card in each column has the same
+     `height:` value in its inline style and that consecutive `top:` values
+     differ by a constant amount, except no special-cased exception is needed
+     since the connector doesn't change spacing, only adds an overlay."
+  - "Visually verify in a running dev server if this environment allows it;
+     if not, say so explicitly per the frontend-engineer agent's validation
+     rules rather than claiming visual verification that didn't happen."
+
+output_format:
+  sections:
+    - Changes
+    - Local Validation
+    - Blockers
+    - Notes
+
+escalate_if:
+  - missing_context
+  - conflicting_artifacts
+  - product_or_architecture_guess_required
+  - scope_expansion_required
