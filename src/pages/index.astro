@@ -70,11 +70,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <span>Interests</span>
           Fitness, Food, Travel, Sports, Language Learning, History
         </p>
-
-        <p class="focus-line">
-          <span>Languages</span>
-          English (N), Spanish (Intermediate), Classical Latin (Relearning after 10 years)
-        </p>
       </section>
 
       <a class="link-tile glass-card tile-cfb reveal" href="/projects/cfb-rankings">
@@ -89,13 +84,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p>all my projects</p>
       </a>
 
-      <a class="link-tile glass-card tile-about reveal" href="/about">
-        <div class="fact-ticker" aria-hidden="true">
-          <span class="type-name" data-about-typed></span><span class="type-cursor">|</span>
-        </div>
-        <h2>About</h2>
-        <p>more about me</p>
-      </a>
+      <article class="placeholder-tile glass-card reveal">
+        <p class="eyebrow">Placeholder</p>
+      </article>
 
       <a class="link-tile glass-card tile-now reveal" href="/now">
         <div class="now-clock" aria-hidden="true">
@@ -105,14 +96,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <h2>Now</h2>
         <p>what I&apos;m up to</p>
       </a>
+      <a class="link-tile glass-card tile-about reveal" href="/about">
+        <div class="fact-ticker" aria-hidden="true">
+          <span class="type-name" data-about-typed></span><span class="type-cursor">|</span>
+        </div>
+        <h2>About</h2>
+        <p>more about me</p>
+      </a>
       <a class="link-tile glass-card tile-travel reveal" href="/travel">
         <canvas class="mini-globe" data-mini-globe aria-hidden="true"></canvas>
         <h2>Travel</h2>
         <p>where I&apos;ve been</p>
       </a>
-      <article class="placeholder-tile glass-card reveal">
-        <p class="eyebrow">Placeholder</p>
-      </article>
       <article class="placeholder-tile glass-card reveal">
         <p class="eyebrow">Placeholder</p>
       </article>
@@ -323,18 +318,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       grid-row: 2;
     }
 
-    .tile-about {
-      grid-column: 4;
-      grid-row: 2;
-    }
-
     .tile-now {
       grid-column: 1;
       grid-row: 3;
     }
 
-    .tile-travel {
+    .tile-about {
       grid-column: 2;
+      grid-row: 3;
+    }
+
+    .tile-travel {
+      grid-column: 3;
       grid-row: 3;
       position: relative;
     }
@@ -511,8 +506,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .placeholder-tile:nth-of-type(1) {
-      grid-column: 3;
-      grid-row: 3;
+      grid-column: 4;
+      grid-row: 2;
     }
 
     .placeholder-tile:nth-of-type(2) {
