@@ -1,0 +1,95 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Resume | Wyatt Entrekin">
+  <section class="resume-shell">
+    <section class="resume-hero reveal">
+      <a class="back-link" href="/">
+        <span aria-hidden="true">←</span>
+        Home
+      </a>
+      <p class="hero-kicker">Resume</p>
+      <h1>Professional & Academic History</h1>
+    </section>
+
+    <p class="construction-note reveal glass-card">
+      <strong>Status</strong>This page is still under construction while I rework it. Check back soon.
+    </p>
+  </section>
+
+  <style>
+    .resume-shell {
+      display: grid;
+      gap: 1.75rem;
+      max-width: 58rem;
+      margin: 0 auto;
+      padding-top: 0.8rem;
+      padding-bottom: 3.5rem;
+    }
+
+    .resume-hero {
+      display: grid;
+      gap: 0.6rem;
+      padding-top: 0.3rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      width: fit-content;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    .back-link:hover {
+      color: var(--text);
+    }
+
+    .hero-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .resume-hero h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .construction-note {
+      margin: 0;
+      padding: 0.85rem 1.1rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.55;
+    }
+
+    .construction-note strong {
+      display: inline-block;
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-right: 0.5rem;
+    }
+
+    @media (max-width: 480px) {
+      .resume-shell {
+        gap: 1.4rem;
+      }
+    }
+  </style>
+</BaseLayout>

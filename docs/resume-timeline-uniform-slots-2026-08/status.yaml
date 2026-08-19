@@ -1,0 +1,67 @@
+artifact: status
+feature: "resume-timeline-uniform-slots-2026-08"
+mode: "quick-fix"
+stage: "complete"
+owner_skill: work
+
+objective: "Replace the resume timeline's time-proportional (Gantt-style) card sizing with uniform, fixed-size slots and fixed gaps per entry, in both the work and education columns, while preserving a visual top/bottom node-and-line connector between the CapTech Associate Data Engineer -> Data Engineer promotion cards. Ship as an additional commit on the existing open PR #8 / branch home-layout-reorder-2026-08 -- no new branch or PR."
+
+summary:
+  current_focus: "Follow-up fix landed: cards were overlapping after the uniform-slot rework"
+  last_completed: "Diagnosed via live dev server + browser devtools: .gantt-card had an explicit inline height but resolved to box-sizing:content-box (BaseLayout's box-sizing:border-box reset is Astro-scoped to BaseLayout itself, never reached page content), so padding/border added ~31px on top of every card's height uniformly, overlapping every consecutive card by a constant amount. Fixed by adding box-sizing:border-box to .gantt-card, bumping SLOT_HEIGHT 132->160 (no more description-text clipping), and SLOT_GAP 22->34 for clearer separation. Verified in-browser: consistent 34px gaps, zero clipped cards, connector intact."
+  current_blocker: ""
+
+artifacts:
+  requirements: null
+  plan: null
+  implementation_report: "docs/resume-timeline-uniform-slots-2026-08/implementation-report.yaml"
+
+pr:
+  number: 8
+  url: "https://github.com/wmentrekin/personal-site/pull/8"
+  status: "open"
+
+agents:
+  - id: "orchestrator"
+    role: "orchestrator"
+    model_guidance: "xhigh"
+    status: "active"
+    stage: "verification"
+    task: "committing and pushing fix to existing PR #8 branch"
+    last_update: "2026-08-16"
+    blocker: ""
+  - id: "frontend-engineer-1"
+    role: "frontend-engineer"
+    model_guidance: "medium"
+    status: "completed"
+    stage: "execution"
+    task: "uniform-slot timeline rework in resume.astro"
+    last_update: "2026-08-16"
+    blocker: ""
+
+loops:
+  planning_review:
+    count: 0
+    max: 2
+  execution_verification:
+    count: 0
+    max: 2
+
+checkpoint:
+  pre_execution_required: true
+  pre_execution_status: accepted
+  options:
+    - proceed
+    - revise_plan
+    - narrow_scope
+    - stop
+
+blockers: []
+decisions:
+  - "Uniform fixed-size card slots replace time-proportional height/position in both columns."
+  - "CapTech promotion continuity is preserved via a node+line connector between the two cards despite uniform sizing."
+  - "Stays on existing branch home-layout-reorder-2026-08 / PR #8, no new branch or PR."
+
+next_action: "None -- commits 0de0faf and 7b0c4c4 pushed to home-layout-reorder-2026-08; PR #8 ready for user review"
+next_recommended_command: "$work"
+user_input_needed: false

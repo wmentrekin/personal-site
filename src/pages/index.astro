@@ -28,7 +28,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               ></path>
             </svg>
           </a>
-          <a href="https://www.linkedin.com/in/wentrekin/" target="_blank" rel="noreferrer">
+          <a href="https://www.linkedin.com/in/wmentrekin/" target="_blank" rel="noreferrer">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path
                 d="M6.94 8.5a1.56 1.56 0 1 1 0-3.12 1.56 1.56 0 0 1 0 3.12Zm1.3 2.12H5.65V19h2.59v-8.38ZM12.37 10.62H9.8V19h2.56v-4.4c0-2.32 3-2.51 3 0V19H18v-5.32c0-4.14-4.56-3.99-5.63-1.95v-1.11Z"
@@ -70,11 +70,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <span>Interests</span>
           Fitness, Food, Travel, Sports, Language Learning, History
         </p>
-
-        <p class="focus-line">
-          <span>Languages</span>
-          English (N), Spanish (Intermediate), Classical Latin (Relearning after 10 years)
-        </p>
       </section>
 
       <a class="link-tile glass-card tile-cfb reveal" href="/projects/cfb-rankings">
@@ -89,12 +84,21 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p>all my projects</p>
       </a>
 
-      <a class="link-tile glass-card tile-about reveal" href="/about">
-        <div class="fact-ticker" aria-hidden="true">
-          <span class="type-name" data-about-typed></span><span class="type-cursor">|</span>
+      <a class="link-tile glass-card tile-resume reveal" href="/resume">
+        <div class="resume-timeline" aria-hidden="true">
+          <svg class="timeline-line" viewBox="0 0 100 36" preserveAspectRatio="none">
+            <path d="M6,18 L24,10 L42,24 L60,12 L78,22 L94,16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="6" cy="18" r="2.4" />
+            <circle cx="24" cy="10" r="2.4" />
+            <circle cx="42" cy="24" r="2.4" />
+            <circle cx="60" cy="12" r="2.4" />
+            <circle cx="78" cy="22" r="2.4" />
+            <circle cx="94" cy="16" r="2.4" />
+          </svg>
+          <span class="timeline-pulse"></span>
         </div>
-        <h2>About</h2>
-        <p>more about me</p>
+        <h2>Resume</h2>
+        <p>my professional & academic history</p>
       </a>
 
       <a class="link-tile glass-card tile-now reveal" href="/now">
@@ -105,21 +109,36 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <h2>Now</h2>
         <p>what I&apos;m up to</p>
       </a>
+      <a class="link-tile glass-card tile-about reveal" href="/about">
+        <div class="fact-ticker" aria-hidden="true">
+          <span class="type-name" data-about-typed></span><span class="type-cursor">|</span>
+        </div>
+        <h2>About</h2>
+        <p>more about me</p>
+      </a>
       <a class="link-tile glass-card tile-travel reveal" href="/travel">
         <canvas class="mini-globe" data-mini-globe aria-hidden="true"></canvas>
         <h2>Travel</h2>
         <p>where I&apos;ve been</p>
       </a>
-      <article class="placeholder-tile glass-card reveal">
-        <p class="eyebrow">Placeholder</p>
-      </article>
-      <article class="placeholder-tile glass-card reveal">
-        <p class="eyebrow">Placeholder</p>
-      </article>
+      <a class="link-tile glass-card tile-stats reveal" href="/stats">
+        <div class="stats-bars" data-stats-bars aria-hidden="true">
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+          <span class="stats-bar"></span>
+        </div>
+        <h2>Stats</h2>
+        <p>personal dashboard</p>
+      </a>
     </div>
     <a class="site-note" href="https://astro.build" target="_blank" rel="noreferrer">
       <img
-        src="https://astro.build/assets/press/astro-icon-light-gradient.svg"
+        src="/images/misc/astro-icon.svg"
         alt="Astro"
         loading="lazy"
       />
@@ -190,8 +209,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       grid-column: 1 / 3;
       grid-row: 1 / 3;
       align-content: start;
-      gap: 0.9rem;
-      padding: 1rem 1.05rem;
+      gap: 1.05rem;
+      padding: 1.1rem 1.2rem;
       background:
         radial-gradient(circle at top left, rgba(125, 211, 252, 0.12), transparent 30%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
@@ -237,11 +256,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .intro-text {
-      margin: 0.45rem 0 0;
+      margin: 0.6rem 0 0;
       max-width: 31rem;
-      color: var(--muted);
-      font-size: 0.89rem;
-      line-height: 1.55;
+      color: var(--text-soft);
+      font-size: 1.02rem;
+      line-height: 1.65;
+      text-wrap: pretty;
     }
 
     .social-row {
@@ -254,8 +274,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 2.35rem;
-      min-width: 2.35rem;
+      min-height: 2.75rem;
+      min-width: 2.75rem;
       padding: 0;
       border-radius: 999px;
       border: 1px solid var(--line-strong);
@@ -268,14 +288,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .social-row svg {
-      width: 1rem;
-      height: 1rem;
+      width: 1.3rem;
+      height: 1.3rem;
       flex: 0 0 auto;
     }
 
     .social-row img {
-      width: 1rem;
-      height: 1rem;
+      width: 1.3rem;
+      height: 1.3rem;
       flex: 0 0 auto;
       object-fit: contain;
       filter: brightness(0) invert(1);
@@ -323,7 +343,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       grid-row: 2;
     }
 
-    .tile-about {
+    .tile-resume {
       grid-column: 4;
       grid-row: 2;
     }
@@ -333,10 +353,20 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       grid-row: 3;
     }
 
-    .tile-travel {
+    .tile-about {
       grid-column: 2;
       grid-row: 3;
+    }
+
+    .tile-travel {
+      grid-column: 3;
+      grid-row: 3;
       position: relative;
+    }
+
+    .tile-stats {
+      grid-column: 4;
+      grid-row: 3;
     }
 
     /* Live-preview widgets: each tile keeps its grid placement above, but switches
@@ -346,7 +376,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     .tile-cfb,
     .tile-projects,
     .tile-about,
-    .tile-now {
+    .tile-now,
+    .tile-resume,
+    .tile-stats {
       position: relative;
       display: flex;
       flex-direction: column;
@@ -360,8 +392,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     .tile-about p,
     .tile-now h2,
     .tile-now p,
+    .tile-stats h2,
+    .tile-stats p,
     .tile-travel h2,
-    .tile-travel p {
+    .tile-travel p,
+    .tile-resume h2,
+    .tile-resume p {
       position: relative;
       z-index: 1;
       flex-shrink: 0;
@@ -488,6 +524,153 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       pointer-events: none;
     }
 
+    .resume-timeline {
+      flex: 1 1 auto;
+      min-height: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 0.4rem;
+      opacity: 0.92;
+      pointer-events: none;
+    }
+
+    .timeline-line {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 100 / 36;
+      color: rgba(216, 226, 237, 0.4);
+    }
+
+    .timeline-line circle {
+      fill: var(--text-soft);
+      opacity: 0.6;
+    }
+
+    .timeline-pulse {
+      position: absolute;
+      width: 0.55rem;
+      height: 0.55rem;
+      margin: -0.275rem 0 0 -0.275rem;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px 2px rgba(125, 211, 252, 0.65);
+      animation: resume-timeline-travel 5.5s ease-in-out infinite;
+    }
+
+    @keyframes resume-timeline-travel {
+      0% {
+        left: 6%;
+        top: 50%;
+        opacity: 0;
+      }
+      8% {
+        opacity: 1;
+      }
+      16% {
+        left: 24%;
+        top: 27.8%;
+      }
+      34% {
+        left: 42%;
+        top: 66.7%;
+      }
+      52% {
+        left: 60%;
+        top: 33.3%;
+      }
+      70% {
+        left: 78%;
+        top: 61.1%;
+      }
+      88% {
+        left: 94%;
+        top: 44.4%;
+        opacity: 1;
+      }
+      96% {
+        opacity: 0;
+      }
+      100% {
+        left: 6%;
+        top: 50%;
+        opacity: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .timeline-pulse {
+        animation: none;
+        left: 60%;
+        top: 33.3%;
+        opacity: 1;
+      }
+    }
+
+    .stats-bars {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 0.3rem;
+      padding: 0 0.1rem 0.3rem;
+      opacity: 0.85;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .stats-bar {
+      flex: 0 0 auto;
+      width: 0.5rem;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #16a34a, rgba(22, 163, 74, 0.22));
+      transform-origin: bottom;
+      transform: scaleY(0.7);
+      transition: transform 2600ms ease-in-out;
+      will-change: transform;
+    }
+
+    .stats-bar:nth-child(1) {
+      height: 1.8rem;
+    }
+
+    .stats-bar:nth-child(2) {
+      height: 3.2rem;
+    }
+
+    .stats-bar:nth-child(3) {
+      height: 2rem;
+    }
+
+    .stats-bar:nth-child(4) {
+      height: 3.8rem;
+    }
+
+    .stats-bar:nth-child(5) {
+      height: 1.4rem;
+    }
+
+    .stats-bar:nth-child(6) {
+      height: 2.6rem;
+    }
+
+    .stats-bar:nth-child(7) {
+      height: 3.4rem;
+    }
+
+    .stats-bar:nth-child(8) {
+      height: 2.2rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .stats-bar {
+        transition: none;
+      }
+    }
+
     .link-tile h2 {
       margin: 0;
       font-family: var(--font-display);
@@ -501,27 +684,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       color: var(--muted);
       font-size: 0.9rem;
       line-height: 1.55;
-    }
-
-    .placeholder-tile {
-      min-height: 0;
-      padding: 1rem;
-      display: grid;
-      align-content: start;
-    }
-
-    .placeholder-tile:nth-of-type(1) {
-      grid-column: 3;
-      grid-row: 3;
-    }
-
-    .placeholder-tile:nth-of-type(2) {
-      grid-column: 4;
-      grid-row: 3;
-    }
-
-    .placeholder-tile .eyebrow {
-      color: rgba(150, 169, 188, 0.7);
     }
 
     .site-note {
@@ -569,7 +731,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       .tile-travel,
       .tile-projects,
       .tile-about,
-      .placeholder-tile {
+      .tile-resume,
+      .tile-stats {
         grid-column: auto;
         grid-row: auto;
       }
@@ -591,21 +754,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     @media (max-width: 480px) {
-      /* Explicit per-class reset (not just the shared .placeholder-tile selector) --
-         the desktop placement rules for the two placeholder tiles use
-         .placeholder-tile:nth-of-type(n), which is more specific than a bare
-         .placeholder-tile selector. Resetting only the bare class here would lose
-         the specificity battle and leave stale grid-column/grid-row values,
-         producing exactly the phantom implicit-track bug called out in the
-         design handoff. Every real tile class is covered explicitly below. */
       .intro-card,
       .tile-cfb,
       .tile-projects,
       .tile-about,
       .tile-now,
       .tile-travel,
-      .placeholder-tile:nth-of-type(1),
-      .placeholder-tile:nth-of-type(2) {
+      .tile-resume,
+      .tile-stats {
         grid-column: auto;
         grid-row: auto;
       }
@@ -628,8 +784,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         height: 1.1rem;
       }
 
-      .link-tile,
-      .placeholder-tile {
+      .link-tile {
         min-height: 6.5rem;
         padding: 1.1rem;
       }
@@ -890,19 +1045,38 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         return;
       }
 
-      let i = 0;
       let stopped = false;
-      const step = () => {
-        if (stopped || i >= commands.length) {
-          return;
-        }
+      const RESTART_MS = 30000;
 
-        renderLine(commands[i]);
-        i++;
-        setTimeout(step, 750);
+      const runCycle = () => {
+        container.textContent = "";
+        let i = 0;
+        const step = () => {
+          if (stopped || i >= commands.length) {
+            return;
+          }
+
+          renderLine(commands[i]);
+          i++;
+          setTimeout(step, 750);
+        };
+        step();
       };
-      step();
-      document.addEventListener("astro:before-swap", () => (stopped = true), { once: true });
+
+      runCycle();
+      const intervalId = setInterval(() => {
+        if (!stopped) {
+          runCycle();
+        }
+      }, RESTART_MS);
+      document.addEventListener(
+        "astro:before-swap",
+        () => {
+          stopped = true;
+          clearInterval(intervalId);
+        },
+        { once: true }
+      );
     };
 
     // Typing/erasing loop (About tile).
@@ -936,13 +1110,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           c++;
         }
 
-        let delay = deleting ? 45 : 90;
+        let delay = deleting ? 107 : 215;
         if (!deleting && c === full.length + 1) {
-          delay = 1800;
+          delay = 4300;
           deleting = true;
         } else if (deleting && c === 0) {
           deleting = false;
-          delay = 500;
+          delay = 1200;
         }
 
         setTimeout(tick, delay);
@@ -952,8 +1126,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       document.addEventListener("astro:before-swap", () => (stopped = true), { once: true });
     };
 
-    // Network-sim (CFB Rankings tile): 36 nodes, round-robin "circle method"
-    // 1-factorization adds one edge per node every ~3s until each node has 8 edges,
+    // Network-sim (CFB Rankings tile): 68 nodes, round-robin "circle method"
+    // 1-factorization adds one edge per node every ~8s until each node has 11 edges,
     // then resets with fresh random rest-lengths. A simple spring simulation relaxes
     // layout continuously; edge color/thickness scale with distance from rest length.
     const initCfbNetwork = () => {
@@ -967,7 +1141,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         return;
       }
 
-      const N = 36;
+      const N = 68;
       const nodes = Array.from({ length: N }, () => ({ x: Math.random(), y: Math.random(), vx: 0, vy: 0 }));
 
       const buildRounds = () => {
@@ -987,7 +1161,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           players.splice(0, N, fixed, ...rest);
         }
 
-        return rounds.slice(0, 8);
+        return rounds.slice(0, 11);
       };
 
       let edges: { a: number; b: number; rest: number }[] = [];
@@ -1005,14 +1179,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               });
               roundIdx = 0;
               addRound(buildRounds());
-            }, 3200)
+            }, 8000)
           );
           return;
         }
 
         rounds[roundIdx].forEach(([a, b]) => edges.push({ a, b, rest: 0.14 + Math.random() * 0.4 }));
         roundIdx++;
-        timers.push(setTimeout(() => addRound(rounds), 3000));
+        timers.push(setTimeout(() => addRound(rounds), 8000));
       };
 
       let width = 0;
@@ -1144,12 +1318,65 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       frame = requestAnimationFrame(loop);
     };
 
+    // Stats tile: each of the 8 bars re-randomizes its own scale on its own
+    // staggered, slow timer (transform, not height, so the change is a smooth
+    // GPU-composited transition instead of a layout-thrashing reflow).
+    const initStatsBars = () => {
+      const bars = Array.from(document.querySelectorAll("[data-stats-bars] .stats-bar"));
+      if (!bars.length) {
+        return;
+      }
+
+      const randomize = (bar: HTMLElement) => {
+        const scale = 0.32 + Math.random() * 0.75;
+        bar.style.transform = `scaleY(${scale.toFixed(2)})`;
+      };
+
+      bars.forEach((bar) => {
+        if (bar instanceof HTMLElement) {
+          randomize(bar);
+        }
+      });
+
+      if (prefersReducedMotion()) {
+        return;
+      }
+
+      const timers: ReturnType<typeof setTimeout>[] = [];
+
+      bars.forEach((bar) => {
+        if (!(bar instanceof HTMLElement)) {
+          return;
+        }
+
+        const schedule = () => {
+          timers.push(
+            setTimeout(
+              () => {
+                randomize(bar);
+                schedule();
+              },
+              3600 + Math.random() * 2400
+            )
+          );
+        };
+        schedule();
+      });
+
+      document.addEventListener(
+        "astro:before-swap",
+        () => timers.forEach(clearTimeout),
+        { once: true }
+      );
+    };
+
     const initHomeWidgets = () => {
       runWhenIdle(() => void initMiniGlobe());
       runWhenIdle(initNowClock);
       runWhenIdle(initCfbNetwork);
       runWhenIdle(initProjectsTerminal);
       runWhenIdle(initAboutTyping);
+      runWhenIdle(initStatsBars);
     };
 
     // astro:page-load (not DOMContentLoaded) -- this site uses ClientRouter
