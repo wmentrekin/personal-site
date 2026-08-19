@@ -42,52 +42,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       </div>
     </section>
 
-    <section class="info-card reveal glass-card">
-      <h2>Overview</h2>
-      <p class="muted">
-        Agent Skills is a shared workflow framework for AI coding agents, distributed as a single directory (
-        <code>.agents/</code>) that gets imported into any project repo via <code>git subtree</code>. Instead of
-        re-explaining how I want an agent to work every time I start a new project, or maintaining separate,
-        drifting conventions per repo, I built this once as its own canonical repository and pull it into each
-        project I work on, this site included. Every repo that imports it gets the same single entry point,
-        <code>/work</code>, and that command behaves identically whether I'm driving it from Claude Code, OpenAI
-        Codex, or Google Antigravity. Each of those tools discovers the workflow through its own native mechanism
-        (a symlinked skill for Claude Code and Codex, direct file reads for Antigravity), but they're all reading
-        the exact same source of truth, so the underlying behavior never forks across tools.
-      </p>
-      <p class="muted">
-        The core idea is an orchestrator model. A single outward-facing agent owns the conversation with me end to
-        end, but it isn't the one doing most of the actual work. It classifies the request, decides which of
-        four internal stages it's in (discovery, planning, execution, verification), and spawns narrowly-scoped
-        subagents to do the real digging and building. Discovery is handled by research agents that ground
-        everything in actual repo state or current external facts rather than assumption. Execution is routed by
-        domain so there's no single generic "developer" persona; a task gets handed to whichever specialist
-        actually fits it (data engineering, frontend, platform, ML operations, and so on), with an explicit
-        fallback role for anything that doesn't cleanly match. The size of the request matters too: a one-line fix
-        gets handled directly, while anything with real ambiguity or a large surface area gets a durable
-        requirements document, a written plan, and an execution log, all stored as YAML files under
-        <code>docs/&lt;feature&gt;/</code> in the project repo itself, so the state of the work survives context
-        resets and a fresh agent (or a human) can pick up exactly where things left off.
-      </p>
-      <p class="muted">
-        Verification isn't optional or self-reported. Once execution opens a pull request, dedicated reviewer and
-        tester agents run against the real diff and post actual findings as PR review comments, not just a summary
-        in chat. Anywhere the workflow needs to loop back and correct itself, a failed review, a failed
-        test, etc., it's capped at two cycles before it has to stop and hand the decision back to me instead of
-        spinning indefinitely. And before any code changes are ever made, there's a mandatory checkpoint: the
-        agent has to explicitly ask whether to proceed, revise the plan, narrow the scope, or stop. That checkpoint
-        is deliberately placed at the one moment that matters most, before anything is actually built,
-        rather than asking for approval after the fact.
-      </p>
-      <p class="muted">
-        The theme underneath all of this is that I wanted an agent to behave less like a single freeform chat
-        session and more like a small, disciplined engineering team: defined roles, a real paper trail, explicit
-        handoffs between stages, and built-in limits against runaway or unsupervised behavior. Centralizing it as
-        one importable repo also means it actually improves over time, when I refine a convention or fix a
-        gap in the workflow, I update it once and pull the change into every project that uses it, instead of
-        patching the same idea slightly differently across a dozen repos.
-      </p>
-    </section>
+    <p class="construction-note reveal glass-card">
+      <strong>Status</strong>This page is still under construction while I put together a proper writeup. Check back soon.
+    </p>
   </section>
 
   <style>
@@ -224,44 +181,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       margin-right: 0.5rem;
     }
 
-    .info-card {
-      padding: 1.3rem;
-    }
-
-    .info-card h2 {
-      margin: 0 0 0.7rem;
-      font-family: var(--font-display);
-      font-size: 1.55rem;
-      line-height: 1;
-      letter-spacing: -0.03em;
-    }
-
-    .info-card p {
-      margin: 0;
-    }
-
-    .info-card p + p {
-      margin-top: 0.85rem;
-    }
-
-    .info-card code {
-      padding: 0.08rem 0.32rem;
-      border-radius: 0.35rem;
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-soft);
-      font-family: var(--font-mono);
-      font-size: 0.85em;
-    }
-
     @media (max-width: 920px) {
       .project-hero {
         flex-direction: column;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .info-card {
-        padding: 1rem;
       }
     }
   </style>
