@@ -85,17 +85,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </a>
 
       <a class="link-tile glass-card tile-resume reveal" href="/resume">
-        <div class="resume-timeline" aria-hidden="true">
-          <svg class="timeline-line" viewBox="0 0 100 36" preserveAspectRatio="none">
-            <path d="M6,18 L24,10 L42,24 L60,12 L78,22 L94,16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <circle cx="6" cy="18" r="2.4" />
-            <circle cx="24" cy="10" r="2.4" />
-            <circle cx="42" cy="24" r="2.4" />
-            <circle cx="60" cy="12" r="2.4" />
-            <circle cx="78" cy="22" r="2.4" />
-            <circle cx="94" cy="16" r="2.4" />
+        <div class="resume-seal" aria-hidden="true">
+          <svg class="seal-ring" viewBox="0 0 120 120">
+            <defs>
+              <path id="seal-ring-path" d="M60,60 m-48,0 a48,48 0 1,1 96,0 a48,48 0 1,1 -96,0" />
+            </defs>
+            <text><textPath href="#seal-ring-path" startOffset="0">GEORGIA TECH '23 &#183; DATA ENGINEER &#183; </textPath></text>
           </svg>
-          <span class="timeline-pulse"></span>
+          <span class="seal-inner"></span>
+          <span class="seal-outer"></span>
+          <span class="seal-mark">WE</span>
         </div>
         <h2>Resume</h2>
         <p>my professional & academic history</p>
@@ -122,15 +121,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p>where I&apos;ve been</p>
       </a>
       <a class="link-tile glass-card tile-stats reveal" href="/stats">
-        <div class="stats-bars" data-stats-bars aria-hidden="true">
-          <span class="stats-bar"></span>
-          <span class="stats-bar"></span>
-          <span class="stats-bar"></span>
-          <span class="stats-bar"></span>
-          <span class="stats-bar"></span>
-          <span class="stats-bar"></span>
-          <span class="stats-bar"></span>
-          <span class="stats-bar"></span>
+        <div class="signal-bars" aria-hidden="true">
+          {Array.from({ length: 18 }).map(() => <span class="signal-bar" />)}
         </div>
         <h2>Stats</h2>
         <p>personal dashboard</p>
@@ -407,6 +399,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       flex: 1 1 auto;
       min-height: 0;
       width: 100%;
+      height: 100%;
       opacity: 0.55;
       pointer-events: none;
     }
@@ -524,150 +517,204 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       pointer-events: none;
     }
 
-    .resume-timeline {
+    .tile-resume .resume-seal {
       flex: 1 1 auto;
       min-height: 0;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0.5rem 0.4rem;
-      opacity: 0.92;
       pointer-events: none;
     }
 
-    .timeline-line {
-      width: 100%;
-      height: auto;
-      aspect-ratio: 100 / 36;
-      color: rgba(216, 226, 237, 0.4);
-    }
-
-    .timeline-line circle {
-      fill: var(--text-soft);
-      opacity: 0.6;
-    }
-
-    .timeline-pulse {
+    .tile-resume .seal-ring {
       position: absolute;
-      width: 0.55rem;
-      height: 0.55rem;
-      margin: -0.275rem 0 0 -0.275rem;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 8px 2px rgba(125, 211, 252, 0.65);
-      animation: resume-timeline-travel 5.5s ease-in-out infinite;
+      width: 120px;
+      height: 120px;
+      animation: seal-spin 34s linear infinite;
     }
 
-    @keyframes resume-timeline-travel {
-      0% {
-        left: 6%;
-        top: 50%;
-        opacity: 0;
-      }
-      8% {
-        opacity: 1;
-      }
-      16% {
-        left: 24%;
-        top: 27.8%;
-      }
-      34% {
-        left: 42%;
-        top: 66.7%;
-      }
-      52% {
-        left: 60%;
-        top: 33.3%;
-      }
-      70% {
-        left: 78%;
-        top: 61.1%;
-      }
-      88% {
-        left: 94%;
-        top: 44.4%;
-        opacity: 1;
-      }
-      96% {
-        opacity: 0;
-      }
-      100% {
-        left: 6%;
-        top: 50%;
-        opacity: 0;
+    .tile-resume .seal-ring text {
+      font-family: var(--font-mono);
+      font-size: 8.4px;
+      letter-spacing: 3.2px;
+      fill: rgba(150, 169, 188, 0.75);
+    }
+
+    .tile-resume .seal-outer {
+      position: absolute;
+      width: 78px;
+      height: 78px;
+      border-radius: 999px;
+      border: 1px solid rgba(125, 211, 252, 0.35);
+    }
+
+    .tile-resume .seal-inner {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      border-radius: 999px;
+      border: 1px solid rgba(173, 196, 221, 0.18);
+    }
+
+    .tile-resume .seal-mark {
+      position: relative;
+      font-family: var(--font-display);
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--text);
+    }
+
+    @keyframes seal-spin {
+      to {
+        transform: rotate(360deg);
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .timeline-pulse {
+      .tile-resume .seal-ring {
         animation: none;
-        left: 60%;
-        top: 33.3%;
-        opacity: 1;
       }
     }
 
-    .stats-bars {
+    .tile-stats .signal-bars {
       flex: 1 1 auto;
       min-height: 0;
       width: 100%;
+      max-width: 20rem;
+      margin-inline: auto;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: space-between;
-      gap: 0.3rem;
-      padding: 0 0.1rem 0.3rem;
-      opacity: 0.85;
+      gap: 0.18rem;
+      padding: 0 0.1rem 0.35rem;
       pointer-events: none;
       overflow: hidden;
     }
 
-    .stats-bar {
-      flex: 0 0 auto;
-      width: 0.5rem;
+    .tile-stats .signal-bar {
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: 12px;
+      height: 4.6rem;
       border-radius: 999px;
-      background: linear-gradient(180deg, #16a34a, rgba(22, 163, 74, 0.22));
-      transform-origin: bottom;
-      transform: scaleY(0.7);
-      transition: transform 2600ms ease-in-out;
+      background: linear-gradient(
+        180deg,
+        rgba(125, 211, 252, 0.15),
+        rgba(125, 211, 252, 0.75),
+        rgba(125, 211, 252, 0.15)
+      );
+      animation-name: signal-wave;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
       will-change: transform;
     }
 
-    .stats-bar:nth-child(1) {
-      height: 1.8rem;
+    .signal-bar:nth-child(1) {
+      animation-duration: 1.64s;
+      animation-delay: 0.09s;
     }
 
-    .stats-bar:nth-child(2) {
-      height: 3.2rem;
+    .signal-bar:nth-child(2) {
+      animation-duration: 1.77s;
+      animation-delay: 0.18s;
     }
 
-    .stats-bar:nth-child(3) {
-      height: 2rem;
+    .signal-bar:nth-child(3) {
+      animation-duration: 1.91s;
+      animation-delay: 0.27s;
     }
 
-    .stats-bar:nth-child(4) {
-      height: 3.8rem;
+    .signal-bar:nth-child(4) {
+      animation-duration: 2.05s;
+      animation-delay: 0.36s;
     }
 
-    .stats-bar:nth-child(5) {
-      height: 1.4rem;
+    .signal-bar:nth-child(5) {
+      animation-duration: 2.19s;
+      animation-delay: 0.45s;
     }
 
-    .stats-bar:nth-child(6) {
-      height: 2.6rem;
+    .signal-bar:nth-child(6) {
+      animation-duration: 2.32s;
+      animation-delay: 0.54s;
     }
 
-    .stats-bar:nth-child(7) {
-      height: 3.4rem;
+    .signal-bar:nth-child(7) {
+      animation-duration: 2.46s;
+      animation-delay: 0.63s;
     }
 
-    .stats-bar:nth-child(8) {
-      height: 2.2rem;
+    .signal-bar:nth-child(8) {
+      animation-duration: 1.6s;
+      animation-delay: 0.72s;
+    }
+
+    .signal-bar:nth-child(9) {
+      animation-duration: 1.73s;
+      animation-delay: 0.81s;
+    }
+
+    .signal-bar:nth-child(10) {
+      animation-duration: 1.87s;
+      animation-delay: 0.9s;
+    }
+
+    .signal-bar:nth-child(11) {
+      animation-duration: 2.01s;
+      animation-delay: 0.99s;
+    }
+
+    .signal-bar:nth-child(12) {
+      animation-duration: 2.14s;
+      animation-delay: 1.08s;
+    }
+
+    .signal-bar:nth-child(13) {
+      animation-duration: 2.28s;
+      animation-delay: 0s;
+    }
+
+    .signal-bar:nth-child(14) {
+      animation-duration: 2.42s;
+      animation-delay: 0.06s;
+    }
+
+    .signal-bar:nth-child(15) {
+      animation-duration: 1.56s;
+      animation-delay: 0.15s;
+    }
+
+    .signal-bar:nth-child(16) {
+      animation-duration: 1.69s;
+      animation-delay: 0.24s;
+    }
+
+    .signal-bar:nth-child(17) {
+      animation-duration: 1.83s;
+      animation-delay: 0.33s;
+    }
+
+    .signal-bar:nth-child(18) {
+      animation-duration: 1.97s;
+      animation-delay: 0.42s;
+    }
+
+    @keyframes signal-wave {
+      0%,
+      100% {
+        transform: scaleY(0.22);
+      }
+      50% {
+        transform: scaleY(1);
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .stats-bar {
-        transition: none;
+      .tile-stats .signal-bar {
+        animation: none;
+        transform: scaleY(0.62);
       }
     }
 
@@ -741,6 +788,21 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         position: static;
         padding-top: 0.15rem;
       }
+
+      .link-tile {
+        height: 13rem;
+        min-height: 13rem;
+      }
+
+      .tile-resume .resume-seal,
+      .tile-stats .signal-bars {
+        min-height: 0;
+      }
+
+      .cfb-network {
+        flex: 0 0 auto;
+        height: 6.5rem;
+      }
     }
 
     @media (max-width: 720px) {
@@ -785,7 +847,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
 
       .link-tile {
-        min-height: 6.5rem;
+        min-height: 13rem;
         padding: 1.1rem;
       }
     }
@@ -1191,10 +1253,26 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
       let width = 0;
       let height = 0;
+      let lastClientWidth = -1;
+      let lastClientHeight = -1;
 
       const resize = () => {
-        width = canvas.clientWidth;
-        height = canvas.clientHeight;
+        const clientWidth = canvas.clientWidth;
+        const clientHeight = canvas.clientHeight;
+        // Belt-and-braces guard: the canvas's `height` attribute is derived from
+        // `clientHeight` below, and on mobile (auto-height tile, no CSS height)
+        // that attribute can itself feed back into `clientHeight` via layout,
+        // creating a resize -> attribute -> resize loop on high-DPR devices. The
+        // CSS height pins above are the real fix; this bails out if a resize
+        // fires without the measured size actually changing.
+        if (clientWidth === lastClientWidth && clientHeight === lastClientHeight) {
+          return;
+        }
+        lastClientWidth = clientWidth;
+        lastClientHeight = clientHeight;
+
+        width = clientWidth;
+        height = clientHeight;
         const ratio = window.devicePixelRatio || 1;
 
         canvas.width = Math.round(width * ratio);
@@ -1318,65 +1396,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       frame = requestAnimationFrame(loop);
     };
 
-    // Stats tile: each of the 8 bars re-randomizes its own scale on its own
-    // staggered, slow timer (transform, not height, so the change is a smooth
-    // GPU-composited transition instead of a layout-thrashing reflow).
-    const initStatsBars = () => {
-      const bars = Array.from(document.querySelectorAll("[data-stats-bars] .stats-bar"));
-      if (!bars.length) {
-        return;
-      }
-
-      const randomize = (bar: HTMLElement) => {
-        const scale = 0.32 + Math.random() * 0.75;
-        bar.style.transform = `scaleY(${scale.toFixed(2)})`;
-      };
-
-      bars.forEach((bar) => {
-        if (bar instanceof HTMLElement) {
-          randomize(bar);
-        }
-      });
-
-      if (prefersReducedMotion()) {
-        return;
-      }
-
-      const timers: ReturnType<typeof setTimeout>[] = [];
-
-      bars.forEach((bar) => {
-        if (!(bar instanceof HTMLElement)) {
-          return;
-        }
-
-        const schedule = () => {
-          timers.push(
-            setTimeout(
-              () => {
-                randomize(bar);
-                schedule();
-              },
-              3600 + Math.random() * 2400
-            )
-          );
-        };
-        schedule();
-      });
-
-      document.addEventListener(
-        "astro:before-swap",
-        () => timers.forEach(clearTimeout),
-        { once: true }
-      );
-    };
-
     const initHomeWidgets = () => {
       runWhenIdle(() => void initMiniGlobe());
       runWhenIdle(initNowClock);
       runWhenIdle(initCfbNetwork);
       runWhenIdle(initProjectsTerminal);
       runWhenIdle(initAboutTyping);
-      runWhenIdle(initStatsBars);
     };
 
     // astro:page-load (not DOMContentLoaded) -- this site uses ClientRouter
