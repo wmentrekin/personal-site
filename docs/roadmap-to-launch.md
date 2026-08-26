@@ -2,15 +2,23 @@
 
 Reference doc, not a `$work` feature — no `status.yaml`/`requirements.yaml` tracking. Update this file directly as phases complete or plans change.
 
-Last updated: 2026-08-16
+Last updated: 2026-08-24
 
 ## Where things stand
 
 - Design handoff (desktop): **merged** (PR #1). All 7 pages match the locked design.
 - CFB Rankings artifact pipeline: **done and live**. Real 2025/2026 data renders on the Rankings page, sourced from R2 at build time, the weekly cron auto-triggers a rebuild after each publish, and it can no longer publish a bogus pre-season "Week 0" artifact.
-- Mobile: **merged** (PR #2), but a real device pass found real breakage — see Phase 2 below. A second, targeted mobile fix-up design pass is planned (user-led).
-- Rankings table desktop styling: **merged** (cfb-rankings PR #3, personal-site PR #3, 2026-08-16). Column alignment, team logos, standardized conference names, row separation. See Phase 1 note below.
+- Mobile: **merged** (PR #2). Home page mobile fix-up (CFB tile runaway-canvas-height bug, uniform stacked-tile height, resume/stats widget redesign) done via PR #14 — see Phase 2 below. Rankings table mobile layout and the Travel page mobile pass are still open, deferred items (not currently tracked on an open branch).
+- Rankings table desktop styling: **merged** (cfb-rankings PR #3, personal-site PR #3), plus two follow-up fixes: week/season selector (#4) and post-switch row styling (#6).
+- Content pass (About/Home/Now/project copy): **merged** (#5). Home tile title + project-page spacing fixes: **merged** (#7).
+- Home tile reorder + resume org logos + resume timeline uniform slots: **merged** (#8).
+- Home page design update (resume "credential seal", stats "signal waveform", CFB mobile fix, uniform tile height): **open** (#14), visually confirmed by user, ready to merge.
+- Remaining pre-launch work is 5 open content/build PRs (#9–#13) — see Phase 3 below.
 - Domain: not registered. `astro.config.mjs` still has the placeholder `site: "https://example.com"`.
+
+## Launch sequencing
+
+Once every currently-open PR (#9–#14) is merged, the site is content-complete and we move straight to Phase 5: register the domain, attach it to Cloudflare Pages, and launch.
 
 ## Phase 1 — Finish the CFB Rankings migration ✅ done (2026-08-12)
 
@@ -24,24 +32,31 @@ Last updated: 2026-08-16
 
 **Rankings table styling: ✅ done (2026-08-16).** cfb-rankings PR #3 added a `logo` field (dark/32px CFBD logo, resolved by URL substring match, not positional indexing) and standardized `conference` display names (11-value mapping) to the artifact; also fixed a real bug found along the way — the pipeline could publish a "Week 0" artifact before any games were played, now permanently guarded against in `main.py` regardless of how it's invoked. personal-site PR #3 consumed those fields: per-column alignment, team logos rendered next to team names (both on initial load and the season/week switcher), and a row-separation redesign. Desktop-only — the table's **mobile stacked-card layout is still deferred**, see Phase 2's punch list below.
 
-## Phase 2 — Mobile design + implementation ✅ merged (2026-08-14), fix-up pass pending
+## Phase 2 — Mobile design + implementation ✅ merged (2026-08-14), fix-up pass done pending merge (#14)
 
 Same pattern as the desktop redesign: a separate Claude design session produced the mobile design (`Personal Site Design.zip`), a `$work` large-initiative build session implemented it. See `docs/design-handoff-mobile-2026-08/`.
 
 - PR: [#2](https://github.com/wmentrekin/personal-site/pull/2) — merged, branch deleted. Reviewer + tester subagent passes both completed before merge (1 required fix found and applied: a widget cleanup gap under `prefers-reduced-motion`). All validation at merge time was structural (build output, source inspection) — no browser was available to any agent.
 - Shipped: phone-tier (~480px) responsive breakpoints + 44px touch targets across About, Now, Election Model, Methodology, CFB Rankings (hero/panel only), Travel (best-effort, no mockup provided), and the Home grid. 4 new project pages (Agent Skills, Chronicle, CBB Rankings, Grizzlies Asset Lineage) as placeholder "under construction" pages, linked from a resynced Projects hub. 5 new Home-tile live-preview widgets (mini-globe, clock, terminal, typing effect, network-sim), all gated on `prefers-reduced-motion` and wired to this site's View Transitions lifecycle (`astro:page-load`/`astro:before-swap`), not the more common but wrong-for-this-site `DOMContentLoaded`/`pagehide`.
-- **Real device pass (2026-08-16): mobile is broken.** User confirmed via an actual device pass — no specifics captured yet on which pages/widgets. User is doing a second, targeted design pass themselves to fix it.
-- **Punch list for that pass** (known gaps, not yet diagnosed specifics):
-  - Whatever the real device pass actually found — not yet detailed in this doc, ask the user or check back once they've scoped it.
+- **Real device pass (2026-08-16) found real breakage.** A second, targeted Claude Design session (`Personal Site Design.zip`) produced fixes, implemented on branch `home-page` (PR #14, 2026-08-24): the CFB tile's runaway-canvas-height bug on mobile/high-DPR, uniform `13rem` height for all stacked link-tiles below the 1140px breakpoint, and a full redesign of the Resume and Stats home-tile widgets (credential-seal / signal-waveform). Visually confirmed by user — ready to merge.
+- **Still open, not currently tracked on a branch:**
   - The Rankings table's mobile "stacked card" layout is **still deferred** — was explicitly out of scope for both PR #2 and the Rankings styling work (Phase 1 note above). `RankingsTable.astro` has no responsive breakpoints at all right now.
-  - Travel page only ever got a "best-effort" mobile pass with no mockup (PR #2) — worth a real design look now that a device pass has happened.
-  - The 5 Home-tile widgets were never visually verified before PR #2 merged (no browser available) — worth explicit attention during this pass given they're the newest/most complex client-side code on the site.
+  - Travel page only ever got a "best-effort" mobile pass with no mockup (PR #2) — worth a real design look at some point.
+  - Neither is blocking launch; revisit post-launch as their own quick-fix or bounded-feature work.
 
-## Phase 3 — Page freeze
+## Phase 3 — Content punch list (pre-launch)
 
-Not an action, a checkpoint: once Phases 1–2 land, the site's structure and design are locked. Remaining changes are manual content edits you make yourself (Now-page entries, project copy, etc.) — small enough not to need a full planning cycle each time, though I'm happy to help with any of them as quick fixes.
+Structure and design are locked (Phases 1–2 done). What's left before launch is content for pages that are still under-construction placeholders, each tracked on its own open PR:
 
-**In progress (2026-08-16):** user is editing page copy directly on branch `content/text-edits-2026-08` (personal-site) — PR to be opened once the edits are done.
+| PR | Page | Status |
+|---|---|---|
+| [#9](https://github.com/wmentrekin/personal-site/pull/9) | Now page entry (2026-08-19) | Scaffold added, needs real content written (Work/Health/Personal Projects/Connections) — last entry is stale (3/15/26). |
+| [#10](https://github.com/wmentrekin/personal-site/pull/10) | Agent Skills project page | Needs write-up drafted; may get its own Claude Design pass. |
+| [#11](https://github.com/wmentrekin/personal-site/pull/11) | Resume page content | Needs a Claude Design session, then rebuild `resume.astro` from placeholder. |
+| [#12](https://github.com/wmentrekin/personal-site/pull/12) | Grizzlies Asset Lineage project page | Blocked on the underlying [nba-asset-lineage](https://github.com/wmentrekin/nba-asset-lineage) data/viz work landing first. |
+| [#13](https://github.com/wmentrekin/personal-site/pull/13) | Personal Stats dashboard page | Needs ideation (what to track) + design before building `stats.astro`. |
+
+None of these are close to a quick merge — most need content/ideation/design work done first, not just a review pass. #12 in particular is gated on external repo progress. Once all 5 are merged, move to Phase 5.
 
 ## Phase 4 — Resilience & security hardening
 
