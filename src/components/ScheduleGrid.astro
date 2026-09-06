@@ -1,0 +1,466 @@
+---
+// Season Grid: conference-grouped, color-coded team-by-week schedule table (T9).
+//
+// Consumes the schedule artifact contract exactly as T4b publishes it (see
+// docs/schedule-grid/plan.yaml contracts.interfaces in the cfb-rankings repo) --
+// conferences[] is already in fixed display order, conferences[].name is already
+// the display name, teams[] within a conference is already standings-sorted, and
+// weeks[] is already the canonical, identical-across-teams column list. This
+// component renders that structure; it never re-derives/re-sorts/re-maps any of it.
+//
+// This is the server-rendered (build-time) counterpart to the client-side
+// `renderScheduleGrid()` mirror in index.astro's inline script, which rebuilds
+// this exact markup via document.createElement when the page-level season
+// selector changes while the Season Grid tab is active -- see that script's
+// comment block for why the logic is duplicated rather than shared (same
+// reason RankingsTable.astro's renderRows() is duplicated there today: a
+// client-rebuilt table's elements never carry Astro's scoped data-astro-cid-*
+// attribute, so this component's own <style> must be `is:global`).
+//
+// Missing-logo convention: identical to RankingsTable.astro (DO NOT modify that
+// file) -- if a logo URL exists, render the <img>; if null/missing, render no
+// image at all. No placeholder-initial badge (confirmed there is no precedent
+// for one anywhere in this codebase).
+
+interface WeekCell {
+  slot_id: string;
+  label: string;
+  season_type: string | null;
+  opponent: string | null;
+  opponent_logo_url: string | null;
+  conditional_opponent: string | null;
+  game_name: string | null;
+  home_away: "home" | "away" | null;
+  neutral_site: boolean;
+  status: string;
+  team_score: number | null;
+  opp_score: number | null;
+}
+
+interface TeamEntry {
+  team: string;
+  logo_url: string | null;
+  record: { wins: number; losses: number };
+  conf_record: { wins: number; losses: number } | null;
+  weeks: WeekCell[];
+}
+
+interface ConferenceEntry {
+  name: string;
+  teams: TeamEntry[];
+}
+
+export interface SchedulePayload {
+  season: number;
+  generated_at_utc: string;
+  conferences: ConferenceEntry[];
+}
+
+interface Props {
+  data: SchedulePayload | null;
+}
+
+const { data } = Astro.props;
+
+type CellView = {
+  className: string;
+  gameName: string | null;
+  kind: "game" | "muted" | "blank";
+  logo: string | null;
+  opponentText: string | null;
+  badge: "W" | "L" | null;
+  scoreText: string | null;
+  mutedText: string | null;
+};
+
+// Mirrored 1:1 by buildCellNode() in index.astro's client script.
+function opponentLabel(cell: WeekCell): string {
+  const prefix = cell.home_away === "away" ? "@" : "vs";
+  const suffix = cell.neutral_site ? "*" : "";
+  return `${prefix} ${cell.opponent}${suffix}`;
+}
+
+// Mirrored 1:1 by statusMutedText() in index.astro's client script.
+function statusMutedText(cell: WeekCell): string {
+  switch (cell.status) {
+    case "tbd":
+    case "clinched":
+      return "vs TBD";
+    case "possible":
+      return cell.conditional_opponent ? `possible vs ${cell.conditional_opponent}` : "possible";
+    case "eliminated":
+      return "eliminated";
+    case "eligible":
+      return "bowl eligible";
+    case "ineligible":
+      return "bowl ineligible";
+    default:
+      return "";
+  }
+}
+
+// Mirrored 1:1 by cellClassName() in index.astro's client script.
+function cellClassName(status: string): string {
+  if (status === "win") return "sg-cell sg-cell--win";
+  if (status === "loss") return "sg-cell sg-cell--loss";
+  if (status === "upcoming") return "sg-cell sg-cell--upcoming";
+  if (status === "bye") return "sg-cell sg-cell--bye";
+  return "sg-cell sg-cell--muted";
+}
+
+// Mirrored 1:1 by buildCellView() in index.astro's client script. status drives
+// every branch here (never string-matching rendered text), per the handoff --
+// e.g. 'tbd' and 'clinched' both render "vs TBD" but stay separate status checks.
+function buildCellView(cell: WeekCell): CellView {
+  const className = cellClassName(cell.status);
+  const gameName = cell.game_name;
+
+  if (cell.status === "win" || cell.status === "loss") {
+    return {
+      className,
+      gameName,
+      kind: "game",
+      logo: cell.opponent_logo_url,
+      opponentText: opponentLabel(cell),
+      badge: cell.status === "win" ? "W" : "L",
+      scoreText: `${cell.team_score}-${cell.opp_score}`,
+      mutedText: null,
+    };
+  }
+
+  if (cell.status === "upcoming") {
+    return {
+      className,
+      gameName,
+      kind: "game",
+      logo: cell.opponent_logo_url,
+      opponentText: opponentLabel(cell),
+      badge: null,
+      scoreText: null,
+      mutedText: null,
+    };
+  }
+
+  if (cell.status === "bye") {
+    return { className, gameName, kind: "blank", logo: null, opponentText: null, badge: null, scoreText: null, mutedText: null };
+  }
+
+  // tbd / clinched / possible / eliminated / eligible / ineligible
+  return {
+    className,
+    gameName,
+    kind: "muted",
+    logo: null,
+    opponentText: null,
+    badge: null,
+    scoreText: null,
+    mutedText: statusMutedText(cell),
+  };
+}
+
+// Mirrored 1:1 by formatRecord() in index.astro's client script. conf_record is
+// null for Independents -- overall record only, no ", 0-0 XXX" suffix.
+function formatRecord(team: TeamEntry, confName: string): string {
+  const { wins, losses } = team.record;
+  if (team.conf_record) {
+    return `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} ${confName}`;
+  }
+  return `${wins}-${losses}`;
+}
+
+// The canonical column list is identical across every team in the payload --
+// build it from the first team of the first conference, never recomputed.
+const columns: Array<{ slot_id: string; label: string }> =
+  data?.conferences[0]?.teams[0]?.weeks.map((w) => ({ slot_id: w.slot_id, label: w.label })) ?? [];
+---
+
+<div class="schedule-grid-shell" id="schedule-grid-shell">
+  {data && columns.length > 0 ? (
+    <table id="schedule-grid-table">
+      <thead>
+        <tr>
+          <th class="sg-th sg-corner">Team</th>
+          {columns.map((col) => (
+            <th class="sg-th">{col.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {data.conferences.map((conf) => (
+          <>
+            <tr class="sg-conf-row">
+              <th class="sg-conf-header sg-conf-header--sticky">{conf.name}</th>
+              <th class="sg-conf-header" colspan={columns.length}></th>
+            </tr>
+            {conf.teams.map((team) => (
+              <tr>
+                <td class="sg-team-col">
+                  <span class="sg-team-cell">
+                    {team.logo_url ? (
+                      <img class="sg-team-logo" src={team.logo_url} alt="" loading="lazy" decoding="async" />
+                    ) : null}
+                    <span class="sg-team-name-block">
+                      <span class="sg-team-name">{team.team}</span>
+                      <span class="sg-team-record">{formatRecord(team, conf.name)}</span>
+                    </span>
+                  </span>
+                </td>
+                {team.weeks.map((cell) => {
+                  const view = buildCellView(cell);
+                  return (
+                    <td class={view.className}>
+                      {view.gameName ? <span class="sg-game-name">{view.gameName}</span> : null}
+                      {view.kind === "game" ? (
+                        <span class="sg-game-body">
+                          {view.logo ? (
+                            <img class="sg-opp-logo" src={view.logo} alt="" loading="lazy" decoding="async" />
+                          ) : null}
+                          <span class="sg-opp-text">{view.opponentText}</span>
+                          {view.badge ? (
+                            <span class={`sg-badge sg-badge--${view.badge.toLowerCase()}`}>{view.badge}</span>
+                          ) : null}
+                          {view.scoreText ? <span class="sg-score">{view.scoreText}</span> : null}
+                        </span>
+                      ) : null}
+                      {view.kind === "muted" ? <span class="sg-muted-text">{view.mutedText}</span> : null}
+                      {view.kind === "blank" ? (
+                        <span class="sg-blank" aria-hidden="true">
+                          —
+                        </span>
+                      ) : null}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </>
+        ))}
+      </tbody>
+    </table>
+  ) : (
+    <div class="sg-empty">
+      <p>Season Grid data isn't available for this selection yet.</p>
+    </div>
+  )}
+</div>
+
+<style is:global>
+  /*
+    Global, not scoped: the season selector rebuilds this entire table client-side
+    via document.createElement on a season change (see index.astro), and those
+    elements never get Astro's scoped data-astro-cid-* attribute -- scoped
+    selectors would silently stop matching the moment a user changes season.
+    Mirrors RankingsTable.astro's own is:global rationale exactly.
+  */
+  .schedule-grid-shell {
+    overflow: auto;
+    max-height: 70vh;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .sg-empty {
+    padding: 1.5rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  #schedule-grid-table {
+    width: 100%;
+    min-width: 64rem;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  #schedule-grid-table th,
+  #schedule-grid-table td {
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: left;
+    white-space: nowrap;
+    font-size: 0.82rem;
+  }
+
+  /* Sticky header row. */
+  .sg-th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: rgba(10, 15, 20, 0.96);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* Sticky corner cell: both top AND left, above every other sticky layer, with
+     its own explicit opaque background so scrolled content never bleeds through
+     the intersection -- no existing component in this codebase combines both. */
+  .sg-corner {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    background: rgba(10, 15, 20, 0.98);
+  }
+
+  .sg-conf-row .sg-conf-header {
+    background: rgba(125, 211, 252, 0.08);
+    color: var(--text);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: normal;
+  }
+
+  /* The conference-name cell is ALSO sticky-left (same tier as .sg-team-col below it),
+     with the same background as the rest of the row -- otherwise, once the grid is
+     scrolled horizontally, the sticky corner/column's own opaque background would show
+     through where this row's first cell used to be, creating a visible color seam. */
+  .sg-conf-header--sticky {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  /* Sticky first column (team name/logo/record) for every data row. */
+  .sg-team-col {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: rgba(16, 23, 32, 0.98);
+    min-width: 13rem;
+    max-width: 13rem;
+    white-space: normal;
+  }
+
+  .sg-team-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .sg-team-logo {
+    width: 1.35rem;
+    height: 1.35rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .sg-team-name-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  .sg-team-name {
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .sg-team-record {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+  }
+
+  /* Cell status coloring -- full-cell background on every played game, not
+     alternating rows (a real CSS-specificity bug in the original mockup that
+     must not be reintroduced). */
+  .sg-cell--win {
+    background: var(--schedule-win-bg);
+    color: var(--schedule-win-text);
+  }
+
+  .sg-cell--loss {
+    background: var(--schedule-loss-bg);
+    color: var(--schedule-loss-text);
+  }
+
+  .sg-cell--upcoming {
+    background: transparent;
+    color: var(--text-soft);
+  }
+
+  .sg-cell--bye {
+    background: transparent;
+  }
+
+  .sg-cell--muted {
+    background: transparent;
+  }
+
+  .sg-game-name {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: inherit;
+    opacity: 0.85;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: normal;
+  }
+
+  .sg-game-body {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .sg-opp-logo {
+    width: 1.05rem;
+    height: 1.05rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .sg-opp-text {
+    font-family: var(--font-mono);
+  }
+
+  .sg-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .sg-score {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+
+  .sg-muted-text {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.76rem;
+    white-space: normal;
+  }
+
+  .sg-blank {
+    color: var(--muted);
+    opacity: 0.35;
+  }
+
+  /* Only tint the cell types with no status-driven background of their own --
+     win/loss keep their solid highlight, and the sticky team column keeps its
+     own opaque background regardless of hover, so it never looks translucent
+     while other content scrolls underneath it. */
+  tbody tr:hover td.sg-cell--upcoming,
+  tbody tr:hover td.sg-cell--bye,
+  tbody tr:hover td.sg-cell--muted {
+    background-color: rgba(125, 211, 252, 0.05);
+  }
+</style>

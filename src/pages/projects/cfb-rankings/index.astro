@@ -2,6 +2,7 @@
 import { readFileSync } from "node:fs";
 
 import RankingsTable from "../../../components/RankingsTable.astro";
+import ScheduleGrid from "../../../components/ScheduleGrid.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 
 interface SeasonEntry {
@@ -33,6 +34,48 @@ interface WeekPayload {
   rankings: RankingRow[];
 }
 
+interface ScheduleIndex {
+  generated_at_utc: string;
+  latest_season: number;
+  seasons: number[];
+}
+
+// Mirrors ScheduleGrid.astro's own Props type -- see that file for the field-by-field
+// contract notes (this is T4b's actual JSON output, treated as a fixed contract).
+interface WeekCell {
+  slot_id: string;
+  label: string;
+  season_type: string | null;
+  opponent: string | null;
+  opponent_logo_url: string | null;
+  conditional_opponent: string | null;
+  game_name: string | null;
+  home_away: "home" | "away" | null;
+  neutral_site: boolean;
+  status: string;
+  team_score: number | null;
+  opp_score: number | null;
+}
+
+interface TeamEntry {
+  team: string;
+  logo_url: string | null;
+  record: { wins: number; losses: number };
+  conf_record: { wins: number; losses: number } | null;
+  weeks: WeekCell[];
+}
+
+interface ConferenceEntry {
+  name: string;
+  teams: TeamEntry[];
+}
+
+interface SchedulePayload {
+  season: number;
+  generated_at_utc: string;
+  conferences: ConferenceEntry[];
+}
+
 function padWeek(week: number): string {
   return String(week).padStart(2, "0");
 }
@@ -56,7 +99,10 @@ function readJsonSafe<T>(url: URL): T | null {
 const indexPath = new URL("../../../public/data/cfb/index.json", import.meta.url);
 const rankingsIndex = readJsonSafe<RankingsIndex>(indexPath);
 
-const seasonsForClient = rankingsIndex
+const scheduleIndexPath = new URL("../../../public/data/cfb/schedule/index.json", import.meta.url);
+const scheduleIndex = readJsonSafe<ScheduleIndex>(scheduleIndexPath);
+
+const rankingsSeasonsForClient = rankingsIndex
   ? [...rankingsIndex.seasons]
       .sort((a, b) => b.season - a.season)
       .map((entry) => ({
@@ -65,17 +111,32 @@ const seasonsForClient = rankingsIndex
       }))
   : [];
 
-const latestSeason = rankingsIndex?.latest_season ?? null;
+// Page-level season list (shared by both tabs, per key_decisions): the union of every season
+// either artifact has data for. In practice both are published by the same pipeline run, but
+// they're two independent artifacts -- a season missing from one side just falls back to that
+// tab's own empty state rather than being excluded from the selector entirely.
+const seasonsForClient = [
+  ...new Set([
+    ...rankingsSeasonsForClient.map((entry) => entry.season),
+    ...(scheduleIndex?.seasons ?? [])
+  ])
+].sort((a, b) => b - a);
+
 const latestWeek = rankingsIndex?.latest_week ?? null;
+const preferredDefaultSeason = rankingsIndex?.latest_season ?? scheduleIndex?.latest_season ?? null;
+const defaultSeason =
+  preferredDefaultSeason !== null && seasonsForClient.includes(preferredDefaultSeason)
+    ? preferredDefaultSeason
+    : (seasonsForClient[0] ?? null);
 
 const weeksForLatestSeason =
-  seasonsForClient.find((entry) => entry.season === latestSeason)?.weeks ?? [];
+  rankingsSeasonsForClient.find((entry) => entry.season === defaultSeason)?.weeks ?? [];
 
 const weekPayload =
-  latestSeason !== null && latestWeek !== null
+  defaultSeason !== null && latestWeek !== null
     ? readJsonSafe<WeekPayload>(
         new URL(
-          `../../../public/data/cfb/${latestSeason}/week-${padWeek(latestWeek)}.json`,
+          `../../../public/data/cfb/${defaultSeason}/week-${padWeek(latestWeek)}.json`,
           import.meta.url
         )
       )
@@ -92,6 +153,16 @@ const rows =
   ]) ?? [];
 
 const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
+
+const schedulePayload =
+  defaultSeason !== null
+    ? readJsonSafe<SchedulePayload>(
+        new URL(`../../../public/data/cfb/schedule/${defaultSeason}/latest.json`, import.meta.url)
+      )
+    : null;
+
+const hasScheduleData = scheduleIndex !== null && schedulePayload !== null;
+const hasAnyData = hasRankingsData || hasScheduleData;
 ---
 
 <BaseLayout title="CFB Rankings Project | Wyatt Entrekin">
@@ -133,32 +204,61 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
     </section>
 
     <section class="rankings-panel reveal glass-card">
-      {hasRankingsData ? (
+      {hasAnyData ? (
         <>
           <div class="panel-head">
-            <h2>FBS College Football Rankings</h2>
-            <div class="panel-filters">
-              <select class="filter-select" id="season-select" aria-label="Season">
-                {
-                  seasonsForClient.map((entry) => (
-                    <option value={entry.season} selected={entry.season === latestSeason}>
-                      {entry.season}
-                    </option>
-                  ))
-                }
-              </select>
-              <select class="filter-select" id="week-select" aria-label="Week">
-                {
-                  weeksForLatestSeason.map((week) => (
-                    <option value={week} selected={week === latestWeek}>
-                      Week {week}
-                    </option>
-                  ))
-                }
-              </select>
+            <h2 id="panel-title">FBS College Football Rankings</h2>
+            <div class="panel-controls">
+              <div class="tab-switch" id="view-tab-switch">
+                <span class="tab-switch-label is-active" data-tab-label="rankings">Rankings</span>
+                <button
+                  type="button"
+                  class="tab-switch-control"
+                  id="tab-switch-control"
+                  role="switch"
+                  aria-checked="false"
+                  aria-label="Switch between Rankings and Season Grid views"
+                >
+                  <span class="tab-switch-thumb"></span>
+                </button>
+                <span class="tab-switch-label" data-tab-label="schedule">Season Grid</span>
+              </div>
+              <div class="panel-filters">
+                <select class="filter-select" id="season-select" aria-label="Season">
+                  {
+                    seasonsForClient.map((season) => (
+                      <option value={season} selected={season === defaultSeason}>
+                        {season}
+                      </option>
+                    ))
+                  }
+                </select>
+                <select class="filter-select" id="week-select" aria-label="Week">
+                  {
+                    weeksForLatestSeason.map((week) => (
+                      <option value={week} selected={week === latestWeek}>
+                        Week {week}
+                      </option>
+                    ))
+                  }
+                </select>
+              </div>
             </div>
           </div>
-          <RankingsTable headers={["Rank", "Team", "Conference", "Record", "Rating", "Delta"]} rows={rows} />
+
+          <div id="rankings-tab-panel" class="tab-panel">
+            {hasRankingsData ? (
+              <RankingsTable headers={["Rank", "Team", "Conference", "Record", "Rating", "Delta"]} rows={rows} />
+            ) : (
+              <div class="panel-empty">
+                <p>Rankings data isn't available for this selection yet.</p>
+              </div>
+            )}
+          </div>
+
+          <div id="schedule-tab-panel" class="tab-panel" hidden>
+            <ScheduleGrid data={schedulePayload} />
+          </div>
         </>
       ) : (
         <div class="panel-empty">
@@ -329,9 +429,79 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
       font-size: 0.9rem;
     }
 
+    .panel-controls {
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+      flex-wrap: wrap;
+    }
+
     .panel-filters {
       display: flex;
       gap: 0.55rem;
+    }
+
+    /* iOS-style tab switch (T7 tokens: --tab-switch-track-on/-off/-thumb).
+       A single oval track with a circular thumb that slides via CSS transform --
+       NOT a two-button pill pair. Defaults to Rankings (off/left). */
+    .tab-switch {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .tab-switch-label {
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: color 180ms ease;
+    }
+
+    .tab-switch-label.is-active {
+      color: var(--text);
+    }
+
+    .tab-switch-control {
+      position: relative;
+      flex-shrink: 0;
+      width: 2.75rem;
+      height: 1.5rem;
+      padding: 0.15rem;
+      border: none;
+      border-radius: 999px;
+      background: var(--tab-switch-track-off);
+      cursor: pointer;
+      transition: background-color 180ms ease;
+    }
+
+    .tab-switch-control:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .tab-switch-control.is-on {
+      background: var(--tab-switch-track-on);
+    }
+
+    .tab-switch-thumb {
+      display: block;
+      width: 1.2rem;
+      height: 1.2rem;
+      border-radius: 50%;
+      background: var(--tab-switch-thumb);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+      transition: transform 180ms ease;
+    }
+
+    .tab-switch-control.is-on .tab-switch-thumb {
+      transform: translateX(1.25rem);
+    }
+
+    .tab-panel[hidden] {
+      display: none;
     }
 
     .filter-select {
@@ -399,22 +569,61 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
     }
   </style>
 
-  <script is:inline define:vars={{ seasonsForClient, latestSeason }}>
+  <script
+    is:inline
+    define:vars={{
+      rankingsSeasonsForClient,
+      defaultSeason,
+      initialScheduleSeason: defaultSeason
+    }}
+  >
     // This site uses Astro's ClientRouter (View Transitions) for same-document navigation.
     // A bare top-level inline script only runs on the initial hard page load, not on
     // subsequent client-side transitions into this page -- so wire everything up inside
     // astro:page-load (fires on first load AND every transition into this page), matching
     // BaseLayout.astro's reveal-on-scroll script and the Home page's widget init pattern.
+    //
+    // Restructured for T9: this used to drive only the Rankings table's season/week re-fetch.
+    // It now also owns the page-level Rankings/Season Grid tab switch and the Season Grid's
+    // own client-side season re-fetch. Per key_decisions, there is ONE shared season selector
+    // (not duplicated per tab); the week selector stays Rankings-only and is hidden/disabled
+    // whenever Season Grid is active, since Season Grid has no week concept at all -- it always
+    // shows schedule/{season}/latest.json's full cumulative state.
+    //
+    // The Season Grid render logic below (opponentLabel/statusMutedText/cellClassName/
+    // buildCellView/formatRecord/renderScheduleGrid) is a deliberate 1:1 mirror of
+    // ScheduleGrid.astro's own frontmatter helpers -- see that file's header comment for why
+    // this duplication follows the exact same precedent as renderRows() below mirroring
+    // RankingsTable.astro (a client-rebuilt table's elements never carry Astro's scoped
+    // data-astro-cid-* attribute, so there is no way to share one implementation between the
+    // server-rendered .astro template and this vanilla-JS re-render path without a build
+    // tooling change out of scope for this task).
     function initRankingsSelector() {
       const seasonSelect = document.getElementById("season-select");
       const weekSelect = document.getElementById("week-select");
-      const tableBody = document.querySelector(".rankings-panel .rankings-shell tbody");
+      const tabSwitch = document.getElementById("tab-switch-control");
+      const tabLabels = document.querySelectorAll(".tab-switch-label");
+      const panelTitle = document.getElementById("panel-title");
+      const rankingsPanel = document.getElementById("rankings-tab-panel");
+      const schedulePanel = document.getElementById("schedule-tab-panel");
+      const tableBody = document.querySelector("#rankings-tab-panel .rankings-shell tbody");
+      const scheduleShell = document.getElementById("schedule-grid-shell");
 
       if (!seasonSelect || !weekSelect) return;
 
       // Guards against out-of-order renders if the user changes the selects faster than a
-      // fetch resolves -- only the most recently started request is allowed to render.
+      // fetch resolves -- only the most recently started request is allowed to render. Shared
+      // across both tabs' fetches (Rankings week fetch, Season Grid season fetch) since only
+      // one of them can be in flight for the active tab at a time.
       let loadGeneration = 0;
+      let activeTab = "rankings"; // always defaults to Rankings on every page-load/transition
+      let loadedScheduleSeason = initialScheduleSeason !== null ? Number(initialScheduleSeason) : null;
+      // Tracks which season the Rankings panel's currently-rendered rows belong to, mirroring
+      // loadedScheduleSeason -- needed because the season selector is shared: a user can change
+      // season while on Season Grid, then switch to Rankings, and the Rankings panel (which
+      // ignored that change while inactive, since it only reacts to its own tab's season-change
+      // handler below) must catch up rather than keep showing the previous season's rows.
+      let loadedRankingsSeason = defaultSeason !== null ? Number(defaultSeason) : null;
 
       function padWeek(week) {
         return String(week).padStart(2, "0");
@@ -426,7 +635,7 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
       }
 
       function weeksForSeason(season) {
-        const entry = seasonsForClient.find((item) => item.season === Number(season));
+        const entry = rankingsSeasonsForClient.find((item) => item.season === Number(season));
         return entry ? entry.weeks : [];
       }
 
@@ -498,6 +707,7 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
 
       async function loadWeek(season, week) {
         const generation = ++loadGeneration;
+        loadedRankingsSeason = Number(season);
         try {
           const response = await fetch(`/data/cfb/${season}/week-${padWeek(week)}.json`);
           if (generation !== loadGeneration) return;
@@ -514,19 +724,305 @@ const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
         }
       }
 
-      seasonSelect.addEventListener("change", () => {
-        const season = seasonSelect.value;
+      // Rankings-tab equivalent of loadScheduleSeason's own switch-then-catch-up flow (see
+      // setActiveTab below): populate the week options for `season` and load its first week.
+      function syncRankingsToSeason(season) {
         populateWeekOptions(season);
         const firstWeekOption = weekSelect.options[0];
         if (firstWeekOption) {
           weekSelect.value = firstWeekOption.value;
           loadWeek(season, firstWeekOption.value);
+        } else {
+          loadedRankingsSeason = Number(season);
+          renderLoadError("No rankings data available for this season.");
         }
+      }
+
+      // ---------------------------------------------------------------------
+      // Season Grid: client-side mirror of ScheduleGrid.astro (see its header
+      // comment). status drives every branch -- never string-matching the
+      // rendered text -- so 'tbd' and 'clinched' stay distinct checks even
+      // though both render "vs TBD" today.
+      // ---------------------------------------------------------------------
+      function opponentLabel(cell) {
+        const prefix = cell.home_away === "away" ? "@" : "vs";
+        const suffix = cell.neutral_site ? "*" : "";
+        return `${prefix} ${cell.opponent}${suffix}`;
+      }
+
+      function statusMutedText(cell) {
+        switch (cell.status) {
+          case "tbd":
+          case "clinched":
+            return "vs TBD";
+          case "possible":
+            return cell.conditional_opponent ? `possible vs ${cell.conditional_opponent}` : "possible";
+          case "eliminated":
+            return "eliminated";
+          case "eligible":
+            return "bowl eligible";
+          case "ineligible":
+            return "bowl ineligible";
+          default:
+            return "";
+        }
+      }
+
+      function cellClassName(status) {
+        if (status === "win") return "sg-cell sg-cell--win";
+        if (status === "loss") return "sg-cell sg-cell--loss";
+        if (status === "upcoming") return "sg-cell sg-cell--upcoming";
+        if (status === "bye") return "sg-cell sg-cell--bye";
+        return "sg-cell sg-cell--muted";
+      }
+
+      function buildCellView(cell) {
+        const className = cellClassName(cell.status);
+        const gameName = cell.game_name;
+
+        if (cell.status === "win" || cell.status === "loss") {
+          return {
+            className,
+            gameName,
+            kind: "game",
+            logo: cell.opponent_logo_url,
+            opponentText: opponentLabel(cell),
+            badge: cell.status === "win" ? "W" : "L",
+            scoreText: `${cell.team_score}-${cell.opp_score}`,
+            mutedText: null
+          };
+        }
+
+        if (cell.status === "upcoming") {
+          return {
+            className,
+            gameName,
+            kind: "game",
+            logo: cell.opponent_logo_url,
+            opponentText: opponentLabel(cell),
+            badge: null,
+            scoreText: null,
+            mutedText: null
+          };
+        }
+
+        if (cell.status === "bye") {
+          return { className, gameName, kind: "blank", logo: null, opponentText: null, badge: null, scoreText: null, mutedText: null };
+        }
+
+        return {
+          className,
+          gameName,
+          kind: "muted",
+          logo: null,
+          opponentText: null,
+          badge: null,
+          scoreText: null,
+          mutedText: statusMutedText(cell)
+        };
+      }
+
+      function formatRecord(team, confName) {
+        const { wins, losses } = team.record;
+        if (team.conf_record) {
+          return `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} ${confName}`;
+        }
+        return `${wins}-${losses}`;
+      }
+
+      function el(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined && text !== null) node.textContent = text;
+        return node;
+      }
+
+      function buildCellNode(cell) {
+        const view = buildCellView(cell);
+        const td = document.createElement("td");
+        td.className = view.className;
+
+        if (view.gameName) {
+          td.appendChild(el("span", "sg-game-name", view.gameName));
+        }
+
+        if (view.kind === "game") {
+          const body = el("span", "sg-game-body");
+          if (view.logo) {
+            const img = document.createElement("img");
+            img.className = "sg-opp-logo";
+            img.src = view.logo;
+            img.alt = "";
+            img.loading = "lazy";
+            img.decoding = "async";
+            body.appendChild(img);
+          }
+          body.appendChild(el("span", "sg-opp-text", view.opponentText));
+          if (view.badge) {
+            body.appendChild(el("span", `sg-badge sg-badge--${view.badge.toLowerCase()}`, view.badge));
+          }
+          if (view.scoreText) {
+            body.appendChild(el("span", "sg-score", view.scoreText));
+          }
+          td.appendChild(body);
+        } else if (view.kind === "muted") {
+          td.appendChild(el("span", "sg-muted-text", view.mutedText));
+        } else if (view.kind === "blank") {
+          const span = el("span", "sg-blank", "—");
+          span.setAttribute("aria-hidden", "true");
+          td.appendChild(span);
+        }
+
+        return td;
+      }
+
+      function renderScheduleGrid(data) {
+        if (!scheduleShell) return;
+        scheduleShell.textContent = "";
+
+        if (!data || !Array.isArray(data.conferences) || data.conferences.length === 0) {
+          const empty = el("div", "sg-empty");
+          empty.appendChild(el("p", null, "Season Grid data isn't available for this selection yet."));
+          scheduleShell.appendChild(empty);
+          return;
+        }
+
+        const columns = (data.conferences[0]?.teams[0]?.weeks ?? []).map((w) => ({
+          slot_id: w.slot_id,
+          label: w.label
+        }));
+
+        const table = document.createElement("table");
+        table.id = "schedule-grid-table";
+
+        const thead = document.createElement("thead");
+        const headRow = document.createElement("tr");
+        headRow.appendChild(el("th", "sg-th sg-corner", "Team"));
+        for (const col of columns) {
+          headRow.appendChild(el("th", "sg-th", col.label));
+        }
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        for (const conf of data.conferences) {
+          const confRow = document.createElement("tr");
+          confRow.className = "sg-conf-row";
+          confRow.appendChild(el("th", "sg-conf-header sg-conf-header--sticky", conf.name));
+          const confFillTh = el("th", "sg-conf-header");
+          confFillTh.colSpan = columns.length;
+          confRow.appendChild(confFillTh);
+          tbody.appendChild(confRow);
+
+          for (const team of conf.teams) {
+            const row = document.createElement("tr");
+            const teamTd = document.createElement("td");
+            teamTd.className = "sg-team-col";
+            const teamCell = el("span", "sg-team-cell");
+            if (team.logo_url) {
+              const img = document.createElement("img");
+              img.className = "sg-team-logo";
+              img.src = team.logo_url;
+              img.alt = "";
+              img.loading = "lazy";
+              img.decoding = "async";
+              teamCell.appendChild(img);
+            }
+            const nameBlock = el("span", "sg-team-name-block");
+            nameBlock.appendChild(el("span", "sg-team-name", team.team));
+            nameBlock.appendChild(el("span", "sg-team-record", formatRecord(team, conf.name)));
+            teamCell.appendChild(nameBlock);
+            teamTd.appendChild(teamCell);
+            row.appendChild(teamTd);
+
+            for (const cell of team.weeks) {
+              row.appendChild(buildCellNode(cell));
+            }
+            tbody.appendChild(row);
+          }
+        }
+        table.appendChild(tbody);
+        scheduleShell.appendChild(table);
+      }
+
+      async function loadScheduleSeason(season) {
+        const generation = ++loadGeneration;
+        try {
+          const response = await fetch(`/data/cfb/schedule/${season}/latest.json`);
+          if (generation !== loadGeneration) return;
+          if (!response.ok) {
+            loadedScheduleSeason = Number(season);
+            renderScheduleGrid(null);
+            return;
+          }
+          const data = await response.json();
+          if (generation !== loadGeneration) return;
+          loadedScheduleSeason = Number(season);
+          renderScheduleGrid(data);
+        } catch {
+          if (generation !== loadGeneration) return;
+          loadedScheduleSeason = Number(season);
+          renderScheduleGrid(null);
+        }
+      }
+
+      // ---------------------------------------------------------------------
+      // Tab switch: iOS-style toggle, defaults to Rankings. Clicking anywhere
+      // on the control (track or thumb, since the thumb has no listener of its
+      // own) toggles state.
+      // ---------------------------------------------------------------------
+      function setActiveTab(tab) {
+        activeTab = tab;
+        const isSchedule = tab === "schedule";
+
+        if (rankingsPanel) rankingsPanel.hidden = isSchedule;
+        if (schedulePanel) schedulePanel.hidden = !isSchedule;
+
+        // Season Grid has no week concept at all -- the week selector is Rankings-only.
+        weekSelect.hidden = isSchedule;
+        weekSelect.disabled = isSchedule;
+
+        if (tabSwitch) {
+          tabSwitch.classList.toggle("is-on", isSchedule);
+          tabSwitch.setAttribute("aria-checked", String(isSchedule));
+        }
+        tabLabels.forEach((label) => {
+          label.classList.toggle("is-active", label.dataset.tabLabel === tab);
+        });
+        if (panelTitle) {
+          panelTitle.textContent = isSchedule ? "Season Grid" : "FBS College Football Rankings";
+        }
+
+        if (isSchedule && Number(seasonSelect.value) !== loadedScheduleSeason) {
+          loadScheduleSeason(seasonSelect.value);
+        } else if (!isSchedule && Number(seasonSelect.value) !== loadedRankingsSeason) {
+          syncRankingsToSeason(seasonSelect.value);
+        }
+      }
+
+      if (tabSwitch) {
+        tabSwitch.addEventListener("click", () => {
+          setActiveTab(activeTab === "rankings" ? "schedule" : "rankings");
+        });
+      }
+
+      seasonSelect.addEventListener("change", () => {
+        const season = seasonSelect.value;
+        if (activeTab === "schedule") {
+          loadScheduleSeason(season);
+          return;
+        }
+        syncRankingsToSeason(season);
       });
 
       weekSelect.addEventListener("change", () => {
-        loadWeek(seasonSelect.value ?? latestSeason, weekSelect.value);
+        loadWeek(seasonSelect.value ?? defaultSeason, weekSelect.value);
       });
+
+      // Every page-load/transition starts on Rankings, per spec -- this also
+      // re-syncs the DOM (hidden/disabled/aria states) in case this handler is
+      // re-run against already-rendered markup.
+      setActiveTab("rankings");
     }
 
     document.addEventListener("astro:page-load", initRankingsSelector);
