@@ -7,6 +7,10 @@
 // environment, downloads rankings/index.json plus every season/week snapshot
 // it lists, and writes them to local static files Astro can read at build time.
 //
+// It also fetches the Season Grid schedule artifact the same way: schedule/
+// index.json plus schedule/{season}/latest.json for every season it lists,
+// written to public/data/cfb/schedule/ alongside the rankings data.
+//
 // If credentials aren't configured (e.g. local dev without secrets set), this
 // script warns and exits 0 -- it must never break `npm run dev` or a build.
 // If credentials ARE configured but a fetch fails, it exits non-zero so a
@@ -25,6 +29,7 @@ const REQUIRED_ENV_VARS = [
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const outputDir = join(scriptDir, "..", "public", "data", "cfb");
+const scheduleOutputDir = join(outputDir, "schedule");
 
 async function main() {
   const missingVars = REQUIRED_ENV_VARS.filter((name) => !process.env[name]);
@@ -84,6 +89,23 @@ async function main() {
 
   console.log(
     `[fetch-rankings-data] Done. Wrote index.json + ${weekFileCount} week file(s) to public/data/cfb/.`
+  );
+
+  console.log("[fetch-rankings-data] Fetching schedule/index.json from R2...");
+  const scheduleIndex = await fetchJson("schedule/index.json");
+  await writeJson(join(scheduleOutputDir, "index.json"), scheduleIndex);
+
+  let scheduleFileCount = 0;
+  for (const season of scheduleIndex.seasons ?? []) {
+    const key = `schedule/${season}/latest.json`;
+    console.log(`[fetch-rankings-data] Fetching ${key}...`);
+    const seasonData = await fetchJson(key);
+    await writeJson(join(scheduleOutputDir, String(season), "latest.json"), seasonData);
+    scheduleFileCount += 1;
+  }
+
+  console.log(
+    `[fetch-rankings-data] Done. Wrote schedule/index.json + ${scheduleFileCount} season file(s) to public/data/cfb/schedule/.`
   );
 }
 
