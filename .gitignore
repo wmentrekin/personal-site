@@ -218,3 +218,6 @@ public/data/cfb/
 AGENTS.md
 CLAUDE.md
 agent-context/
+
+# Local visual-verification screenshots (see docs/season-grid-touchups)
+season-grid*.png

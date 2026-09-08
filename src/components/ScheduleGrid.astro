@@ -66,37 +66,67 @@ type CellView = {
   className: string;
   gameName: string | null;
   kind: "game" | "muted" | "blank";
+  prefix: string | null;
   logo: string | null;
-  opponentText: string | null;
+  opponentFallback: string | null;
   badge: "W" | "L" | null;
   scoreText: string | null;
   mutedText: string | null;
 };
 
-// Mirrored 1:1 by buildCellNode() in index.astro's client script.
-function opponentLabel(cell: WeekCell): string {
-  const prefix = cell.home_away === "away" ? "@" : "vs";
-  const suffix = cell.neutral_site ? "*" : "";
-  return `${prefix} ${cell.opponent}${suffix}`;
+// Mirrored 1:1 by opponentPrefix() in index.astro's client script.
+//
+// A neutral-site game is nobody's home game, so BOTH participants read "vs" --
+// previously the nominal away team showed "@" for a game played on neutral ground.
+// The opponent's NAME is deliberately not part of the label any more: the cell
+// carries the opponent's logo instead, which is what makes the grid dense enough
+// to read a full conference at once. The name is the fallback for a team with no
+// logo (typically an FCS opponent).
+function opponentPrefix(cell: WeekCell): string {
+  if (cell.neutral_site) return "vs";
+  return cell.home_away === "away" ? "@" : "vs";
 }
 
 // Mirrored 1:1 by statusMutedText() in index.astro's client script.
+//
+// The SAME status value reads differently per column -- status='possible' means
+// "Still in the Hunt" in the conference-championship column but "Not Yet Eligible"
+// in the Bowls column -- so display text is a (slot_id, status) lookup rather than a
+// property of the status alone. The artifact's status enum is unchanged; this is
+// purely presentational, which is why it lives here and not in the builder.
+//
+// conditional_opponent is deliberately NOT rendered any more. It was a projection
+// ("possible vs Georgia"), and a projected matchup is exactly the kind of thing this
+// grid should not assert.
+const STATUS_TEXT_BY_SLOT: Record<string, Record<string, string>> = {
+  "conf-championship": {
+    possible: "Still in the Hunt",
+    clinched: "Clinched",
+    eliminated: "Eliminated",
+  },
+  "cfp-r1-bowls": {
+    possible: "Not Yet Eligible",
+    eligible: "Eligible",
+    ineligible: "Ineligible",
+  },
+};
+
+// Generic per-status text for any (slot_id, status) pair the map above does not cover. The
+// artifact builder lives in another repo and can add a slot or emit an existing status in a
+// new column; without this a cell would silently render blank. Mirrored in index.astro.
+const STATUS_TEXT_FALLBACK: Record<string, string> = {
+  tbd: "vs TBD",
+  possible: "Still possible",
+  clinched: "Clinched",
+  eliminated: "Eliminated",
+  eligible: "Eligible",
+  ineligible: "Ineligible",
+};
+
 function statusMutedText(cell: WeekCell): string {
-  switch (cell.status) {
-    case "tbd":
-    case "clinched":
-      return "vs TBD";
-    case "possible":
-      return cell.conditional_opponent ? `possible vs ${cell.conditional_opponent}` : "possible";
-    case "eliminated":
-      return "eliminated";
-    case "eligible":
-      return "bowl eligible";
-    case "ineligible":
-      return "bowl ineligible";
-    default:
-      return "";
-  }
+  const forSlot = STATUS_TEXT_BY_SLOT[cell.slot_id];
+  if (forSlot && forSlot[cell.status] !== undefined) return forSlot[cell.status];
+  return STATUS_TEXT_FALLBACK[cell.status] ?? "";
 }
 
 // Mirrored 1:1 by cellClassName() in index.astro's client script.
@@ -109,8 +139,8 @@ function cellClassName(status: string): string {
 }
 
 // Mirrored 1:1 by buildCellView() in index.astro's client script. status drives
-// every branch here (never string-matching rendered text), per the handoff --
-// e.g. 'tbd' and 'clinched' both render "vs TBD" but stay separate status checks.
+// every branch here, never string-matching rendered text -- the display strings are
+// a presentation lookup that can change without touching this dispatch.
 function buildCellView(cell: WeekCell): CellView {
   const className = cellClassName(cell.status);
   const gameName = cell.game_name;
@@ -120,8 +150,9 @@ function buildCellView(cell: WeekCell): CellView {
       className,
       gameName,
       kind: "game",
+      prefix: opponentPrefix(cell),
       logo: cell.opponent_logo_url,
-      opponentText: opponentLabel(cell),
+      opponentFallback: cell.opponent_logo_url ? null : cell.opponent,
       badge: cell.status === "win" ? "W" : "L",
       scoreText: `${cell.team_score}-${cell.opp_score}`,
       mutedText: null,
@@ -133,8 +164,9 @@ function buildCellView(cell: WeekCell): CellView {
       className,
       gameName,
       kind: "game",
+      prefix: opponentPrefix(cell),
       logo: cell.opponent_logo_url,
-      opponentText: opponentLabel(cell),
+      opponentFallback: cell.opponent_logo_url ? null : cell.opponent,
       badge: null,
       scoreText: null,
       mutedText: null,
@@ -142,7 +174,7 @@ function buildCellView(cell: WeekCell): CellView {
   }
 
   if (cell.status === "bye") {
-    return { className, gameName, kind: "blank", logo: null, opponentText: null, badge: null, scoreText: null, mutedText: null };
+    return { className, gameName, kind: "blank", prefix: null, logo: null, opponentFallback: null, badge: null, scoreText: null, mutedText: null };
   }
 
   // tbd / clinched / possible / eliminated / eligible / ineligible
@@ -150,8 +182,9 @@ function buildCellView(cell: WeekCell): CellView {
     className,
     gameName,
     kind: "muted",
+    prefix: null,
     logo: null,
-    opponentText: null,
+    opponentFallback: null,
     badge: null,
     scoreText: null,
     mutedText: statusMutedText(cell),
@@ -198,7 +231,9 @@ const columns: Array<{ slot_id: string; label: string }> =
                   <span class="sg-team-cell">
                     {team.logo_url ? (
                       <img class="sg-team-logo" src={team.logo_url} alt="" loading="lazy" decoding="async" />
-                    ) : null}
+                    ) : (
+                      <span class="sg-team-logo sg-team-logo--empty" aria-hidden="true"></span>
+                    )}
                     <span class="sg-team-name-block">
                       <span class="sg-team-name">{team.team}</span>
                       <span class="sg-team-record">{formatRecord(team, conf.name)}</span>
@@ -212,10 +247,13 @@ const columns: Array<{ slot_id: string; label: string }> =
                       {view.gameName ? <span class="sg-game-name">{view.gameName}</span> : null}
                       {view.kind === "game" ? (
                         <span class="sg-game-body">
+                          <span class="sg-prefix">{view.prefix}</span>
                           {view.logo ? (
-                            <img class="sg-opp-logo" src={view.logo} alt="" loading="lazy" decoding="async" />
+                            <img class="sg-opp-logo" src={view.logo} alt={cell.opponent ?? ""} loading="lazy" decoding="async" />
                           ) : null}
-                          <span class="sg-opp-text">{view.opponentText}</span>
+                          {view.opponentFallback ? (
+                            <span class="sg-opp-fallback">{view.opponentFallback}</span>
+                          ) : null}
                           {view.badge ? (
                             <span class={`sg-badge sg-badge--${view.badge.toLowerCase()}`}>{view.badge}</span>
                           ) : null}
@@ -224,9 +262,7 @@ const columns: Array<{ slot_id: string; label: string }> =
                       ) : null}
                       {view.kind === "muted" ? <span class="sg-muted-text">{view.mutedText}</span> : null}
                       {view.kind === "blank" ? (
-                        <span class="sg-blank" aria-hidden="true">
-                          —
-                        </span>
+                        <span class="sg-blank" aria-hidden="true">{"\u2014"}</span>
                       ) : null}
                     </td>
                   );
@@ -254,7 +290,9 @@ const columns: Array<{ slot_id: string; label: string }> =
   */
   .schedule-grid-shell {
     overflow: auto;
-    max-height: 70vh;
+    /* Was 70vh with much taller rows, which capped the view at ~9-10 teams -- fewer
+       than any conference has, so no conference could be read without scrolling. */
+    max-height: 82vh;
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     background: rgba(255, 255, 255, 0.02);
@@ -267,20 +305,22 @@ const columns: Array<{ slot_id: string; label: string }> =
   }
 
   #schedule-grid-table {
-    width: 100%;
-    min-width: 64rem;
+    /* Deliberately NOT width:100%. Stretching the table to fill the shell distributed
+       the slack across the week columns, leaving a wide gap after every score. Sizing
+       to content instead lets each week column be as narrow as its widest cell. */
+    min-width: 46rem;
     border-collapse: separate;
     border-spacing: 0;
   }
 
   #schedule-grid-table th,
   #schedule-grid-table td {
-    padding: 0.55rem 0.7rem;
+    padding: 0.22rem 0.3rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     border-right: 1px solid rgba(255, 255, 255, 0.06);
     text-align: left;
     white-space: nowrap;
-    font-size: 0.82rem;
+    font-size: 0.75rem;
   }
 
   /* Sticky header row. */
@@ -290,9 +330,9 @@ const columns: Array<{ slot_id: string; label: string }> =
     z-index: 2;
     background: rgba(10, 15, 20, 0.96);
     color: var(--muted);
-    font-size: 0.72rem;
+    font-size: 0.64rem;
     font-weight: 600;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
   }
 
@@ -310,9 +350,9 @@ const columns: Array<{ slot_id: string; label: string }> =
   .sg-conf-row .sg-conf-header {
     background: rgba(125, 211, 252, 0.08);
     color: var(--text);
-    font-size: 0.76rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     white-space: normal;
   }
@@ -333,42 +373,54 @@ const columns: Array<{ slot_id: string; label: string }> =
     left: 0;
     z-index: 1;
     background: rgba(16, 23, 32, 0.98);
-    min-width: 13rem;
-    max-width: 13rem;
+    /* Keeps logo + name + record (the user's explicit choice over name-only), but
+       compressed: the record moves under the name in smaller mono type. */
+    min-width: 9.75rem;
+    max-width: 9.75rem;
     white-space: normal;
   }
 
   .sg-team-cell {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.35rem;
   }
 
   .sg-team-logo {
-    width: 1.35rem;
-    height: 1.35rem;
+    width: 1.1rem;
+    height: 1.1rem;
     object-fit: contain;
     flex-shrink: 0;
+  }
+
+  /* A team with no logo still occupies the logo's slot, so its name lines up with
+     every other team's rather than sliding left against the column edge. */
+  .sg-team-logo--empty {
+    display: inline-block;
   }
 
   .sg-team-name-block {
     display: flex;
     flex-direction: column;
-    gap: 0.1rem;
+    gap: 0;
     min-width: 0;
   }
 
   .sg-team-name {
     color: var(--text);
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .sg-team-record {
     color: var(--muted);
     font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.02em;
+    font-size: 0.6rem;
+    line-height: 1.2;
+    letter-spacing: 0;
   }
 
   /* Cell status coloring -- full-cell background on every played game, not
@@ -399,10 +451,10 @@ const columns: Array<{ slot_id: string; label: string }> =
 
   .sg-game-name {
     display: block;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.05rem;
     color: inherit;
     opacity: 0.85;
-    font-size: 0.68rem;
+    font-size: 0.6rem;
     font-weight: 600;
     letter-spacing: 0.02em;
     white-space: normal;
@@ -411,7 +463,15 @@ const columns: Array<{ slot_id: string; label: string }> =
   .sg-game-body {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.18rem;
+  }
+
+  /* The "@" / "vs" that used to lead a full "@ Stanford" label. It now leads the
+     opponent's LOGO instead, so a cell reads "@ {logo} W 45-6". */
+  .sg-prefix {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    opacity: 0.75;
   }
 
   .sg-opp-logo {
@@ -421,31 +481,39 @@ const columns: Array<{ slot_id: string; label: string }> =
     flex-shrink: 0;
   }
 
-  .sg-opp-text {
+  /* Only rendered when the opponent has no logo (typically an FCS team). Capped so a
+     long name cannot widen the column past what the logo cells need. */
+  .sg-opp-fallback {
     font-family: var(--font-mono);
+    font-size: 0.66rem;
+    max-width: 5.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .sg-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.05rem;
-    height: 1.05rem;
-    border-radius: 4px;
-    font-size: 0.65rem;
+    width: 0.95rem;
+    height: 0.95rem;
+    border-radius: 3px;
+    font-size: 0.6rem;
     font-weight: 800;
     background: rgba(255, 255, 255, 0.14);
   }
 
   .sg-score {
     font-family: var(--font-mono);
-    font-size: 0.78rem;
+    font-size: 0.7rem;
   }
 
   .sg-muted-text {
     color: var(--muted);
     font-style: italic;
-    font-size: 0.76rem;
+    font-size: 0.66rem;
+    line-height: 1.15;
     white-space: normal;
   }
 
