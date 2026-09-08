@@ -111,26 +111,31 @@ const rankingsSeasonsForClient = rankingsIndex
       }))
   : [];
 
-// Page-level season list (shared by both tabs, per key_decisions): the union of every season
-// either artifact has data for. In practice both are published by the same pipeline run, but
-// they're two independent artifacts -- a season missing from one side just falls back to that
-// tab's own empty state rather than being excluded from the selector entirely.
-const seasonsForClient = [
-  ...new Set([
-    ...rankingsSeasonsForClient.map((entry) => entry.season),
-    ...(scheduleIndex?.seasons ?? [])
-  ])
-].sort((a, b) => b - a);
+// Each tab offers only the seasons ITS OWN artifact has, and defaults to that tab's most
+// recent. This used to be the UNION of both, with a rankings-driven default -- which meant
+// Season Grid listed (and defaulted to) 2025, a season the schedule artifact has no data for,
+// so the tab opened on a permanent empty state. They are two independent artifacts published
+// on different backfill schedules; treating their season lists as interchangeable was the bug.
+const rankingsSeasonList = rankingsSeasonsForClient.map((entry) => entry.season);
+const scheduleSeasonList = [...(scheduleIndex?.seasons ?? [])].sort((a, b) => b - a);
 
 const latestWeek = rankingsIndex?.latest_week ?? null;
-const preferredDefaultSeason = rankingsIndex?.latest_season ?? scheduleIndex?.latest_season ?? null;
-const defaultSeason =
-  preferredDefaultSeason !== null && seasonsForClient.includes(preferredDefaultSeason)
-    ? preferredDefaultSeason
-    : (seasonsForClient[0] ?? null);
+
+function pickDefaultSeason(preferred: number | null, available: number[]): number | null {
+  if (preferred !== null && available.includes(preferred)) return preferred;
+  return available[0] ?? null;
+}
+
+const defaultRankingsSeason = pickDefaultSeason(rankingsIndex?.latest_season ?? null, rankingsSeasonList);
+const defaultScheduleSeason = pickDefaultSeason(scheduleIndex?.latest_season ?? null, scheduleSeasonList);
+
+// The page opens on the Rankings tab, so the server-rendered selector holds Rankings' list.
+// setActiveTab() repopulates it on every tab change.
+const seasonsForClient = rankingsSeasonList;
+const defaultSeason = defaultRankingsSeason;
 
 const weeksForLatestSeason =
-  rankingsSeasonsForClient.find((entry) => entry.season === defaultSeason)?.weeks ?? [];
+  rankingsSeasonsForClient.find((entry) => entry.season === defaultRankingsSeason)?.weeks ?? [];
 
 const weekPayload =
   defaultSeason !== null && latestWeek !== null
@@ -223,7 +228,10 @@ const hasAnyData = hasRankingsData || hasScheduleData;
                 </button>
                 <span class="tab-switch-label" data-tab-label="schedule">Season Grid</span>
               </div>
-              <div class="panel-filters">
+            </div>
+          </div>
+
+          <div class="panel-filters">
                 <select class="filter-select" id="season-select" aria-label="Season">
                   {
                     seasonsForClient.map((season) => (
@@ -242,8 +250,6 @@ const hasAnyData = hasRankingsData || hasScheduleData;
                     ))
                   }
                 </select>
-              </div>
-            </div>
           </div>
 
           <div id="rankings-tab-panel" class="tab-panel">
@@ -400,10 +406,14 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
     .panel-head {
       display: flex;
-      align-items: end;
+      align-items: center;
       justify-content: space-between;
       gap: 0.8rem;
       flex-wrap: wrap;
+      /* The h2 swaps between "FBS College Football Rankings" and "Season Grid" on every
+         tab change. Reserving the row's height keeps the toggle pinned: without it the
+         shorter title let the row collapse slightly and dragged the toggle up with it. */
+      min-height: 2.4rem;
       margin-bottom: 0.9rem;
     }
 
@@ -436,9 +446,17 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       flex-wrap: wrap;
     }
 
+    /* The selectors sit on their own row BELOW the title/toggle row, left-aligned.
+       Previously they shared a right-aligned flex row with the tab toggle, so hiding
+       the week selector on the Season Grid tab narrowed the group and slid the toggle
+       sideways. Left-aligned and on its own line, hiding the week selector moves
+       nothing: the season selector is first in the row, and the toggle is in a
+       different row entirely. */
     .panel-filters {
       display: flex;
+      justify-content: flex-start;
       gap: 0.55rem;
+      margin-bottom: 0.9rem;
     }
 
     /* iOS-style tab switch (T7 tokens: --tab-switch-track-on/-off/-thumb).
@@ -573,8 +591,12 @@ const hasAnyData = hasRankingsData || hasScheduleData;
     is:inline
     define:vars={{
       rankingsSeasonsForClient,
+      rankingsSeasonList,
+      scheduleSeasonList,
       defaultSeason,
-      initialScheduleSeason: defaultSeason
+      defaultRankingsSeason,
+      defaultScheduleSeason,
+      initialScheduleSeason: defaultScheduleSeason
     }}
   >
     // This site uses Astro's ClientRouter (View Transitions) for same-document navigation.
@@ -590,7 +612,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
     // whenever Season Grid is active, since Season Grid has no week concept at all -- it always
     // shows schedule/{season}/latest.json's full cumulative state.
     //
-    // The Season Grid render logic below (opponentLabel/statusMutedText/cellClassName/
+    // The Season Grid render logic below (opponentPrefix/statusMutedText/cellClassName/
     // buildCellView/formatRecord/renderScheduleGrid) is a deliberate 1:1 mirror of
     // ScheduleGrid.astro's own frontmatter helpers -- see that file's header comment for why
     // this duplication follows the exact same precedent as renderRows() below mirroring
@@ -741,32 +763,35 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       // ---------------------------------------------------------------------
       // Season Grid: client-side mirror of ScheduleGrid.astro (see its header
       // comment). status drives every branch -- never string-matching the
-      // rendered text -- so 'tbd' and 'clinched' stay distinct checks even
-      // though both render "vs TBD" today.
+      // rendered text -- so the display strings below can change without
+      // touching the dispatch.
       // ---------------------------------------------------------------------
-      function opponentLabel(cell) {
-        const prefix = cell.home_away === "away" ? "@" : "vs";
-        const suffix = cell.neutral_site ? "*" : "";
-        return `${prefix} ${cell.opponent}${suffix}`;
+      function statusMutedText(cell) {
+        const forSlot = STATUS_TEXT_BY_SLOT[cell.slot_id];
+        if (forSlot && forSlot[cell.status] !== undefined) return forSlot[cell.status];
+        if (cell.status === "tbd") return "vs TBD";
+        return "";
       }
 
-      function statusMutedText(cell) {
-        switch (cell.status) {
-          case "tbd":
-          case "clinched":
-            return "vs TBD";
-          case "possible":
-            return cell.conditional_opponent ? `possible vs ${cell.conditional_opponent}` : "possible";
-          case "eliminated":
-            return "eliminated";
-          case "eligible":
-            return "bowl eligible";
-          case "ineligible":
-            return "bowl ineligible";
-          default:
-            return "";
-        }
+      function opponentPrefix(cell) {
+        // Mirrors ScheduleGrid.astro's opponentPrefix() -- neutral-site games read
+        // "vs" for BOTH teams, and the opponent's name is replaced by their logo.
+        if (cell.neutral_site) return "vs";
+        return cell.home_away === "away" ? "@" : "vs";
       }
+
+      const STATUS_TEXT_BY_SLOT = {
+        "conf-championship": {
+          possible: "Still in the Hunt",
+          clinched: "Clinched",
+          eliminated: "Eliminated"
+        },
+        "cfp-r1-bowls": {
+          possible: "Not Yet Eligible",
+          eligible: "Eligible",
+          ineligible: "Ineligible"
+        }
+      };
 
       function cellClassName(status) {
         if (status === "win") return "sg-cell sg-cell--win";
@@ -785,8 +810,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
             className,
             gameName,
             kind: "game",
+            prefix: opponentPrefix(cell),
             logo: cell.opponent_logo_url,
-            opponentText: opponentLabel(cell),
+            opponentFallback: cell.opponent_logo_url ? null : cell.opponent,
             badge: cell.status === "win" ? "W" : "L",
             scoreText: `${cell.team_score}-${cell.opp_score}`,
             mutedText: null
@@ -798,8 +824,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
             className,
             gameName,
             kind: "game",
+            prefix: opponentPrefix(cell),
             logo: cell.opponent_logo_url,
-            opponentText: opponentLabel(cell),
+            opponentFallback: cell.opponent_logo_url ? null : cell.opponent,
             badge: null,
             scoreText: null,
             mutedText: null
@@ -807,15 +834,16 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         }
 
         if (cell.status === "bye") {
-          return { className, gameName, kind: "blank", logo: null, opponentText: null, badge: null, scoreText: null, mutedText: null };
+          return { className, gameName, kind: "blank", prefix: null, logo: null, opponentFallback: null, badge: null, scoreText: null, mutedText: null };
         }
 
         return {
           className,
           gameName,
           kind: "muted",
+          prefix: null,
           logo: null,
-          opponentText: null,
+          opponentFallback: null,
           badge: null,
           scoreText: null,
           mutedText: statusMutedText(cell)
@@ -848,16 +876,19 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
         if (view.kind === "game") {
           const body = el("span", "sg-game-body");
+          body.appendChild(el("span", "sg-prefix", view.prefix));
           if (view.logo) {
             const img = document.createElement("img");
             img.className = "sg-opp-logo";
             img.src = view.logo;
-            img.alt = "";
+            img.alt = cell.opponent ?? "";
             img.loading = "lazy";
             img.decoding = "async";
             body.appendChild(img);
           }
-          body.appendChild(el("span", "sg-opp-text", view.opponentText));
+          if (view.opponentFallback) {
+            body.appendChild(el("span", "sg-opp-fallback", view.opponentFallback));
+          }
           if (view.badge) {
             body.appendChild(el("span", `sg-badge sg-badge--${view.badge.toLowerCase()}`, view.badge));
           }
@@ -971,6 +1002,31 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       // on the control (track or thumb, since the thumb has no listener of its
       // own) toggles state.
       // ---------------------------------------------------------------------
+      // Repopulate the shared season selector with the seasons the TARGET tab actually
+      // has data for. Keeps the user's current pick when that tab also has it (switching
+      // tabs to compare the same season shouldn't silently jump years); otherwise falls
+      // back to that tab's most recent. Returns the season now selected.
+      function syncSeasonOptions(tab) {
+        const available = tab === "schedule" ? scheduleSeasonList : rankingsSeasonList;
+        const fallback = tab === "schedule" ? defaultScheduleSeason : defaultRankingsSeason;
+        const current = Number(seasonSelect.value);
+        const next = available.includes(current) ? current : fallback;
+
+        seasonSelect.textContent = "";
+        for (const season of available) {
+          const option = document.createElement("option");
+          option.value = String(season);
+          option.textContent = String(season);
+          if (season === next) option.selected = true;
+          seasonSelect.appendChild(option);
+        }
+
+        // A tab with no seasons at all (artifact missing entirely) leaves an empty
+        // selector rather than offering a season its panel cannot render.
+        seasonSelect.disabled = available.length === 0;
+        return next;
+      }
+
       function setActiveTab(tab) {
         activeTab = tab;
         const isSchedule = tab === "schedule";
@@ -981,6 +1037,8 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         // Season Grid has no week concept at all -- the week selector is Rankings-only.
         weekSelect.hidden = isSchedule;
         weekSelect.disabled = isSchedule;
+
+        syncSeasonOptions(tab);
 
         if (tabSwitch) {
           tabSwitch.classList.toggle("is-on", isSchedule);
