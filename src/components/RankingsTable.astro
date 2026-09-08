@@ -1,15 +1,41 @@
 ---
 type TeamCell = { logo: string | null; name: string };
+// Delta arrives as a raw number wrapped in an object (never a plain string/number cell) so
+// isDeltaCell can distinguish it positionally from Rank (a plain number) and Rating (a plain
+// string) without relying on column index. Sign convention: delta = previous_rank - current_rank
+// with rank 1 best, so a POSITIVE delta means the team ROSE (fewer = better rank).
+type DeltaCell = { delta: number };
 
 interface Props {
   headers: string[];
-  rows: Array<Array<string | number | TeamCell>>;
+  rows: Array<Array<string | number | TeamCell | DeltaCell>>;
 }
 
 const { headers, rows } = Astro.props;
 
-function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
-  return typeof cell === "object" && cell !== null;
+function isTeamCell(cell: string | number | TeamCell | DeltaCell): cell is TeamCell {
+  return typeof cell === "object" && cell !== null && "name" in cell;
+}
+
+function isDeltaCell(cell: string | number | TeamCell | DeltaCell): cell is DeltaCell {
+  return typeof cell === "object" && cell !== null && "delta" in cell;
+}
+
+// Mirrored verbatim in index.astro's client-side buildDeltaCellNode() -- see that file's
+// comment for why the duplication exists (client-rebuilt rows can't reuse this component).
+function deltaDirection(delta: number): "up" | "down" | "flat" {
+  if (delta > 0) return "up";
+  if (delta < 0) return "down";
+  return "flat";
+}
+
+function deltaAriaLabel(delta: number): string {
+  if (delta > 0) return `Up ${delta}`;
+  if (delta < 0) return `Down ${Math.abs(delta)}`;
+  // Expected, not a bug: delta is never null -- a team with no previous week emits 0, so a
+  // team that genuinely held its rank is indistinguishable from one with no prior week. That
+  // distinction would need a pipeline change and is out of scope here.
+  return "No change";
 }
 ---
 
@@ -34,6 +60,26 @@ function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
                 ) : (
                   cell.name
                 )
+              ) : isDeltaCell(cell) ? (
+                (() => {
+                  const direction = deltaDirection(cell.delta);
+                  return (
+                    <span
+                      class={`delta-cell delta-cell--${direction}`}
+                      role="img"
+                      aria-label={deltaAriaLabel(cell.delta)}
+                    >
+                      {direction === "flat" ? (
+                        <span class="delta-glyph" aria-hidden="true">–</span>
+                      ) : (
+                        <>
+                          <span class="delta-glyph" aria-hidden="true">{direction === "up" ? "▲" : "▼"}</span>
+                          <span class="delta-value" aria-hidden="true">{Math.abs(cell.delta)}</span>
+                        </>
+                      )}
+                    </span>
+                  );
+                })()
               ) : (
                 cell
               )}
@@ -69,6 +115,11 @@ function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
        pseudo-elements below cover Chrome/Safari, since neither alone covers both. */
     scrollbar-color: rgba(173, 196, 221, 0.35) rgba(255, 255, 255, 0.04);
     scrollbar-width: thin;
+    /* Hug the table rather than spanning the card: the table is now content-sized, so a
+       full-width shell would frame a large empty panel to its right. max-width keeps it
+       from overflowing on a narrow viewport, where it scrolls instead. */
+    width: max-content;
+    max-width: 100%;
   }
 
   .rankings-shell::-webkit-scrollbar {
@@ -91,8 +142,21 @@ function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
   }
 
   table {
-    width: 100%;
-    min-width: 31rem;
+    /* Deliberately NOT width:100%. Stretching the table to fill the shell distributed the
+       slack across all six columns -- a two-digit rank was getting 127px and the delta
+       column 136px, which is the "spacing looks weird" this change was asked to fix.
+       max-content sizes to the widest real row instead, and max-width:100% keeps it from
+       overflowing the shell on a narrow viewport (the shell scrolls in that case). */
+    width: max-content;
+    max-width: 100%;
+    /* Narrowed from 31rem now that column order puts the content columns (Rank, Team,
+       Record, Rating, Delta) first and Conference -- auxiliary -- last. table-layout stays
+       "auto" (the default) rather than "fixed" like ScheduleGrid.astro's grid: that grid has
+       many structurally-identical week-slot columns where fixed widths make sense, but this
+       table's six columns vary widely in natural content width (a team name+logo vs. a
+       2-character delta vs. a conference name), so auto layout's content-driven sizing suits
+       it better than hand-picked fixed widths would. */
+    min-width: 24rem;
     border-collapse: collapse;
   }
 
@@ -119,17 +183,22 @@ function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
     background: rgba(16, 23, 32, 0.98);
   }
 
+  /* Column order (T12): Rank, Team, Record, Rating, Delta, Conference. Centered: Rank(1),
+     Record(3), Delta(5) -- same three columns that were centered before the reorder, just at
+     their new positions. Team(2) and Conference(6) stay left-aligned (the default `text-align:
+     left` above); Rating(4) is right-aligned below. Getting these nth-child indices wrong after
+     a reorder fails silently (no error, just wrong alignment) -- verify visually, not by eye. */
   th:nth-child(1),
   td:nth-child(1),
-  th:nth-child(4),
-  td:nth-child(4),
-  th:nth-child(6),
-  td:nth-child(6) {
+  th:nth-child(3),
+  td:nth-child(3),
+  th:nth-child(5),
+  td:nth-child(5) {
     text-align: center;
   }
 
-  th:nth-child(5),
-  td:nth-child(5) {
+  th:nth-child(4),
+  td:nth-child(4) {
     text-align: right;
   }
 
@@ -169,6 +238,40 @@ function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
     height: 1.25rem;
     object-fit: contain;
     flex-shrink: 0;
+  }
+
+  /* Delta glyphs (T12). .delta-cell/.delta-glyph/.delta-value are new, uniquely-named classes
+     with no ScheduleGrid.astro counterpart, so there's no leak risk the way the bare td rules
+     above have -- scoped to .rankings-shell anyway, for the same "both files share a document"
+     reason as the zebra/hover rules above, rather than relying on the name being unique today.
+     Colour is never the only signal: direction is also carried by the glyph (▲/▼/–), and the
+     wrapper exposes a single text alternative via role="img" + aria-label ("Up 2" / "Down 3" /
+     "No change") while its children are aria-hidden, so screen readers get one clean phrase
+     instead of the glyph and the bare number read out separately. */
+  .rankings-shell .delta-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.32rem;
+  }
+
+  .rankings-shell .delta-glyph {
+    font-size: 0.68rem;
+    line-height: 1;
+  }
+
+  .rankings-shell .delta-cell--up .delta-glyph,
+  .rankings-shell .delta-cell--up .delta-value {
+    color: var(--schedule-win-text);
+  }
+
+  .rankings-shell .delta-cell--down .delta-glyph,
+  .rankings-shell .delta-cell--down .delta-value {
+    color: var(--schedule-loss-text);
+  }
+
+  .rankings-shell .delta-cell--flat .delta-glyph {
+    color: var(--accent-method);
   }
 
   /* Both used to be set on the <tr>, relying on td having no background of its

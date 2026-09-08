@@ -80,10 +80,6 @@ function padWeek(week: number): string {
   return String(week).padStart(2, "0");
 }
 
-function formatDelta(delta: number): string {
-  return delta > 0 ? `+${delta}` : `${delta}`;
-}
-
 function readJsonSafe<T>(url: URL): T | null {
   try {
     return JSON.parse(readFileSync(url, "utf-8")) as T;
@@ -165,14 +161,18 @@ const weekPayload =
       )
     : null;
 
+// Column order (T12): Rank, Team, Record, Rating, Delta, Conference -- Conference moved last
+// since it's auxiliary information, not primary ranking content. Delta is wrapped as
+// { delta } (not pre-formatted to a string) so RankingsTable.astro's isDeltaCell can render it
+// as a rich glyph node; see that component for the rise/fall/flat rendering + sign convention.
 const rows =
   weekPayload?.rankings.map((team) => [
     team.rank,
     { logo: team.logo ?? null, name: team.team },
-    team.conference,
     team.record,
     Number(team.rating).toFixed(2),
-    formatDelta(Number(team.delta))
+    { delta: Number(team.delta) },
+    team.conference
   ]) ?? [];
 
 const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
@@ -275,7 +275,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
           <div id="rankings-tab-panel" class="tab-panel">
             {hasRankingsData ? (
-              <RankingsTable headers={["Rank", "Team", "Conference", "Record", "Rating", "Delta"]} rows={rows} />
+              <RankingsTable headers={["Rank", "Team", "Record", "Rating", "Delta", "Conference"]} rows={rows} />
             ) : (
               <div class="panel-empty">
                 <p>Rankings data isn't available for this selection yet.</p>
@@ -673,9 +673,50 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         return String(week).padStart(2, "0");
       }
 
-      function formatDelta(delta) {
+      // Mirrors RankingsTable.astro's deltaDirection/deltaAriaLabel + isDeltaCell branch
+      // node-for-node -- see that component for the full rationale (sign convention: delta =
+      // previous_rank - current_rank with rank 1 best, so positive means the team ROSE; the
+      // accessible markup shape; and the colour tokens reused from the site's win/loss/method
+      // palette). Duplicated here rather than shared because client-rebuilt rows never carry
+      // Astro's scoped data-astro-cid-* attribute -- see the header comment on this script.
+      function deltaDirection(delta) {
         const value = Number(delta);
-        return value > 0 ? `+${value}` : `${value}`;
+        if (value > 0) return "up";
+        if (value < 0) return "down";
+        return "flat";
+      }
+
+      function deltaAriaLabel(delta) {
+        const value = Number(delta);
+        if (value > 0) return `Up ${value}`;
+        if (value < 0) return `Down ${Math.abs(value)}`;
+        // Expected, not a bug: delta is never null -- a team with no previous week emits 0,
+        // so "held rank" and "no prior week" are indistinguishable here. See RankingsTable.astro.
+        return "No change";
+      }
+
+      function buildDeltaCellNode(delta) {
+        const direction = deltaDirection(delta);
+        const wrapper = document.createElement("span");
+        wrapper.className = `delta-cell delta-cell--${direction}`;
+        wrapper.setAttribute("role", "img");
+        wrapper.setAttribute("aria-label", deltaAriaLabel(delta));
+
+        const glyph = document.createElement("span");
+        glyph.className = "delta-glyph";
+        glyph.setAttribute("aria-hidden", "true");
+        glyph.textContent = direction === "flat" ? "–" : direction === "up" ? "▲" : "▼";
+        wrapper.appendChild(glyph);
+
+        if (direction !== "flat") {
+          const value = document.createElement("span");
+          value.className = "delta-value";
+          value.setAttribute("aria-hidden", "true");
+          value.textContent = String(Math.abs(Number(delta)));
+          wrapper.appendChild(value);
+        }
+
+        return wrapper;
       }
 
       function weeksForSeason(season) {
@@ -701,19 +742,24 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         if (!tableBody) return;
         tableBody.textContent = "";
         for (const team of rankings) {
+          // Column order (T12): Rank, Team, Record, Rating, Delta, Conference -- must match
+          // RankingsTable.astro's server-rendered row array and the headers array above it
+          // exactly, or the table's appearance changes the moment the user switches week.
           const cells = [
             team.rank,
             { logo: team.logo ?? null, name: team.team },
-            team.conference,
             team.record,
             Number(team.rating).toFixed(2),
-            formatDelta(team.delta)
+            { delta: Number(team.delta) },
+            team.conference
           ];
           const row = document.createElement("tr");
           cells.forEach((cell, index) => {
             const td = document.createElement("td");
             if (index === 0) td.className = "rank-col";
-            if (cell !== null && typeof cell === "object") {
+            if (cell !== null && typeof cell === "object" && "delta" in cell) {
+              td.appendChild(buildDeltaCellNode(cell.delta));
+            } else if (cell !== null && typeof cell === "object") {
               if (cell.logo) {
                 const span = document.createElement("span");
                 span.className = "team-cell";
