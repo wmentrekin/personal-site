@@ -1,0 +1,128 @@
+# Contract: live coordination artifact maintained by $work
+
+artifact: status
+feature: "season-grid-refinement"
+mode: "large-initiative"
+stage: "execution"
+owner_skill: work
+
+objective: >
+  Batch 2 of the Season Grid refinement pass: the personal-site frontend half. Backgrounds,
+  uniform week-column widths, scrollbar treatment, the Rankings table reorder and delta
+  glyphs, titles and copy, a grouped conference filter, and rendering the rank and division
+  fields batch 1 added to the artifact.
+
+note_on_location: >
+  Batch 1's artifacts lived in cfb-rankings and were removed there before PR #11 merged, per
+  the workflow's completion step. These are recreated here because batch 2 executes in this
+  repository. Batch 1's plan, requirements and implementation report remain in the history of
+  cfb-rankings' work/season-grid-refinement branch and are summarised in PR #11.
+
+repository_sync:
+  completed_before_work: true
+  checked_at: "2026-09-08T16:40:00Z"
+  repositories:
+    - path: "/home/user/personal-site"
+      remote: "https://github.com/wmentrekin/personal-site"
+      relevant_branch: "main"
+      local_commit_before: "09b316e"
+      remote_commit_after_fetch: "09b316e"
+      local_commit_after: "09b316e"
+      result: "current"
+      notes: "Clean tree, feature branch already contains origin/main. No fast-forward needed."
+    - path: "/home/user/cfb-rankings"
+      remote: "https://github.com/wmentrekin/cfb-rankings"
+      relevant_branch: "main"
+      local_commit_before: "n/a"
+      remote_commit_after_fetch: "n/a"
+      local_commit_after: "n/a"
+      result: "comparison_only"
+      notes: >
+        Not edited in batch 2. PR #11 merged and its branch deleted; a pipeline run is in
+        flight to republish the artifact with the new rank and division fields.
+
+branching:
+  branch_name: "work/season-grid-refinement"
+
+summary:
+  current_focus: "Batch 2 execution. Wave 1 (solid backgrounds, uniform week widths, scrollbar treatment) starting."
+  last_completed: >
+    Batch 1 merged as cfb-rankings PR #11 -- standings sort, Pac-12 and Sun Belt championship
+    coverage, division grouping, title-game diversion with a member-count gate, per-team rank,
+    Pac-12 flex week, and non-FBS logo sourcing. Tests 18 -> 53, independently reviewed, four
+    should-fix findings addressed including a latent defect that would have silently emptied
+    every non-divisional conference under a pandas upgrade.
+  current_blocker: "none"
+
+artifacts:
+  requirements: "in cfb-rankings work/season-grid-refinement history"
+  plan: "in cfb-rankings work/season-grid-refinement history"
+  implementation_report: null
+
+pr:
+  number: 11
+  url: "https://github.com/wmentrekin/cfb-rankings/pull/11"
+  status: "merged"
+
+pr_personal_site:
+  number: null
+  url: null
+  status: "not_opened"
+
+agents:
+  - id: "orchestrator"
+    role: "orchestrator"
+    task_profile: "orchestration"
+    requested_model_tier: "frontier"
+    requested_reasoning: "high"
+    requested_provider_model: "claude-opus-5"
+    actual_model: "claude-opus-5 (session-configured; serving model not independently verifiable)"
+    actual_reasoning: "high"
+    routing_enforced: false
+    escalation_count: 0
+    status: "active"
+    stage: "execution"
+    task: "coordinating batch 2; wave 1 spawning"
+    last_update: "2026-09-08"
+    blocker: ""
+
+loops:
+  planning_review:
+    count: 0
+    max: 2
+  execution_verification:
+    count: 1
+    max: 2
+
+checkpoint:
+  pre_execution_required: true
+  pre_execution_status: proceed
+  options: [proceed, revise_plan, narrow_scope, stop]
+
+blockers: []
+
+decisions:
+  - question: "How is batch 2 sequenced, given agents share one working tree?"
+    answer: >
+      In waves rather than fully parallel. Nearly every task touches
+      src/pages/projects/cfb-rankings/index.astro or src/components/ScheduleGrid.astro, and
+      concurrent agents would clobber each other. Wave 1 is the CSS work in the two
+      components; wave 2 the Rankings table reorder and delta glyphs; wave 3 titles, copy,
+      asterisk and the conference filter; wave 4 rank and division rendering.
+  - question: "How will rank and division rendering be verified before the site rebuilds?"
+    answer: >
+      Against a fixture built from real database values, because this sandbox's proxy blocks
+      pages.dev so the freshly published artifact cannot be fetched. Final confirmation is
+      against the real artifact once Cloudflare rebuilds. Recorded so the fixture is not
+      mistaken for the real thing.
+
+model_routing:
+  provider: "anthropic"
+  provider_map_verified_at: "2026-09-08T16:40:00Z"
+  substitutions: []
+  unresolved_limitations:
+    - "Per-subagent model selection is advisory in this runtime; actual_model is recorded as unverified for spawned agents."
+
+next_action: "Execute wave 1, then waves 2-4, then open the personal-site PR and run mandatory verification."
+next_recommended_command: "$work"
+user_input_needed: false
