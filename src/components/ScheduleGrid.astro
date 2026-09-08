@@ -295,7 +295,38 @@ const columns: Array<{ slot_id: string; label: string }> =
     max-height: 82vh;
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.02);
+    /* Solid, matching .sg-team-col below (T10): this shell is the backdrop behind
+       every cell that doesn't paint its own opaque background (e.g. the non-sticky
+       half of .sg-conf-header, and the padding added below for T11b), so it has to
+       be opaque too or the page's grid-line pattern still shows through those gaps. */
+    background: rgba(16, 23, 32, 0.98);
+    /* T11b: room at the bottom so the horizontal scrollbar (see below) never
+       overlaps the last team row. */
+    padding-bottom: 0.85rem;
+    /* T11b: dark, translucent scrollbar consistent with the site's theme. Standards
+       property first (Firefox and any Chromium build honoring it); WebKit
+       pseudo-elements below cover Chrome/Safari, since neither alone covers both. */
+    scrollbar-color: rgba(173, 196, 221, 0.35) rgba(255, 255, 255, 0.04);
+    scrollbar-width: thin;
+  }
+
+  .schedule-grid-shell::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .schedule-grid-shell::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .schedule-grid-shell::-webkit-scrollbar-thumb {
+    background-color: rgba(173, 196, 221, 0.35);
+    border-radius: 6px;
+    border: 2px solid rgba(16, 23, 32, 0.98);
+  }
+
+  .schedule-grid-shell::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(173, 196, 221, 0.5);
   }
 
   .sg-empty {
@@ -311,6 +342,14 @@ const columns: Array<{ slot_id: string; label: string }> =
     min-width: 46rem;
     border-collapse: separate;
     border-spacing: 0;
+    /* T11a: with the default auto layout, each column sized itself to its own
+       widest cell -- a column with even one no-logo opponent (whose name falls
+       back to text, see .sg-opp-fallback) came out visibly wider than its
+       neighbors. table-layout: fixed makes every column's width come from its
+       <th> in the header row instead, so declaring one width for the data
+       columns below (and its own width on .sg-corner) makes them all equal
+       regardless of what any individual cell contains. */
+    table-layout: fixed;
   }
 
   #schedule-grid-table th,
@@ -321,10 +360,37 @@ const columns: Array<{ slot_id: string; label: string }> =
     text-align: left;
     white-space: nowrap;
     font-size: 0.75rem;
+    overflow: hidden;
   }
 
-  /* Sticky header row. */
-  .sg-th {
+  /* T11a: one fixed width for every data column (week AND postseason alike --
+     see the .sg-th rule below). Sized to fit the widest ordinary cell content,
+     "vs {logo} W 99-99" (prefix + opponent logo + result badge + a 2-digit-2-digit
+     score), measured in a real browser render; the sole thing that used to be
+     wider, the no-logo opponent-name fallback, already self-truncates via its own
+     max-width + ellipsis (see .sg-opp-fallback) so it no longer drives column
+     width. .sg-corner and .sg-team-col keep their own separate 9.75rem, and the
+     postseason columns (Conference Championship / Bowls / CFP slots) share this
+     same width rather than a distinct one: their header <th> carries no marker
+     that distinguishes them from a plain week column, and the client-side mirror
+     in index.astro (out of this task's owned scope) creates every non-corner
+     header with the identical "sg-th" class, so any new class added only here
+     would silently stop applying the moment a season switch rebuilds the table
+     client-side -- the same hazard this file's own header comment warns about.
+     Sharing the width is a safe, always-in-sync default; the task's constraint
+     only requires week columns to match each other, not to differ from these. */
+  .sg-th:not(.sg-corner),
+  #schedule-grid-table td:not(.sg-team-col) {
+    width: 5.75rem;
+  }
+
+  /* Sticky header row. Selector is qualified with the table's ID (rather than
+     plain .sg-th) so its white-space: normal actually beats the higher-specificity
+     #schedule-grid-table th, td { white-space: nowrap } above -- a bare class
+     selector cannot out-rank an ID selector regardless of source order. Wrapping
+     lets a label like "Conference Championship" fall onto a second line now that
+     every header cell shares one fixed width instead of growing to fit its text. */
+  #schedule-grid-table .sg-th {
     position: sticky;
     top: 0;
     z-index: 2;
@@ -334,17 +400,27 @@ const columns: Array<{ slot_id: string; label: string }> =
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    white-space: normal;
   }
 
   /* Sticky corner cell: both top AND left, above every other sticky layer, with
      its own explicit opaque background so scrolled content never bleeds through
-     the intersection -- no existing component in this codebase combines both. */
-  .sg-corner {
+     the intersection -- no existing component in this codebase combines both.
+     Selector is qualified with the table ID, matching #schedule-grid-table
+     .sg-th above (same reason: a bare .sg-corner class cannot out-rank that
+     ID-qualified rule, which also targets this element since it also carries
+     "sg-th" -- without the qualification here, .sg-th's z-index: 2 and header
+     background would silently win over this cell's z-index: 4 and background). */
+  #schedule-grid-table .sg-corner {
     position: sticky;
     top: 0;
     left: 0;
     z-index: 4;
     background: rgba(10, 15, 20, 0.98);
+    /* table-layout: fixed (above) sizes every column from the header row's <th>
+       widths alone -- matches .sg-team-col's own min/max-width below so the two
+       stay in lockstep. */
+    width: 9.75rem;
   }
 
   .sg-conf-row .sg-conf-header {
@@ -425,28 +501,48 @@ const columns: Array<{ slot_id: string; label: string }> =
 
   /* Cell status coloring -- full-cell background on every played game, not
      alternating rows (a real CSS-specificity bug in the original mockup that
-     must not be reintroduced). */
+     must not be reintroduced).
+
+     T10: all five statuses now get a SOLID background so the page's grid-line
+     pattern (BaseLayout.astro's --grid-line, painted behind everything) never
+     shows through a cell. --schedule-win-bg/--schedule-loss-bg are translucent
+     tints (rgba(21,128,61,0.18) and rgba(153,27,27,0.18)) that used to composite
+     over that grid pattern; simply setting their alpha to 1 would make them read
+     far more saturated than before. Instead each is pre-composited onto the same
+     solid base .sg-team-col already uses -- rgb(16, 23, 32) -- so the apparent
+     tint intensity is unchanged while the result is fully opaque:
+
+       result = tint * alpha + base * (1 - alpha), per channel, alpha = 0.18
+
+       win:  R 21*0.18 + 16*0.82 = 16.90 -> 17
+             G 128*0.18 + 23*0.82 = 41.90 -> 42
+             B 61*0.18 + 32*0.82 = 37.22 -> 37   => rgb(17, 42, 37)
+
+       loss: R 153*0.18 + 16*0.82 = 40.66 -> 41
+             G 27*0.18 + 23*0.82 = 23.72 -> 24
+             B 27*0.18 + 32*0.82 = 31.10 -> 31   => rgb(41, 24, 31)
+  */
   .sg-cell--win {
-    background: var(--schedule-win-bg);
+    background: rgb(17, 42, 37);
     color: var(--schedule-win-text);
   }
 
   .sg-cell--loss {
-    background: var(--schedule-loss-bg);
+    background: rgb(41, 24, 31);
     color: var(--schedule-loss-text);
   }
 
   .sg-cell--upcoming {
-    background: transparent;
+    background: rgba(16, 23, 32, 0.98);
     color: var(--text-soft);
   }
 
   .sg-cell--bye {
-    background: transparent;
+    background: rgba(16, 23, 32, 0.98);
   }
 
   .sg-cell--muted {
-    background: transparent;
+    background: rgba(16, 23, 32, 0.98);
   }
 
   .sg-game-name {

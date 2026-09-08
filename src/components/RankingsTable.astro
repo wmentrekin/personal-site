@@ -57,7 +57,37 @@ function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
     overflow-x: auto;
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.02);
+    /* Solid, matching ScheduleGrid.astro's .sg-team-col (T10): the backdrop
+       behind every cell, so the page's grid-line pattern (BaseLayout.astro's
+       --grid-line) never shows through, including in the bottom padding below. */
+    background: rgba(16, 23, 32, 0.98);
+    /* T11b: room at the bottom so the horizontal scrollbar (see below) never
+       overlaps the last team row. */
+    padding-bottom: 0.85rem;
+    /* T11b: dark, translucent scrollbar consistent with the site's theme. Standards
+       property first (Firefox and any Chromium build honoring it); WebKit
+       pseudo-elements below cover Chrome/Safari, since neither alone covers both. */
+    scrollbar-color: rgba(173, 196, 221, 0.35) rgba(255, 255, 255, 0.04);
+    scrollbar-width: thin;
+  }
+
+  .rankings-shell::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .rankings-shell::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .rankings-shell::-webkit-scrollbar-thumb {
+    background-color: rgba(173, 196, 221, 0.35);
+    border-radius: 6px;
+    border: 2px solid rgba(16, 23, 32, 0.98);
+  }
+
+  .rankings-shell::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(173, 196, 221, 0.5);
   }
 
   table {
@@ -71,6 +101,22 @@ function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
     padding: 0.85rem 0.85rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     text-align: left;
+  }
+
+  /* T10: solid base so the page's grid-line pattern never shows through a cell,
+     matching ScheduleGrid.astro's .sg-team-col (rgb(16, 23, 32)). A td's own
+     background always paints over its row's background, so this alone would
+     also erase the zebra striping and hover tint below -- both are recomputed
+     against this same base, same as ScheduleGrid.astro's win/loss tints, so
+     they keep their prior apparent intensity instead of just disappearing.
+
+     Scoped to .rankings-shell (unlike the other, pre-existing bare th/td rules
+     in this global stylesheet): a bare `td` background here would out-specificity
+     ScheduleGrid.astro's own classed cell rules (e.g. .sg-cell--win) once this
+     property moves from tr to td below, silently repainting Season Grid cells
+     whenever this component's global styles happen to load alongside it. */
+  .rankings-shell td {
+    background: rgba(16, 23, 32, 0.98);
   }
 
   th:nth-child(1),
@@ -125,11 +171,35 @@ function isTeamCell(cell: string | number | TeamCell): cell is TeamCell {
     flex-shrink: 0;
   }
 
-  tbody tr:nth-child(even) {
-    background: rgba(255, 255, 255, 0.02);
+  /* Both used to be set on the <tr>, relying on td having no background of its
+     own so the row color would show through. Now that td has a solid background
+     (above), a tr-level background would be fully hidden -- so both are moved to
+     target td directly, each pre-composited onto that same rgb(16, 23, 32) base
+     so they keep their prior apparent intensity instead of vanishing:
+
+       result = tint * alpha + base * (1 - alpha), per channel
+
+       zebra (rgba(255,255,255,0.02), alpha = 0.02):
+         R 255*0.02 + 16*0.98 = 20.78 -> 21
+         G 255*0.02 + 23*0.98 = 27.64 -> 28
+         B 255*0.02 + 32*0.98 = 36.46 -> 36        => rgb(21, 28, 36)
+
+       hover (rgba(125,211,252,0.04), alpha = 0.04):
+         R 125*0.04 + 16*0.96 = 20.36 -> 20
+         G 211*0.04 + 23*0.96 = 30.52 -> 31
+         B 252*0.04 + 32*0.96 = 40.80 -> 41        => rgb(20, 31, 41)
+
+     hover is declared after zebra, same as the tr-level rules were, so it wins
+     on an even row exactly like before (equal specificity, source order). Both
+     are scoped to .rankings-shell for the same cross-component reason as the
+     base td rule above -- an unscoped `tbody tr:nth-child(even) td` would
+     otherwise outrank ScheduleGrid.astro's .sg-cell--* classes on its own
+     table's even rows. */
+  .rankings-shell tbody tr:nth-child(even) td {
+    background: rgb(21, 28, 36);
   }
 
-  tbody tr:hover {
-    background: rgba(125, 211, 252, 0.04);
+  .rankings-shell tbody tr:hover td {
+    background: rgb(20, 31, 41);
   }
 </style>
