@@ -111,11 +111,22 @@ const STATUS_TEXT_BY_SLOT: Record<string, Record<string, string>> = {
   },
 };
 
+// Generic per-status text for any (slot_id, status) pair the map above does not cover. The
+// artifact builder lives in another repo and can add a slot or emit an existing status in a
+// new column; without this a cell would silently render blank. Mirrored in index.astro.
+const STATUS_TEXT_FALLBACK: Record<string, string> = {
+  tbd: "vs TBD",
+  possible: "Still possible",
+  clinched: "Clinched",
+  eliminated: "Eliminated",
+  eligible: "Eligible",
+  ineligible: "Ineligible",
+};
+
 function statusMutedText(cell: WeekCell): string {
   const forSlot = STATUS_TEXT_BY_SLOT[cell.slot_id];
   if (forSlot && forSlot[cell.status] !== undefined) return forSlot[cell.status];
-  if (cell.status === "tbd") return "vs TBD";
-  return "";
+  return STATUS_TEXT_FALLBACK[cell.status] ?? "";
 }
 
 // Mirrored 1:1 by cellClassName() in index.astro's client script.
@@ -251,9 +262,7 @@ const columns: Array<{ slot_id: string; label: string }> =
                       ) : null}
                       {view.kind === "muted" ? <span class="sg-muted-text">{view.mutedText}</span> : null}
                       {view.kind === "blank" ? (
-                        <span class="sg-blank" aria-hidden="true">
-                          —
-                        </span>
+                        <span class="sg-blank" aria-hidden="true">{"\u2014"}</span>
                       ) : null}
                     </td>
                   );

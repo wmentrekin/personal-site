@@ -117,7 +117,25 @@ const rankingsSeasonsForClient = rankingsIndex
 // so the tab opened on a permanent empty state. They are two independent artifacts published
 // on different backfill schedules; treating their season lists as interchangeable was the bug.
 const rankingsSeasonList = rankingsSeasonsForClient.map((entry) => entry.season);
-const scheduleSeasonList = [...(scheduleIndex?.seasons ?? [])].sort((a, b) => b - a);
+
+// A season appearing in schedule/index.json only means an object exists in the bucket, NOT
+// that its contents were ever verified. The index is rebuilt by listing the bucket, so a
+// bad or half-finished backfill stays listed until its object is deleted.
+//
+// 2025 is exactly that case: schedule/2025/latest.json exists but its records are wrong
+// (it has Georgia Tech at 10-3, which is not their 2025 record). The 2025 Season Grid
+// backfill is deliberately scoped to a separate pass, so until that pass regenerates and
+// verifies it, the season must not be offerable -- a selectable season that renders wrong
+// data is worse than one that isn't offered.
+//
+// REMOVE the entry below when 2025 is regenerated and checked. The durable fix is deleting
+// the unverified object from R2 so the index stops listing it; this guard makes the UI
+// correct regardless of bucket state.
+const UNVERIFIED_SCHEDULE_SEASONS = new Set([2025]);
+
+const scheduleSeasonList = [...(scheduleIndex?.seasons ?? [])]
+  .filter((season) => !UNVERIFIED_SCHEDULE_SEASONS.has(season))
+  .sort((a, b) => b - a);
 
 const latestWeek = rankingsIndex?.latest_week ?? null;
 
@@ -159,10 +177,15 @@ const rows =
 
 const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
 
+// MUST be defaultScheduleSeason, not defaultSeason (which is the RANKINGS default). The
+// client seeds loadedScheduleSeason from defaultScheduleSeason, so if the server rendered a
+// different season's grid, setActiveTab("schedule") would see the selector already matching
+// loadedScheduleSeason, skip the fetch, and leave one season's grid on screen under a
+// selector naming another -- with no way to recover when the dropdown has a single option.
 const schedulePayload =
-  defaultSeason !== null
+  defaultScheduleSeason !== null
     ? readJsonSafe<SchedulePayload>(
-        new URL(`../../../public/data/cfb/schedule/${defaultSeason}/latest.json`, import.meta.url)
+        new URL(`../../../public/data/cfb/schedule/${defaultScheduleSeason}/latest.json`, import.meta.url)
       )
     : null;
 
@@ -213,8 +236,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         <>
           <div class="panel-head">
             <h2 id="panel-title">FBS College Football Rankings</h2>
-            <div class="panel-controls">
-              <div class="tab-switch" id="view-tab-switch">
+            <div class="tab-switch" id="view-tab-switch">
                 <span class="tab-switch-label is-active" data-tab-label="rankings">Rankings</span>
                 <button
                   type="button"
@@ -226,8 +248,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
                 >
                   <span class="tab-switch-thumb"></span>
                 </button>
-                <span class="tab-switch-label" data-tab-label="schedule">Season Grid</span>
-              </div>
+              <span class="tab-switch-label" data-tab-label="schedule">Season Grid</span>
             </div>
           </div>
 
@@ -439,13 +460,6 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       font-size: 0.9rem;
     }
 
-    .panel-controls {
-      display: flex;
-      align-items: center;
-      gap: 1.1rem;
-      flex-wrap: wrap;
-    }
-
     /* The selectors sit on their own row BELOW the title/toggle row, left-aligned.
        Previously they shared a right-aligned flex row with the tab toggle, so hiding
        the week selector on the Season Grid tab narrowed the group and slid the toggle
@@ -568,6 +582,10 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       .panel-head {
         flex-direction: column;
         align-items: flex-start;
+        /* Stacked, the title sits above the toggle and wraps to two lines on the longer
+           "FBS College Football Rankings" but one on "Season Grid" -- which moved the
+           toggle ~25px on every tab switch. Reserve both lines. */
+        min-height: 4.6rem;
       }
     }
 
@@ -769,8 +787,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       function statusMutedText(cell) {
         const forSlot = STATUS_TEXT_BY_SLOT[cell.slot_id];
         if (forSlot && forSlot[cell.status] !== undefined) return forSlot[cell.status];
-        if (cell.status === "tbd") return "vs TBD";
-        return "";
+        return STATUS_TEXT_FALLBACK[cell.status] ?? "";
       }
 
       function opponentPrefix(cell) {
@@ -779,6 +796,18 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         if (cell.neutral_site) return "vs";
         return cell.home_away === "away" ? "@" : "vs";
       }
+
+      // Generic per-status text for any (slot_id, status) pair the map above does not cover.
+      // The artifact builder lives in another repo and can add a slot or emit an existing
+      // status in a new column; without this a cell would silently render blank.
+      const STATUS_TEXT_FALLBACK = {
+        tbd: "vs TBD",
+        possible: "Still possible",
+        clinched: "Clinched",
+        eliminated: "Eliminated",
+        eligible: "Eligible",
+        ineligible: "Ineligible"
+      };
 
       const STATUS_TEXT_BY_SLOT = {
         "conf-championship": {
@@ -983,6 +1012,13 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       }
 
       async function loadScheduleSeason(season) {
+        // An empty/absent season would request schedule//latest.json and 404, wiping a
+        // perfectly good server-rendered grid on the way. Render the empty state directly.
+        if (season === null || season === undefined || season === "") {
+          loadedScheduleSeason = null;
+          renderScheduleGrid(null);
+          return;
+        }
         const generation = ++loadGeneration;
         try {
           const response = await fetch(`/data/cfb/schedule/${season}/latest.json`);
@@ -1008,15 +1044,20 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       // on the control (track or thumb, since the thumb has no listener of its
       // own) toggles state.
       // ---------------------------------------------------------------------
-      // Repopulate the shared season selector with the seasons the TARGET tab actually
-      // has data for. Keeps the user's current pick when that tab also has it (switching
-      // tabs to compare the same season shouldn't silently jump years); otherwise falls
-      // back to that tab's most recent. Returns the season now selected.
+      // Set once the user actually picks a season. Until then, each tab opens on ITS OWN
+      // most recent season rather than inheriting the other tab's -- inheriting is precisely
+      // what made Season Grid open on a season only the Rankings artifact had. After a
+      // deliberate pick, that choice carries across tabs when the target tab also has it,
+      // so switching tabs to compare the same season doesn't silently jump years.
+      let seasonChosenByUser = false;
+
+      // Repopulate the shared season selector with the seasons the TARGET tab actually has
+      // data for. Returns the season now selected.
       function syncSeasonOptions(tab) {
         const available = tab === "schedule" ? scheduleSeasonList : rankingsSeasonList;
         const fallback = tab === "schedule" ? defaultScheduleSeason : defaultRankingsSeason;
         const current = Number(seasonSelect.value);
-        const next = available.includes(current) ? current : fallback;
+        const next = seasonChosenByUser && available.includes(current) ? current : fallback;
 
         seasonSelect.textContent = "";
         for (const season of available) {
@@ -1071,6 +1112,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       }
 
       seasonSelect.addEventListener("change", () => {
+        seasonChosenByUser = true;
         const season = seasonSelect.value;
         if (activeTab === "schedule") {
           loadScheduleSeason(season);
