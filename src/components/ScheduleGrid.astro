@@ -46,10 +46,14 @@ interface TeamEntry {
   // within its conference ("East"/"West"), null for every team in a conference
   // that has no divisions -- which is all of them but the Sun Belt today, so the
   // null branch is the common case, not the edge case.
-  rank: number | null;
+  // Optional, not just nullable: the artifact currently published to R2 predates both
+  // fields, so a payload that omits them entirely is a live, reachable case -- which is
+  // what the `!== undefined` guard in the render below has always been handling. Declaring
+  // them required said otherwise and made that guard look like dead defensiveness.
+  rank?: number | null;
   record: { wins: number; losses: number };
   conf_record: { wins: number; losses: number } | null;
-  division: string | null;
+  division?: string | null;
   weeks: WeekCell[];
 }
 
@@ -97,7 +101,13 @@ type CellView = {
 // itself ("vs*") since neutral-site games already read "vs" (never "@") for both
 // teams -- the marker only ever appears as "vs*". The render below adds an
 // aria-label/title on the prefix span so a bare "*" doesn't announce as bare
-// punctuation.
+// punctuation. role="img" is required for that to work and is not decoration: a <span>
+// with no role is role=generic, for which ARIA prohibits author naming. Without the role
+// Chromium computed the name but left the "vs*" StaticText child exposed underneath it, so
+// browse-mode still read the bare asterisk, and Firefox and Safari dropped the name
+// outright. Verified in the accessibility tree. This is what .sg-team-rank and
+// RankingsTable's .delta-cell already do; the prefix was the one place that set a bare
+// aria-label and silently got nothing for it.
 function opponentPrefix(cell: WeekCell): string {
   if (cell.neutral_site) return "vs*";
   return cell.home_away === "away" ? "@" : "vs";
@@ -217,6 +227,37 @@ function formatRecord(team: TeamEntry, confName: string): string {
   return `${wins}-${losses}`;
 }
 
+// T15: which team indexes within a conference get a division sub-heading above them.
+//
+// Computed here rather than inline in the template for two reasons. It keeps the template a
+// straight lookup, and a generic type argument inside the template (`new Set<string>()`)
+// parses as JSX -- TypeScript then infers `boolean` from the comparison it thinks it sees
+// and reports "Property 'add' does not exist on type 'boolean'" plus a cascade of bogus
+// unclosed-tag errors. In the frontmatter it is ordinary TypeScript.
+//
+// teams[] arrives already grouped by division (the builder sorts each division's members in
+// its own pass and appends the groups whole), so a heading belongs wherever the division
+// CHANGES -- this never re-groups the payload, matching the rest of this component's "render
+// the artifact, never re-derive it" rule. `seen` braces that: a payload whose divisions are
+// NOT contiguous (hand-edited, or a producer regression) would otherwise emit a heading per
+// team, so an SBC interleaved East/West/East/West would render 14 heading rows for 14 teams.
+// A conference with no divisions has division null on every team and gets an empty set, so
+// its markup is byte-identical to before divisions existed.
+function divisionHeaderIndexes(teams: TeamEntry[]): Set<number> {
+  const seen = new Set<string>();
+  const indexes = new Set<number>();
+  let previous: string | null = null;
+  teams.forEach((team, index) => {
+    const division = team.division ?? null;
+    if (division !== null && division !== previous && !seen.has(division)) {
+      seen.add(division);
+      indexes.add(index);
+    }
+    previous = division;
+  });
+  return indexes;
+}
+
 // The canonical column list is identical across every team in the payload --
 // build it from the first team of the first conference, never recomputed.
 const columns: Array<{ slot_id: string; label: string }> =
@@ -235,25 +276,21 @@ const columns: Array<{ slot_id: string; label: string }> =
         </tr>
       </thead>
       <tbody>
-        {data.conferences.map((conf) => (
+        {data.conferences.map((conf) => {
+          const divisionHeaders = divisionHeaderIndexes(conf.teams);
+          return (
           <>
             <tr class="sg-conf-row" data-conference={conf.name}>
               <th class="sg-conf-header sg-conf-header--sticky">{conf.name}</th>
               <th class="sg-conf-header" colspan={columns.length}></th>
             </tr>
             {conf.teams.map((team, teamIndex) => {
-              // T15: division sub-headings. teams[] arrives already grouped by division
-              // (the builder sorts each division's members in its own pass and appends the
-              // groups in order), so a heading is emitted exactly where the division CHANGES
-              // rather than by re-grouping here -- same "render the payload, never re-derive
-              // it" rule the rest of this component follows. A conference with no divisions
-              // has division === null on every team, so nothing is emitted and the markup is
-              // identical to before this change. The heading row carries data-conference so
-              // the conference filter (index.astro) hides it with its conference; that filter
-              // selects on [data-conference] generically, so no filter change was needed.
+              // T15: division sub-headings, placed by divisionHeaderIndexes() above. The
+              // heading row carries data-conference so the conference filter (index.astro)
+              // hides it with its conference; that filter selects on [data-conference]
+              // generically, so no filter change was needed.
+              const showDivisionHeader = divisionHeaders.has(teamIndex);
               const division = team.division ?? null;
-              const previousDivision = teamIndex > 0 ? conf.teams[teamIndex - 1].division ?? null : null;
-              const showDivisionHeader = division !== null && division !== previousDivision;
               return (
               <>
               {showDivisionHeader ? (
@@ -272,7 +309,10 @@ const columns: Array<{ slot_id: string; label: string }> =
                     )}
                     <span class="sg-team-name-block">
                       <span class="sg-team-name-line">
-                        <span class="sg-team-name">{team.team}</span>
+                        {/* title as insurance: the column is sized to fit today's longest
+                            name, but a future rename or realignment could exceed it, and a
+                            silently-ellipsised team name has no other recovery. */}
+                        <span class="sg-team-name" title={team.team}>{team.team}</span>
                         {team.rank !== null && team.rank !== undefined ? (
                           <span class="sg-team-rank" role="img" aria-label={`Rank ${team.rank}`}>{team.rank}</span>
                         ) : null}
@@ -291,6 +331,7 @@ const columns: Array<{ slot_id: string; label: string }> =
                           <span
                             class="sg-prefix"
                             title={cell.neutral_site ? "Neutral-site game" : undefined}
+                            role={cell.neutral_site ? "img" : undefined}
                             aria-label={cell.neutral_site ? "vs, neutral site" : undefined}
                           >{view.prefix}</span>
                           {view.logo ? (
@@ -317,7 +358,8 @@ const columns: Array<{ slot_id: string; label: string }> =
               );
             })}
           </>
-        ))}
+          );
+        })}
       </tbody>
     </table>
   ) : (
@@ -436,9 +478,14 @@ const columns: Array<{ slot_id: string; label: string }> =
        and the regression only appeared once a later change altered cell content, because
        until then every column happened to hold similarly-sized content and looked uniform.
        Pinning min and max makes the width independent of what any cell contains. */
-    width: 5.75rem;
-    min-width: 5.75rem;
-    max-width: 5.75rem;
+       Widened from 5.75rem: the neutral-site "*" was added to the prefix AFTER the 5.75rem
+       measurement was taken, and it costs 6.55px ("vs" 13.11px -> "vs*" 19.66px), which the
+       overflow: hidden above then clipped. Measured: 14 of 2793 cells overflowed, every one
+       of them a "vs*" cell -- "vs* W 24-21" wanted 104px of a 102px box, shaving the last
+       score digit. 6rem restores the headroom. */
+    width: 6rem;
+    min-width: 6rem;
+    max-width: 6rem;
   }
 
   /* Sticky header row. Selector is qualified with the table's ID (rather than
@@ -477,7 +524,7 @@ const columns: Array<{ slot_id: string; label: string }> =
     /* table-layout: fixed (above) sizes every column from the header row's <th>
        widths alone -- matches .sg-team-col's own min/max-width below so the two
        stay in lockstep. */
-    width: 9.75rem;
+    width: 12rem;
   }
 
   .sg-conf-row .sg-conf-header {
@@ -544,9 +591,17 @@ const columns: Array<{ slot_id: string; label: string }> =
     z-index: 1;
     background: rgba(16, 23, 32, 0.98);
     /* Keeps logo + name + record (the user's explicit choice over name-only), but
-       compressed: the record moves under the name in smaller mono type. */
-    min-width: 9.75rem;
-    max-width: 9.75rem;
+       compressed: the record moves under the name in smaller mono type.
+
+       Widened from 9.75rem when the rank was added to the name line. The rank and its gap
+       take ~24px of a line the name used to own outright, and at 9.75rem that truncated 11
+       real FBS teams -- "Mississippi State" rendered "Mississippi Sta...", with no way to
+       recover the full name. Measured by ablation (hide the rank spans, re-measure
+       scrollWidth vs clientWidth): 11 names truncated with the rank present, 0 without, and
+       the widest name needs 130px. 12rem clears that with room to spare, and .sg-corner
+       above carries the same value. Re-measure this if anything is added to that line. */
+    min-width: 12rem;
+    max-width: 12rem;
     white-space: normal;
   }
 
@@ -747,9 +802,19 @@ const columns: Array<{ slot_id: string; label: string }> =
      win/loss keep their solid highlight, and the sticky team column keeps its
      own opaque background regardless of hover, so it never looks translucent
      while other content scrolls underneath it. */
+  /* Pre-composited onto the same rgb(16, 23, 32) base every cell now uses, rather than left
+     as rgba(125, 211, 252, 0.05). A 95%-transparent hover replaced the solid base outright
+     and reopened the T10 hole -- the page's grid-line pattern showing through -- on whichever
+     cell the pointer happened to be over. Same arithmetic as RankingsTable.astro's zebra and
+     hover tints:
+
+       result = tint * alpha + base * (1 - alpha), per channel, alpha = 0.05
+         R 125*0.05 + 16*0.95 = 21.45 -> 21
+         G 211*0.05 + 23*0.95 = 32.40 -> 32
+         B 252*0.05 + 32*0.95 = 43.00 -> 43        => rgb(21, 32, 43) */
   tbody tr:hover td.sg-cell--upcoming,
   tbody tr:hover td.sg-cell--bye,
   tbody tr:hover td.sg-cell--muted {
-    background-color: rgba(125, 211, 252, 0.05);
+    background-color: rgb(21, 32, 43);
   }
 </style>

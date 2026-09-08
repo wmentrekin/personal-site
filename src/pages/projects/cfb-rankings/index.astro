@@ -60,8 +60,14 @@ interface WeekCell {
 interface TeamEntry {
   team: string;
   logo_url: string | null;
+  // Optional, matching ScheduleGrid.astro's own TeamEntry -- see the note there. This
+  // hand-mirrored copy going stale is not a silent failure: `astro check` catches it
+  // (`Type 'TeamEntry' is missing the following properties: rank, division`), though
+  // `astro build` does not type-check, so run the former after touching either copy.
+  rank?: number | null;
   record: { wins: number; losses: number };
   conf_record: { wins: number; losses: number } | null;
+  division?: string | null;
   weeks: WeekCell[];
 }
 
@@ -642,10 +648,13 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         align-items: flex-start;
       }
 
-      /* Stacked, the title sits ABOVE the toggle and wraps to two lines on "FBS College
-         Football Rankings" but one on "Season Grid", moving the toggle on every tab switch.
-         The reservation has to sit on the title itself: a column-flex container's own
-         min-height pads below its last child, so it can never hold an earlier child still. */
+      /* Stacked, the title sits ABOVE the toggle, so a title that wraps to two lines on one
+         tab and one on the other moves the toggle on every tab switch. Both titles are now
+         single-line ("Rankings" / "Season Grid"), which makes this reservation inert at
+         today's strings -- kept because it costs one line and the alternative is the toggle
+         jumping the next time a longer title is introduced. The reservation has to sit on
+         the title itself: a column-flex container's own min-height pads below its last
+         child, so it can never hold an earlier child still. */
       .panel-head h2 {
         min-height: 2lh;
       }
@@ -1020,6 +1029,10 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           const prefixNode = el("span", "sg-prefix", view.prefix);
           if (cell.neutral_site) {
             prefixNode.title = "Neutral-site game";
+            // role first, then the label -- see ScheduleGrid.astro: a bare aria-label on a
+            // role=generic span is prohibited by ARIA and is dropped or half-honored
+            // depending on the browser.
+            prefixNode.setAttribute("role", "img");
             prefixNode.setAttribute("aria-label", "vs, neutral site");
           }
           body.appendChild(prefixNode);
@@ -1098,9 +1111,13 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           // gets a heading; in a conference with no divisions every team's division is null
           // and no heading row is ever created.
           let previousDivision = null;
+          // Mirrors ScheduleGrid.astro's seenDivisions -- see the comment there for why the
+          // change-detection alone is not enough against a non-contiguous payload.
+          const seenDivisions = new Set();
           for (const team of conf.teams) {
             const division = team.division ?? null;
-            if (division !== null && division !== previousDivision) {
+            if (division !== null && division !== previousDivision && !seenDivisions.has(division)) {
+              seenDivisions.add(division);
               const divRow = document.createElement("tr");
               divRow.className = "sg-div-row";
               divRow.dataset.conference = conf.name;
@@ -1134,7 +1151,10 @@ const hasAnyData = hasRankingsData || hasScheduleData;
             }
             const nameBlock = el("span", "sg-team-name-block");
             const nameLine = el("span", "sg-team-name-line");
-            nameLine.appendChild(el("span", "sg-team-name", team.team));
+            const nameNode = el("span", "sg-team-name", team.team);
+            // Mirrors ScheduleGrid.astro: insurance against a name longer than the column.
+            nameNode.title = team.team;
+            nameLine.appendChild(nameNode);
             if (team.rank !== null && team.rank !== undefined) {
               const rankNode = el("span", "sg-team-rank", String(team.rank));
               rankNode.setAttribute("role", "img");
@@ -1158,6 +1178,18 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         // T14: a client-side re-render replaces every row wholesale, so any conference
         // filter the user had picked before switching season must be reapplied to the
         // freshly built rows -- they start with no filter state of their own.
+        //
+        // But only if the selected conference still EXISTS in the season just loaded.
+        // Reapplying a stale pick hid every row and left a 46px box holding nothing but a
+        // header -- no message, no hint that a filter was responsible, and the only way out
+        // was noticing the other dropdown. Realignment makes this reachable rather than
+        // theoretical: pick Pac-12 on one season, switch to a season on the other side of
+        // its collapse, and the conference the user is filtering on has no teams at all.
+        // Falling back to "all" shows the grid, which is the recoverable failure.
+        if (confSelect && confSelect.value !== "all") {
+          const present = new Set(data.conferences.map((c) => c.name));
+          if (!present.has(confSelect.value)) confSelect.value = "all";
+        }
         applyConferenceFilter();
       }
 

@@ -149,14 +149,13 @@ function deltaAriaLabel(delta: number): string {
        overflowing the shell on a narrow viewport (the shell scrolls in that case). */
     width: max-content;
     max-width: 100%;
-    /* Narrowed from 31rem now that column order puts the content columns (Rank, Team,
-       Record, Rating, Delta) first and Conference -- auxiliary -- last. table-layout stays
+    /* The old min-width: 31rem floor is gone with it: measured, this table's min-content is
+       ~545px, so any floor below that never binds. table-layout stays
        "auto" (the default) rather than "fixed" like ScheduleGrid.astro's grid: that grid has
        many structurally-identical week-slot columns where fixed widths make sense, but this
        table's six columns vary widely in natural content width (a team name+logo vs. a
        2-character delta vs. a conference name), so auto layout's content-driven sizing suits
        it better than hand-picked fixed widths would. */
-    min-width: 24rem;
     border-collapse: collapse;
   }
 
@@ -187,7 +186,8 @@ function deltaAriaLabel(delta: number): string {
      Record(3), Delta(5) -- same three columns that were centered before the reorder, just at
      their new positions. Team(2) and Conference(6) stay left-aligned (the default `text-align:
      left` above); Rating(4) is right-aligned below. Getting these nth-child indices wrong after
-     a reorder fails silently (no error, just wrong alignment) -- verify visually, not by eye. */
+     a reorder fails silently -- no error, just wrong alignment -- so check the computed
+     text-align per column in a browser rather than trusting the source to read correctly. */
   th:nth-child(1),
   td:nth-child(1),
   th:nth-child(3),
@@ -202,7 +202,16 @@ function deltaAriaLabel(delta: number): string {
     text-align: right;
   }
 
-  th {
+  /* Scoped, unlike the other bare element rules in this global sheet. As a bare `th` this
+     reached ScheduleGrid.astro's markup too, where it pinned every conference AND division
+     heading cell to top: 0 -- so scrolling the grid stacked all the passed headings behind
+     the real header row. Invisible today only because .sg-th carries a higher z-index and a
+     near-opaque background, and each new heading row type added to that grid makes it one
+     row worse. The remaining bare rules here (table, th/td, td, the nth-child set) leak the
+     same way and are deliberately left alone in this pass: unlike position, several of them
+     are currently load-bearing for the Season Grid's own typography, so unpicking them is a
+     visual change in its own right rather than a fix. */
+  .rankings-shell th {
     position: sticky;
     top: 0;
     background: rgba(10, 15, 20, 0.96);
