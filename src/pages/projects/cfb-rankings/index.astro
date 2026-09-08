@@ -582,10 +582,14 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       .panel-head {
         flex-direction: column;
         align-items: flex-start;
-        /* Stacked, the title sits above the toggle and wraps to two lines on the longer
-           "FBS College Football Rankings" but one on "Season Grid" -- which moved the
-           toggle ~25px on every tab switch. Reserve both lines. */
-        min-height: 4.6rem;
+      }
+
+      /* Stacked, the title sits ABOVE the toggle and wraps to two lines on "FBS College
+         Football Rankings" but one on "Season Grid", moving the toggle on every tab switch.
+         The reservation has to sit on the title itself: a column-flex container's own
+         min-height pads below its last child, so it can never hold an earlier child still. */
+      .panel-head h2 {
+        min-height: 2lh;
       }
     }
 
@@ -1044,20 +1048,21 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       // on the control (track or thumb, since the thumb has no listener of its
       // own) toggles state.
       // ---------------------------------------------------------------------
-      // Set once the user actually picks a season. Until then, each tab opens on ITS OWN
-      // most recent season rather than inheriting the other tab's -- inheriting is precisely
-      // what made Season Grid open on a season only the Rankings artifact had. After a
-      // deliberate pick, that choice carries across tabs when the target tab also has it,
-      // so switching tabs to compare the same season doesn't silently jump years.
-      let seasonChosenByUser = false;
+      // Each tab remembers the season the user last picked ON THAT TAB. Until they pick one,
+      // a tab opens on its OWN most recent season rather than inheriting the other tab's --
+      // inheriting is precisely what made Season Grid open on a season only the Rankings
+      // artifact had. A single shared flag was not enough: with 2025 excluded from Season
+      // Grid, picking 2025 on Rankings then round-tripping through Season Grid overwrote the
+      // shared value with 2026 and lost the pick, which is the opposite of what it promised.
+      const lastSeasonByTab = { rankings: null, schedule: null };
 
       // Repopulate the shared season selector with the seasons the TARGET tab actually has
       // data for. Returns the season now selected.
       function syncSeasonOptions(tab) {
         const available = tab === "schedule" ? scheduleSeasonList : rankingsSeasonList;
         const fallback = tab === "schedule" ? defaultScheduleSeason : defaultRankingsSeason;
-        const current = Number(seasonSelect.value);
-        const next = seasonChosenByUser && available.includes(current) ? current : fallback;
+        const remembered = lastSeasonByTab[tab];
+        const next = remembered !== null && available.includes(remembered) ? remembered : fallback;
 
         seasonSelect.textContent = "";
         for (const season of available) {
@@ -1112,7 +1117,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       }
 
       seasonSelect.addEventListener("change", () => {
-        seasonChosenByUser = true;
+        lastSeasonByTab[activeTab] = Number(seasonSelect.value);
         const season = seasonSelect.value;
         if (activeTab === "schedule") {
           loadScheduleSeason(season);
