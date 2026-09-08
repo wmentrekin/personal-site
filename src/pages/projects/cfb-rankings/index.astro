@@ -958,6 +958,12 @@ const hasAnyData = hasRankingsData || hasScheduleData;
               img.loading = "lazy";
               img.decoding = "async";
               teamCell.appendChild(img);
+            } else {
+              // Mirrors ScheduleGrid.astro: reserve the logo slot so a logo-less team's
+              // name stays aligned with every other team's.
+              const placeholder = el("span", "sg-team-logo sg-team-logo--empty");
+              placeholder.setAttribute("aria-hidden", "true");
+              teamCell.appendChild(placeholder);
             }
             const nameBlock = el("span", "sg-team-name-block");
             nameBlock.appendChild(el("span", "sg-team-name", team.team));
