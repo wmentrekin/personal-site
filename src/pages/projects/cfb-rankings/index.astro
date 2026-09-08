@@ -1092,7 +1092,26 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           confRow.appendChild(confFillTh);
           tbody.appendChild(confRow);
 
+          // T15: mirrors ScheduleGrid.astro -- teams[] is already grouped by division, so
+          // a sub-heading row is emitted where the division changes. previousDivision starts
+          // as null per conference, so the first division in a divisional conference always
+          // gets a heading; in a conference with no divisions every team's division is null
+          // and no heading row is ever created.
+          let previousDivision = null;
           for (const team of conf.teams) {
+            const division = team.division ?? null;
+            if (division !== null && division !== previousDivision) {
+              const divRow = document.createElement("tr");
+              divRow.className = "sg-div-row";
+              divRow.dataset.conference = conf.name;
+              divRow.appendChild(el("th", "sg-div-header sg-div-header--sticky", division));
+              const divFillTh = el("th", "sg-div-header");
+              divFillTh.colSpan = columns.length;
+              divRow.appendChild(divFillTh);
+              tbody.appendChild(divRow);
+            }
+            previousDivision = division;
+
             const row = document.createElement("tr");
             row.dataset.conference = conf.name;
             const teamTd = document.createElement("td");
@@ -1114,7 +1133,15 @@ const hasAnyData = hasRankingsData || hasScheduleData;
               teamCell.appendChild(placeholder);
             }
             const nameBlock = el("span", "sg-team-name-block");
-            nameBlock.appendChild(el("span", "sg-team-name", team.team));
+            const nameLine = el("span", "sg-team-name-line");
+            nameLine.appendChild(el("span", "sg-team-name", team.team));
+            if (team.rank !== null && team.rank !== undefined) {
+              const rankNode = el("span", "sg-team-rank", String(team.rank));
+              rankNode.setAttribute("role", "img");
+              rankNode.setAttribute("aria-label", `Rank ${team.rank}`);
+              nameLine.appendChild(rankNode);
+            }
+            nameBlock.appendChild(nameLine);
             nameBlock.appendChild(el("span", "sg-team-record", formatRecord(team, conf.name)));
             teamCell.appendChild(nameBlock);
             teamTd.appendChild(teamCell);

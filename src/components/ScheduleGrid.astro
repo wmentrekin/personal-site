@@ -40,8 +40,16 @@ interface WeekCell {
 interface TeamEntry {
   team: string;
   logo_url: string | null;
+  // Both added by the artifact builder in this same pass (cfb-rankings PR #11).
+  // rank: the team's current position in the published rankings for this season;
+  // null for a team the ranking run did not cover. division: the team's division
+  // within its conference ("East"/"West"), null for every team in a conference
+  // that has no divisions -- which is all of them but the Sun Belt today, so the
+  // null branch is the common case, not the edge case.
+  rank: number | null;
   record: { wins: number; losses: number };
   conf_record: { wins: number; losses: number } | null;
+  division: string | null;
   weeks: WeekCell[];
 }
 
@@ -233,7 +241,27 @@ const columns: Array<{ slot_id: string; label: string }> =
               <th class="sg-conf-header sg-conf-header--sticky">{conf.name}</th>
               <th class="sg-conf-header" colspan={columns.length}></th>
             </tr>
-            {conf.teams.map((team) => (
+            {conf.teams.map((team, teamIndex) => {
+              // T15: division sub-headings. teams[] arrives already grouped by division
+              // (the builder sorts each division's members in its own pass and appends the
+              // groups in order), so a heading is emitted exactly where the division CHANGES
+              // rather than by re-grouping here -- same "render the payload, never re-derive
+              // it" rule the rest of this component follows. A conference with no divisions
+              // has division === null on every team, so nothing is emitted and the markup is
+              // identical to before this change. The heading row carries data-conference so
+              // the conference filter (index.astro) hides it with its conference; that filter
+              // selects on [data-conference] generically, so no filter change was needed.
+              const division = team.division ?? null;
+              const previousDivision = teamIndex > 0 ? conf.teams[teamIndex - 1].division ?? null : null;
+              const showDivisionHeader = division !== null && division !== previousDivision;
+              return (
+              <>
+              {showDivisionHeader ? (
+                <tr class="sg-div-row" data-conference={conf.name}>
+                  <th class="sg-div-header sg-div-header--sticky">{division}</th>
+                  <th class="sg-div-header" colspan={columns.length}></th>
+                </tr>
+              ) : null}
               <tr data-conference={conf.name}>
                 <td class="sg-team-col">
                   <span class="sg-team-cell">
@@ -243,7 +271,12 @@ const columns: Array<{ slot_id: string; label: string }> =
                       <span class="sg-team-logo sg-team-logo--empty" aria-hidden="true"></span>
                     )}
                     <span class="sg-team-name-block">
-                      <span class="sg-team-name">{team.team}</span>
+                      <span class="sg-team-name-line">
+                        <span class="sg-team-name">{team.team}</span>
+                        {team.rank !== null && team.rank !== undefined ? (
+                          <span class="sg-team-rank" role="img" aria-label={`Rank ${team.rank}`}>{team.rank}</span>
+                        ) : null}
+                      </span>
                       <span class="sg-team-record">{formatRecord(team, conf.name)}</span>
                     </span>
                   </span>
@@ -280,7 +313,9 @@ const columns: Array<{ slot_id: string; label: string }> =
                   );
                 })}
               </tr>
-            ))}
+              </>
+              );
+            })}
           </>
         ))}
       </tbody>
@@ -465,6 +500,43 @@ const columns: Array<{ slot_id: string; label: string }> =
     z-index: 1;
   }
 
+  /* T15: division sub-heading, one visual tier below the conference header above --
+     lighter tint, smaller and lighter type, and indented so it reads as nested under
+     the conference rather than as a second conference.
+
+     Selector is qualified with the table's ID, unlike .sg-conf-row .sg-conf-header
+     above. That is not cosmetic: #schedule-grid-table th, td sets font-size, padding
+     and white-space with an ID in the selector, which a bare class selector cannot
+     out-rank at any source position. Measured in a browser -- the unqualified form of
+     this rule left the sub-heading at the shared 0.75rem/0.3rem, visually identical to
+     the conference header it is supposed to sit beneath. (The conference header rule
+     loses the same three properties for the same reason; that is pre-existing rendered
+     behavior and deliberately left alone here, so the two headings still differ by the
+     properties this rule does win -- size, weight, tint and indent.) */
+  #schedule-grid-table .sg-div-header {
+    background: rgba(125, 211, 252, 0.035);
+    color: var(--muted);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: normal;
+  }
+
+  #schedule-grid-table .sg-div-header--sticky {
+    /* Indent applies only to the named first cell, not the colspan filler beside it. */
+    padding-left: 1.1rem;
+  }
+
+  /* Sticky-left for the same reason as .sg-conf-header--sticky: without it, the opaque
+     sticky first column beneath would show through this row once the grid is scrolled
+     horizontally, leaving a color seam down the heading rows. */
+  .sg-div-header--sticky {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
   /* Sticky first column (team name/logo/record) for every data row. */
   .sg-team-col {
     position: sticky;
@@ -502,6 +574,21 @@ const columns: Array<{ slot_id: string; label: string }> =
     flex-direction: column;
     gap: 0;
     min-width: 0;
+    /* T15: grow to fill the column so the rank's margin-left: auto below has slack to
+       push against -- without this the block shrink-wraps the name and the rank sits
+       flush against it instead of at the column's right edge. */
+    flex: 1 1 auto;
+  }
+
+  /* T15: the name and the rank share one line, the rank pinned right. align-items:
+     baseline (not center) so the two sit on the same text baseline even though they
+     differ in size; with a name long enough to wrap, a flex item's first baseline is
+     its first line's, which is the line the rank should align to. */
+  .sg-team-name-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    min-width: 0;
   }
 
   .sg-team-name {
@@ -511,6 +598,20 @@ const columns: Array<{ slot_id: string; label: string }> =
     line-height: 1.15;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  /* Right-aligned via margin-left: auto rather than a fixed width: ranks run 1-3
+     characters and a fixed slot would either clip a 3-digit rank or leave a gap after
+     a 1-digit one. flex-shrink: 0 keeps the number intact when a long team name
+     competes for the same line. */
+  .sg-team-rank {
+    margin-left: auto;
+    flex-shrink: 0;
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    line-height: 1.15;
   }
 
   .sg-team-record {
