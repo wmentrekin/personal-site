@@ -202,7 +202,8 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         <p class="hero-kicker">Active Project</p>
         <h1>Entrekin Quadratic Index</h1>
         <h1>College Football Rankings</h1>
-        <p class="hero-text">Optimization-based college football ratings based solely on objective metrics like record and game outcomes</p>
+        <p class="hero-text">Optimization-based college football ratings based solely on objective metrics like record and game outcomes.</p>
+        <p class="hero-text">Season Grid pairs conference standings and up-to-date results and rankings with every FBS team's full remaining schedule in one view.</p>
         <div class="hero-tags">
           <span>Optimization</span>
           <span>Sports Analytics</span>
@@ -235,7 +236,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       {hasAnyData ? (
         <>
           <div class="panel-head">
-            <h2 id="panel-title">FBS College Football Rankings</h2>
+            <h2 id="panel-title">Rankings</h2>
             <div class="tab-switch" id="view-tab-switch">
                 <span class="tab-switch-label is-active" data-tab-label="rankings">Rankings</span>
                 <button
@@ -271,6 +272,39 @@ const hasAnyData = hasRankingsData || hasScheduleData;
                     ))
                   }
                 </select>
+                {/*
+                  T14: conference filter. Occupies the week selector's slot -- the week
+                  selector is Rankings-only and already hides on Season Grid, so this is
+                  the free slot for a Season-Grid-only control. `hidden` here matches the
+                  page's default active tab (Rankings); setActiveTab() reconciles hidden
+                  and disabled on load and on every tab switch.
+
+                  Values are the RAW abbreviated conference names the schedule artifact
+                  actually emits (ACC, BIG 12, BIG 10, SEC, American, CUSA, MAC, MWC,
+                  PAC 12, SBC, FBS Independent) -- NOT the English group labels below.
+                  Matching on the English names would silently fail to filter 7 of the
+                  11 conferences; see applyConferenceFilter() and the data-conference
+                  attribute ScheduleGrid.astro stamps on every row for how these values
+                  are consumed.
+                */}
+                <select class="filter-select" id="conference-select" aria-label="Conference" hidden>
+                  <option value="all">All</option>
+                  <optgroup label="Power 4">
+                    <option value="ACC">ACC</option>
+                    <option value="BIG 12">Big 12</option>
+                    <option value="BIG 10">Big 10</option>
+                    <option value="SEC">SEC</option>
+                  </optgroup>
+                  <option value="FBS Independent">Independents</option>
+                  <optgroup label="Group of 6">
+                    <option value="American">American</option>
+                    <option value="CUSA">Conference USA</option>
+                    <option value="MAC">MAC</option>
+                    <option value="MWC">Mountain West</option>
+                    <option value="PAC 12">Pac-12</option>
+                    <option value="SBC">Sun Belt</option>
+                  </optgroup>
+                </select>
           </div>
 
           <div id="rankings-tab-panel" class="tab-panel">
@@ -285,6 +319,14 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
           <div id="schedule-tab-panel" class="tab-panel" hidden>
             <ScheduleGrid data={schedulePayload} />
+            {/*
+              T13c footnote: outside ScheduleGrid's own shell (#schedule-grid-shell), which
+              the client-side season re-render clears and rebuilds wholesale -- keeping this
+              paragraph out of that subtree means it survives every re-render for free, no
+              client-side mirror needed. Static and always shown on this tab; it doesn't
+              depend on whether the current season/filter selection has a neutral-site game.
+            */}
+            <p class="table-footnote">* Neutral-site game</p>
           </div>
         </>
       ) : (
@@ -322,6 +364,16 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       text-transform: uppercase;
     }
 
+    /* flex: 1 makes hero-copy grow into the row's remaining space (rather than
+       shrink-to-fit its content, the flex default), which is what lets hero-text
+       below use the card's full width instead of stopping partway across it.
+       .hero-actions keeps its own flex-shrink: 0, so it's still never crushed --
+       the two rules are two sides of the same layout decision. */
+    .hero-copy {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
     .hero-copy h1 {
       margin: 0.35rem 0 0.45rem;
       font-family: var(--font-display);
@@ -330,12 +382,18 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       letter-spacing: -0.05em;
     }
 
+    /* No max-width: previously 34rem, which wrapped the copy about halfway across
+       the card. Removed rather than raised -- with .hero-copy now flex:1 (above),
+       an explicit max-width would just reintroduce the same cap at a new number. */
     .hero-text {
       margin: 0;
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.65;
-      max-width: 34rem;
+    }
+
+    .hero-text + .hero-text {
+      margin-top: 0.35rem;
     }
 
     .hero-tags {
@@ -431,9 +489,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       justify-content: space-between;
       gap: 0.8rem;
       flex-wrap: wrap;
-      /* The h2 swaps between "FBS College Football Rankings" and "Season Grid" on every
-         tab change. Reserving the row's height keeps the toggle pinned: without it the
-         shorter title let the row collapse slightly and dragged the toggle up with it. */
+      /* The h2 swaps between "Rankings" and "Season Grid" on every tab change.
+         Reserving the row's height keeps the toggle pinned: without it a shorter
+         title could let the row collapse slightly and drag the toggle up with it. */
       min-height: 2.4rem;
       margin-bottom: 0.9rem;
     }
@@ -645,6 +703,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
     function initRankingsSelector() {
       const seasonSelect = document.getElementById("season-select");
       const weekSelect = document.getElementById("week-select");
+      const confSelect = document.getElementById("conference-select");
       const tabSwitch = document.getElementById("tab-switch-control");
       const tabLabels = document.querySelectorAll(".tab-switch-label");
       const panelTitle = document.getElementById("panel-title");
@@ -843,7 +902,10 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       function opponentPrefix(cell) {
         // Mirrors ScheduleGrid.astro's opponentPrefix() -- neutral-site games read
         // "vs" for BOTH teams, and the opponent's name is replaced by their logo.
-        if (cell.neutral_site) return "vs";
+        // The trailing "*" is the restored neutral-site marker -- glued onto the
+        // prefix itself, since neutral-site games never read "@". See
+        // ScheduleGrid.astro's opponentPrefix() for the full regression note.
+        if (cell.neutral_site) return "vs*";
         return cell.home_away === "away" ? "@" : "vs";
       }
 
@@ -861,7 +923,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
       const STATUS_TEXT_BY_SLOT = {
         "conf-championship": {
-          possible: "Still in the Hunt",
+          possible: "In the Hunt",
           clinched: "Clinched",
           eliminated: "Eliminated"
         },
@@ -955,7 +1017,12 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
         if (view.kind === "game") {
           const body = el("span", "sg-game-body");
-          body.appendChild(el("span", "sg-prefix", view.prefix));
+          const prefixNode = el("span", "sg-prefix", view.prefix);
+          if (cell.neutral_site) {
+            prefixNode.title = "Neutral-site game";
+            prefixNode.setAttribute("aria-label", "vs, neutral site");
+          }
+          body.appendChild(prefixNode);
           if (view.logo) {
             const img = document.createElement("img");
             img.className = "sg-opp-logo";
@@ -1018,6 +1085,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         for (const conf of data.conferences) {
           const confRow = document.createElement("tr");
           confRow.className = "sg-conf-row";
+          confRow.dataset.conference = conf.name;
           confRow.appendChild(el("th", "sg-conf-header sg-conf-header--sticky", conf.name));
           const confFillTh = el("th", "sg-conf-header");
           confFillTh.colSpan = columns.length;
@@ -1026,6 +1094,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
           for (const team of conf.teams) {
             const row = document.createElement("tr");
+            row.dataset.conference = conf.name;
             const teamTd = document.createElement("td");
             teamTd.className = "sg-team-col";
             const teamCell = el("span", "sg-team-cell");
@@ -1059,6 +1128,26 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         }
         table.appendChild(tbody);
         scheduleShell.appendChild(table);
+        // T14: a client-side re-render replaces every row wholesale, so any conference
+        // filter the user had picked before switching season must be reapplied to the
+        // freshly built rows -- they start with no filter state of their own.
+        applyConferenceFilter();
+      }
+
+      // T14 conference filter. Applied by hiding DOM rows rather than re-rendering a
+      // filtered subset: renderScheduleGrid() already owns the one code path that builds
+      // rows (for both the initial server-rendered grid, via the data-conference
+      // attributes ScheduleGrid.astro stamps server-side, and every client rebuild), so
+      // filtering only has to toggle `hidden` on rows already tagged with their
+      // conference's raw value -- no second render path to keep in sync, and no need to
+      // re-fetch or re-slice the payload on every filter change.
+      function applyConferenceFilter() {
+        if (!scheduleShell) return;
+        const value = confSelect ? confSelect.value : "all";
+        const rows = scheduleShell.querySelectorAll("[data-conference]");
+        rows.forEach((row) => {
+          row.hidden = value !== "all" && row.dataset.conference !== value;
+        });
       }
 
       async function loadScheduleSeason(season) {
@@ -1136,6 +1225,13 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         weekSelect.hidden = isSchedule;
         weekSelect.disabled = isSchedule;
 
+        // T14: the conference filter occupies the week selector's freed slot -- it's
+        // Season-Grid-only, the mirror image of the week selector above.
+        if (confSelect) {
+          confSelect.hidden = !isSchedule;
+          confSelect.disabled = !isSchedule;
+        }
+
         syncSeasonOptions(tab);
 
         if (tabSwitch) {
@@ -1146,7 +1242,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           label.classList.toggle("is-active", label.dataset.tabLabel === tab);
         });
         if (panelTitle) {
-          panelTitle.textContent = isSchedule ? "Season Grid" : "FBS College Football Rankings";
+          panelTitle.textContent = isSchedule ? "Season Grid" : "Rankings";
         }
 
         if (isSchedule && Number(seasonSelect.value) !== loadedScheduleSeason) {
@@ -1176,10 +1272,19 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         loadWeek(seasonSelect.value ?? defaultSeason, weekSelect.value);
       });
 
+      if (confSelect) {
+        confSelect.addEventListener("change", applyConferenceFilter);
+      }
+
       // Every page-load/transition starts on Rankings, per spec -- this also
       // re-syncs the DOM (hidden/disabled/aria states) in case this handler is
       // re-run against already-rendered markup.
       setActiveTab("rankings");
+      // Establishes baseline filter state against the server-rendered Season Grid
+      // rows (default "All", so a no-op today) -- kept explicit rather than relying
+      // solely on the season-change path, since the initial schedule-tab-panel grid
+      // is server-rendered and never passes through renderScheduleGrid().
+      applyConferenceFilter();
     }
 
     document.addEventListener("astro:page-load", initRankingsSelector);

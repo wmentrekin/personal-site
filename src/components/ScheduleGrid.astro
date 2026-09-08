@@ -82,15 +82,23 @@ type CellView = {
 // carries the opponent's logo instead, which is what makes the grid dense enough
 // to read a full conference at once. The name is the fallback for a team with no
 // logo (typically an FCS opponent).
+//
+// Regression fix: cells used to read "@ Stanford*", the trailing "*" marking a
+// neutral-site game. When the opponent NAME was replaced by their LOGO, the
+// asterisk was dropped along with it. It comes back here, glued onto the prefix
+// itself ("vs*") since neutral-site games already read "vs" (never "@") for both
+// teams -- the marker only ever appears as "vs*". The render below adds an
+// aria-label/title on the prefix span so a bare "*" doesn't announce as bare
+// punctuation.
 function opponentPrefix(cell: WeekCell): string {
-  if (cell.neutral_site) return "vs";
+  if (cell.neutral_site) return "vs*";
   return cell.home_away === "away" ? "@" : "vs";
 }
 
 // Mirrored 1:1 by statusMutedText() in index.astro's client script.
 //
 // The SAME status value reads differently per column -- status='possible' means
-// "Still in the Hunt" in the conference-championship column but "Not Yet Eligible"
+// "In the Hunt" in the conference-championship column but "Not Yet Eligible"
 // in the Bowls column -- so display text is a (slot_id, status) lookup rather than a
 // property of the status alone. The artifact's status enum is unchanged; this is
 // purely presentational, which is why it lives here and not in the builder.
@@ -100,7 +108,7 @@ function opponentPrefix(cell: WeekCell): string {
 // grid should not assert.
 const STATUS_TEXT_BY_SLOT: Record<string, Record<string, string>> = {
   "conf-championship": {
-    possible: "Still in the Hunt",
+    possible: "In the Hunt",
     clinched: "Clinched",
     eliminated: "Eliminated",
   },
@@ -221,12 +229,12 @@ const columns: Array<{ slot_id: string; label: string }> =
       <tbody>
         {data.conferences.map((conf) => (
           <>
-            <tr class="sg-conf-row">
+            <tr class="sg-conf-row" data-conference={conf.name}>
               <th class="sg-conf-header sg-conf-header--sticky">{conf.name}</th>
               <th class="sg-conf-header" colspan={columns.length}></th>
             </tr>
             {conf.teams.map((team) => (
-              <tr>
+              <tr data-conference={conf.name}>
                 <td class="sg-team-col">
                   <span class="sg-team-cell">
                     {team.logo_url ? (
@@ -247,7 +255,11 @@ const columns: Array<{ slot_id: string; label: string }> =
                       {view.gameName ? <span class="sg-game-name">{view.gameName}</span> : null}
                       {view.kind === "game" ? (
                         <span class="sg-game-body">
-                          <span class="sg-prefix">{view.prefix}</span>
+                          <span
+                            class="sg-prefix"
+                            title={cell.neutral_site ? "Neutral-site game" : undefined}
+                            aria-label={cell.neutral_site ? "vs, neutral site" : undefined}
+                          >{view.prefix}</span>
                           {view.logo ? (
                             <img class="sg-opp-logo" src={view.logo} alt={cell.opponent ?? ""} loading="lazy" decoding="async" />
                           ) : null}
@@ -563,7 +575,9 @@ const columns: Array<{ slot_id: string; label: string }> =
   }
 
   /* The "@" / "vs" that used to lead a full "@ Stanford" label. It now leads the
-     opponent's LOGO instead, so a cell reads "@ {logo} W 45-6". */
+     opponent's LOGO instead, so a cell reads "@ {logo} W 45-6". A neutral-site
+     game reads "vs*" -- see opponentPrefix() above for the asterisk regression
+     fix and its accessible aria-label/title. */
   .sg-prefix {
     font-family: var(--font-mono);
     font-size: 0.68rem;
