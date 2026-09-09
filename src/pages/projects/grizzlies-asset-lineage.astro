@@ -2,7 +2,10 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Memphis Grizzlies Asset Lineage | Wyatt Entrekin">
+<BaseLayout
+  title="Memphis Grizzlies Asset Lineage | Wyatt Entrekin"
+  description="A data visualization project tracing the Memphis Grizzlies’ player contracts and future draft picks over time."
+>
   <section class="project-shell">
     <a class="back-link reveal" href="/projects"><span aria-hidden="true">←</span> Projects</a>
 
@@ -11,8 +14,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <p class="hero-kicker">In Progress</p>
         <h1>Memphis Grizzlies Asset Lineage</h1>
         <p class="hero-text">
-          A data visualization and journalism project tracing the lineage of franchise player and draft assets since
-          the end of the Grit &amp; Grind era using processed historical transaction data.
+          A data visualization and journalism project tracing changes in the Memphis Grizzlies’ player contracts and
+          future draft picks since the end of the Grit &amp; Grind era using historical transaction data.
         </p>
         <div class="hero-tags">
           <span>Data Visualization</span>
@@ -60,6 +63,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       padding: 1.05rem 1.15rem;
     }
 
+    .hero-copy {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
     .hero-kicker {
       margin: 0;
       color: var(--text-soft);
@@ -83,7 +91,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.65;
-      max-width: 34rem;
       text-wrap: pretty;
     }
 

@@ -2,14 +2,17 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Wyatt Entrekin">
+<BaseLayout
+  title="Wyatt Entrekin"
+  description="Personal site of Wyatt Entrekin, featuring data engineering, analytics, operations research, and sports modeling projects."
+>
   <section class="home-stage">
     <div class="home-frame">
       <section class="intro-card reveal">
         <div class="intro-copy">
           <p class="eyebrow">Welcome</p>
           <p class="intro-text">
-            Hello, I&apos;m <strong>Wyatt Entrekin</strong>, a Data Engineer with a passion for analytics.
+            Hello, I’m <strong>Wyatt Entrekin</strong>, a Data Engineer with a passion for analytics.
           </p>
           <p class="intro-text">
             This site is a home for my personal projects, past, present, and future.
@@ -63,7 +66,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
         <p class="focus-line">
           <span>Education</span>
-          Georgia Tech, BS ISyE '23, Incoming MS Analytics Student
+          Georgia Tech, BS ISyE ’23; Incoming MS Analytics Student
         </p>
 
         <p class="focus-line">
@@ -90,7 +93,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             <defs>
               <path id="seal-ring-path" d="M60,60 m-48,0 a48,48 0 1,1 96,0 a48,48 0 1,1 -96,0" />
             </defs>
-            <text><textPath href="#seal-ring-path" startOffset="0">GEORGIA TECH '23 &#183; DATA ENGINEER &#183; </textPath></text>
+            <text><textPath href="#seal-ring-path" startOffset="0">GEORGIA TECH ’23 &#183; DATA ENGINEER &#183; </textPath></text>
           </svg>
           <span class="seal-inner"></span>
           <span class="seal-outer"></span>
@@ -106,7 +109,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <span class="now-date" data-now-date></span>
         </div>
         <h2>Now</h2>
-        <p>what I&apos;m up to</p>
+        <p>what I’m up to</p>
       </a>
       <a class="link-tile glass-card tile-about reveal" href="/about">
         <div class="fact-ticker" aria-hidden="true">
@@ -118,7 +121,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <a class="link-tile glass-card tile-travel reveal" href="/travel">
         <canvas class="mini-globe" data-mini-globe aria-hidden="true"></canvas>
         <h2>Travel</h2>
-        <p>where I&apos;ve been</p>
+        <p>where I’ve been</p>
       </a>
       <a class="link-tile glass-card tile-stats reveal" href="/stats">
         <div class="signal-bars" aria-hidden="true">

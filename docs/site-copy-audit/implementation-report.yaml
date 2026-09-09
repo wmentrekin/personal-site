@@ -6,8 +6,8 @@ owner_skill: work
 based_on: "docs/site-copy-audit/plan.yaml"
 
 summary:
-  scope_executed: "Applied the approved objective-only corrections across seven site source files."
-  outcome: "All enumerated substitutions were applied without changing deferred editorial copy; independent review approved the diff and all compatible-runtime checks passed."
+  scope_executed: "Applied the approved objective corrections, followed by the user's selected editorial and layout refinements."
+  outcome: "The current site copy reflects the settled conventions while Now and Travel remain unchanged; compatible-runtime checks pass."
 
 task_batches_attempted:
   - "B1"
@@ -76,6 +76,13 @@ changes:
     - "src/pages/stats.astro"
     - "src/pages/projects/2020-election-model.astro"
     - "src/pages/projects/cfb-rankings/methodology.astro"
+    - "src/pages/projects/index.astro"
+    - "src/pages/projects/agent-skills.astro"
+    - "src/pages/projects/cbb-rankings.astro"
+    - "src/pages/projects/cfb-rankings/index.astro"
+    - "src/pages/projects/chronicle.astro"
+    - "src/pages/projects/grizzlies-asset-lineage.astro"
+    - "src/components/ScheduleGrid.astro"
   modules:
     - "Core page copy and accessibility labels"
     - "2020 election archive copy"
@@ -88,6 +95,7 @@ changes:
 
 local_validation:
   checks_run:
+    - "Astro check with bundled Node 24.19.0: passed with 0 errors, warnings, or hints"
     - "npm run build with bundled Node 24.19.0: passed; all 14 routes generated"
     - "Generated HTML inspection for accessible names, education separation, status punctuation, and methodology math: passed"
     - "Targeted search for every approved old phrase: no matches"

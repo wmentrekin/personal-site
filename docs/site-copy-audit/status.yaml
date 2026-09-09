@@ -33,8 +33,8 @@ branching:
   branch_name: "work/site-copy-audit"
 
 summary:
-  current_focus: "Hand PR #22 to the user for final review."
-  last_completed: "Independent review approved the diff; Node 24 build, generated-output inspection, and local browser checks all passed."
+  current_focus: "Validate and publish the user's selected editorial follow-up changes to PR #22."
+  last_completed: "Applied the selected notation, typography, metadata, Grizzlies wording, project-summary, and project-hero-width changes; Astro check and production build passed."
   current_blocker: ""
 
 artifacts:
@@ -168,6 +168,13 @@ decisions:
   - "At the second and final planning revision, defer constrained-optimization terminology plus style-dependent So far/self-growth mechanics."
   - "User selected proceed at the pre-execution checkpoint."
   - "Resolved the tester's old-Node environment gap with the bundled Node 24 runtime; no execution correction loop was needed."
+  - "Keep the current Now page out of the follow-up because the user is updating it on another branch."
+  - "Retain the minimal typo corrections in the archived election prose."
+  - "Use MS Analytics, curly apostrophes, no em dashes, fragment-style project cards, and sentence-style project-page introductions."
+  - "Leave professional-title wording and the Travel page unchanged."
+  - "Define FCS-loss records as (i,m,alpha) and align the public objective with the implementation."
+  - "Describe the Grizzlies asset set as player contracts and future draft picks."
+  - "Add page-specific descriptions outside the deferred Now and Travel pages, and let project hero descriptions consume the available card width."
 
 model_routing:
   provider: "Codex / OpenAI"
@@ -176,6 +183,6 @@ model_routing:
   unresolved_limitations:
     - "The orchestrator runtime does not expose its exact provider model identifier or reasoning setting."
 
-next_action: "User reviews PR #22 and decides whether to merge or request changes."
+next_action: "Commit and push the editorial follow-up, then return PR #22 to the user for review."
 next_recommended_command: "$work"
 user_input_needed: false

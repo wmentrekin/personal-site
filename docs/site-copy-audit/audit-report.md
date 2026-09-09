@@ -2,6 +2,8 @@
 
 > Implementation note (September 9, 2026): the objective corrections selected in the approved plan have been applied on `work/site-copy-audit`. This report intentionally retains the broader editorial findings for the follow-up discussion. Findings about the CFB neutral-site legend and ranking-change accessibility were superseded by newer work already merged to `main` and were not changed in this pass.
 
+> Editorial follow-up (September 9, 2026): the user accepted minimal election-archive typo corrections, the formal FCS-loss notation repair, curly apostrophes in current site copy, project-card fragments with sentence-style detail-page introductions, and page-specific descriptions. Education uses “MS Analytics,” the role wording remains unchanged, and Travel remains untouched. The Grizzlies project now refers explicitly to player contracts and future draft picks. Project hero descriptions use the full available card width before wrapping, and prose avoids em dashes.
+
 Scope: all public page routes, shared layout/navigation copy, shared project UI labels, accessibility-facing labels, and rendered 2020 election table headings.
 
 This pass is read-only with respect to site copy. Findings are classified as:

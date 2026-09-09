@@ -2,7 +2,10 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Agent Skills | Wyatt Entrekin">
+<BaseLayout
+  title="Agent Skills | Wyatt Entrekin"
+  description="Agent Skills is Wyatt Entrekin’s framework for structured AI-assisted software development workflows."
+>
   <section class="project-shell">
     <a class="back-link reveal" href="/projects"><span aria-hidden="true">←</span> Projects</a>
 
@@ -12,7 +15,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <h1>Agent Skills</h1>
         <p class="hero-text">
           My custom AI coding framework that integrates an agentic /work command natively into Claude Code, OpenAI
-          Codex, and Google Antigravity
+          Codex, and Google Antigravity.
         </p>
         <div class="hero-tags">
           <span>Agentic Workflows</span>
@@ -63,6 +66,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       padding: 1.05rem 1.15rem;
     }
 
+    .hero-copy {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
     .hero-kicker {
       margin: 0;
       color: var(--text-soft);
@@ -86,7 +94,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.65;
-      max-width: 34rem;
       text-wrap: pretty;
     }
 

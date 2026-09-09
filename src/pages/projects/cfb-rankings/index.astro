@@ -205,7 +205,10 @@ const hasScheduleData = scheduleIndex !== null && schedulePayload !== null;
 const hasAnyData = hasRankingsData || hasScheduleData;
 ---
 
-<BaseLayout title="CFB Rankings Project | Wyatt Entrekin">
+<BaseLayout
+  title="CFB Rankings Project | Wyatt Entrekin"
+  description="Entrekin Quadratic Index college football rankings, methodology, and season grid."
+>
   <section class="project-shell">
     <a class="back-link reveal" href="/projects"><span aria-hidden="true">←</span> Projects</a>
 
@@ -215,7 +218,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         <h1>Entrekin Quadratic Index</h1>
         <h1>College Football Rankings</h1>
         <p class="hero-text">Optimization-based college football ratings based solely on objective metrics like record and game outcomes.</p>
-        <p class="hero-text">Season Grid pairs conference standings and up-to-date results and rankings with every FBS team's full remaining schedule in one view.</p>
+        <p class="hero-text">Season Grid pairs conference standings and up-to-date results and rankings with every FBS team’s full remaining schedule in one view.</p>
         <div class="hero-tags">
           <span>Optimization</span>
           <span>Sports Analytics</span>
@@ -329,7 +332,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
               <RankingsTable headers={["Rank", "Team", "Record", "Rating", "\u0394", "Conference"]} rows={rows} />
             ) : (
               <div class="panel-empty">
-                <p>Rankings data isn't available for this selection yet.</p>
+                <p>Rankings data isn’t available for this selection yet.</p>
               </div>
             )}
           </div>
@@ -349,7 +352,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       ) : (
         <div class="panel-empty">
           <h2>Rankings</h2>
-          <p>Rankings data isn't available for this build yet. Check back after the next scheduled update.</p>
+          <p>Rankings data isn’t available for this build yet. Check back after the next scheduled update.</p>
         </div>
       )}
     </section>
@@ -1093,7 +1096,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         } else if (view.kind === "muted") {
           td.appendChild(el("span", "sg-muted-text", view.mutedText));
         } else if (view.kind === "blank") {
-          const span = el("span", "sg-blank", "—");
+          const span = el("span", "sg-blank", "–");
           span.setAttribute("aria-hidden", "true");
           td.appendChild(span);
         }
@@ -1107,7 +1110,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
         if (!data || !Array.isArray(data.conferences) || data.conferences.length === 0) {
           const empty = el("div", "sg-empty");
-          empty.appendChild(el("p", null, "Season Grid data isn't available for this selection yet."));
+          empty.appendChild(el("p", null, "Season Grid data isn’t available for this selection yet."));
           scheduleShell.appendChild(empty);
           return;
         }

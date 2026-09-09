@@ -2,7 +2,10 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="College Basketball Rankings | Wyatt Entrekin">
+<BaseLayout
+  title="College Basketball Rankings | Wyatt Entrekin"
+  description="A college basketball ranking project adapting an optimization model originally built for college football."
+>
   <section class="project-shell">
     <a class="back-link reveal" href="/projects"><span aria-hidden="true">←</span> Projects</a>
 
@@ -11,7 +14,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <p class="hero-kicker">In Progress</p>
         <h1>College Basketball Rankings</h1>
         <p class="hero-text">
-          A college basketball adaptation of the optimization framework behind the football ranking model
+          A college basketball adaptation of the optimization framework behind the football ranking model.
         </p>
         <div class="hero-tags">
           <span>Optimization</span>
@@ -62,6 +65,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       padding: 1.05rem 1.15rem;
     }
 
+    .hero-copy {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
     .hero-kicker {
       margin: 0;
       color: var(--text-soft);
@@ -85,7 +93,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.65;
-      max-width: 34rem;
       text-wrap: pretty;
     }
 

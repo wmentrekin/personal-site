@@ -2,7 +2,10 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Chronicle | Wyatt Entrekin">
+<BaseLayout
+  title="Chronicle | Wyatt Entrekin"
+  description="Chronicle is an AI-assisted workflow for transcription, speaker diarization, and family history documentation."
+>
   <section class="project-shell">
     <a class="back-link reveal" href="/projects"><span aria-hidden="true">←</span> Projects</a>
 
@@ -61,6 +64,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       padding: 1.05rem 1.15rem;
     }
 
+    .hero-copy {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
     .hero-kicker {
       margin: 0;
       color: var(--text-soft);
@@ -84,7 +92,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.65;
-      max-width: 34rem;
       text-wrap: pretty;
     }
 
