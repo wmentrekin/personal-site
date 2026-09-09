@@ -54,7 +54,7 @@ const tables = {
 
     <section class="project-hero reveal">
       <div class="hero-copy glass-card">
-        <div>
+        <div class="hero-content">
           <p class="hero-kicker">Archived Project</p>
           <h1>2020 Election Model</h1>
           <p class="hero-text">
@@ -275,17 +275,22 @@ const tables = {
     }
 
     .hero-copy {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 1rem;
       padding: 1.1rem 1.2rem;
+    }
+
+    .hero-content {
+      display: contents;
     }
 
     .hero-actions {
       display: flex;
       align-items: center;
       gap: 0.55rem;
+      grid-column: 2;
+      grid-row: 1 / span 2;
       flex-shrink: 0;
     }
 
@@ -363,11 +368,13 @@ const tables = {
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.68;
+      grid-column: 1 / -1;
     }
 
     .hero-tags {
       display: flex;
       flex-wrap: wrap;
+      grid-column: 1 / -1;
       gap: 0.55rem;
       margin-top: 0.8rem;
     }
@@ -495,10 +502,12 @@ const tables = {
 
     @media (max-width: 900px) {
       .hero-copy {
-        flex-direction: column;
+        grid-template-columns: 1fr;
       }
 
       .hero-actions {
+        grid-column: 1;
+        grid-row: auto;
         width: 100%;
       }
 

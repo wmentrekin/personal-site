@@ -33,8 +33,8 @@ branching:
   branch_name: "work/site-copy-audit"
 
 summary:
-  current_focus: "Hand the updated PR #22 to the user for review."
-  last_completed: "Pushed the selected follow-up changes; Astro check, production build, Cloudflare Pages, and GitGuardian all passed."
+  current_focus: "Publish the corrected full-width title-card description layout to PR #22."
+  last_completed: "Reworked project hero structure so descriptions span beneath title actions, removed the Stats description cap, and passed Astro check and the production build."
   current_blocker: ""
 
 artifacts:
@@ -144,7 +144,7 @@ loops:
     count: 2
     max: 2
   execution_verification:
-    count: 0
+    count: 1
     max: 2
 
 checkpoint:
@@ -175,6 +175,7 @@ decisions:
   - "Define FCS-loss records as (i,m,alpha) and align the public objective with the implementation."
   - "Describe the Grizzlies asset set as player contracts and future draft picks."
   - "Add page-specific descriptions outside the deferred Now and Travel pages, and let project hero descriptions consume the available card width."
+  - "After user review, change project heroes so the action area reserves width only beside the title; descriptions and tags span the entire card below it."
 
 model_routing:
   provider: "Codex / OpenAI"
@@ -183,6 +184,6 @@ model_routing:
   unresolved_limitations:
     - "The orchestrator runtime does not expose its exact provider model identifier or reasoning setting."
 
-next_action: "User reviews PR #22 and decides whether to merge or request changes."
+next_action: "Commit and push the corrected title-card layout, then verify PR checks."
 next_recommended_command: "$work"
 user_input_needed: false

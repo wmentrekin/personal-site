@@ -95,6 +95,7 @@ changes:
 
 local_validation:
   checks_run:
+    - "Full-width project hero and Stats description follow-up: Astro check and 14-route production build passed"
     - "Astro check with bundled Node 24.19.0: passed with 0 errors, warnings, or hints"
     - "npm run build with bundled Node 24.19.0: passed; all 14 routes generated"
     - "Generated HTML inspection for accessible names, education separation, status punctuation, and methodology math: passed"
