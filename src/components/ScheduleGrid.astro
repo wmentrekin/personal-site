@@ -40,8 +40,20 @@ interface WeekCell {
 interface TeamEntry {
   team: string;
   logo_url: string | null;
+  // Both added by the artifact builder in this same pass (cfb-rankings PR #11).
+  // rank: the team's current position in the published rankings for this season;
+  // null for a team the ranking run did not cover. division: the team's division
+  // within its conference ("East"/"West"), null for every team in a conference
+  // that has no divisions -- which is all of them but the Sun Belt today, so the
+  // null branch is the common case, not the edge case.
+  // Optional, not just nullable: the artifact currently published to R2 predates both
+  // fields, so a payload that omits them entirely is a live, reachable case -- which is
+  // what the `!== undefined` guard in the render below has always been handling. Declaring
+  // them required said otherwise and made that guard look like dead defensiveness.
+  rank?: number | null;
   record: { wins: number; losses: number };
   conf_record: { wins: number; losses: number } | null;
+  division?: string | null;
   weeks: WeekCell[];
 }
 
@@ -82,15 +94,29 @@ type CellView = {
 // carries the opponent's logo instead, which is what makes the grid dense enough
 // to read a full conference at once. The name is the fallback for a team with no
 // logo (typically an FCS opponent).
+//
+// Regression fix: cells used to read "@ Stanford*", the trailing "*" marking a
+// neutral-site game. When the opponent NAME was replaced by their LOGO, the
+// asterisk was dropped along with it. It comes back here, glued onto the prefix
+// itself ("vs*") since neutral-site games already read "vs" (never "@") for both
+// teams -- the marker only ever appears as "vs*". The render below adds an
+// aria-label/title on the prefix span so a bare "*" doesn't announce as bare
+// punctuation. role="img" is required for that to work and is not decoration: a <span>
+// with no role is role=generic, for which ARIA prohibits author naming. Without the role
+// Chromium computed the name but left the "vs*" StaticText child exposed underneath it, so
+// browse-mode still read the bare asterisk, and Firefox and Safari dropped the name
+// outright. Verified in the accessibility tree. This is what .sg-team-rank and
+// RankingsTable's .delta-cell already do; the prefix was the one place that set a bare
+// aria-label and silently got nothing for it.
 function opponentPrefix(cell: WeekCell): string {
-  if (cell.neutral_site) return "vs";
+  if (cell.neutral_site) return "vs*";
   return cell.home_away === "away" ? "@" : "vs";
 }
 
 // Mirrored 1:1 by statusMutedText() in index.astro's client script.
 //
 // The SAME status value reads differently per column -- status='possible' means
-// "Still in the Hunt" in the conference-championship column but "Not Yet Eligible"
+// "In the Hunt" in the conference-championship column but "Not Yet Eligible"
 // in the Bowls column -- so display text is a (slot_id, status) lookup rather than a
 // property of the status alone. The artifact's status enum is unchanged; this is
 // purely presentational, which is why it lives here and not in the builder.
@@ -100,7 +126,7 @@ function opponentPrefix(cell: WeekCell): string {
 // grid should not assert.
 const STATUS_TEXT_BY_SLOT: Record<string, Record<string, string>> = {
   "conf-championship": {
-    possible: "Still in the Hunt",
+    possible: "In the Hunt",
     clinched: "Clinched",
     eliminated: "Eliminated",
   },
@@ -201,6 +227,37 @@ function formatRecord(team: TeamEntry, confName: string): string {
   return `${wins}-${losses}`;
 }
 
+// T15: which team indexes within a conference get a division sub-heading above them.
+//
+// Computed here rather than inline in the template for two reasons. It keeps the template a
+// straight lookup, and a generic type argument inside the template (`new Set<string>()`)
+// parses as JSX -- TypeScript then infers `boolean` from the comparison it thinks it sees
+// and reports "Property 'add' does not exist on type 'boolean'" plus a cascade of bogus
+// unclosed-tag errors. In the frontmatter it is ordinary TypeScript.
+//
+// teams[] arrives already grouped by division (the builder sorts each division's members in
+// its own pass and appends the groups whole), so a heading belongs wherever the division
+// CHANGES -- this never re-groups the payload, matching the rest of this component's "render
+// the artifact, never re-derive it" rule. `seen` braces that: a payload whose divisions are
+// NOT contiguous (hand-edited, or a producer regression) would otherwise emit a heading per
+// team, so an SBC interleaved East/West/East/West would render 14 heading rows for 14 teams.
+// A conference with no divisions has division null on every team and gets an empty set, so
+// its markup is byte-identical to before divisions existed.
+function divisionHeaderIndexes(teams: TeamEntry[]): Set<number> {
+  const seen = new Set<string>();
+  const indexes = new Set<number>();
+  let previous: string | null = null;
+  teams.forEach((team, index) => {
+    const division = team.division ?? null;
+    if (division !== null && division !== previous && !seen.has(division)) {
+      seen.add(division);
+      indexes.add(index);
+    }
+    previous = division;
+  });
+  return indexes;
+}
+
 // The canonical column list is identical across every team in the payload --
 // build it from the first team of the first conference, never recomputed.
 const columns: Array<{ slot_id: string; label: string }> =
@@ -219,14 +276,30 @@ const columns: Array<{ slot_id: string; label: string }> =
         </tr>
       </thead>
       <tbody>
-        {data.conferences.map((conf) => (
+        {data.conferences.map((conf) => {
+          const divisionHeaders = divisionHeaderIndexes(conf.teams);
+          return (
           <>
-            <tr class="sg-conf-row">
+            <tr class="sg-conf-row" data-conference={conf.name}>
               <th class="sg-conf-header sg-conf-header--sticky">{conf.name}</th>
               <th class="sg-conf-header" colspan={columns.length}></th>
             </tr>
-            {conf.teams.map((team) => (
-              <tr>
+            {conf.teams.map((team, teamIndex) => {
+              // T15: division sub-headings, placed by divisionHeaderIndexes() above. The
+              // heading row carries data-conference so the conference filter (index.astro)
+              // hides it with its conference; that filter selects on [data-conference]
+              // generically, so no filter change was needed.
+              const showDivisionHeader = divisionHeaders.has(teamIndex);
+              const division = team.division ?? null;
+              return (
+              <>
+              {showDivisionHeader ? (
+                <tr class="sg-div-row" data-conference={conf.name}>
+                  <th class="sg-div-header sg-div-header--sticky">{division}</th>
+                  <th class="sg-div-header" colspan={columns.length}></th>
+                </tr>
+              ) : null}
+              <tr data-conference={conf.name}>
                 <td class="sg-team-col">
                   <span class="sg-team-cell">
                     {team.logo_url ? (
@@ -235,7 +308,15 @@ const columns: Array<{ slot_id: string; label: string }> =
                       <span class="sg-team-logo sg-team-logo--empty" aria-hidden="true"></span>
                     )}
                     <span class="sg-team-name-block">
-                      <span class="sg-team-name">{team.team}</span>
+                      <span class="sg-team-name-line">
+                        {/* title as insurance: the column is sized to fit today's longest
+                            name, but a future rename or realignment could exceed it, and a
+                            silently-ellipsised team name has no other recovery. */}
+                        <span class="sg-team-name" title={team.team}>{team.team}</span>
+                        {team.rank !== null && team.rank !== undefined ? (
+                          <span class="sg-team-rank" role="img" aria-label={`Rank ${team.rank}`}>{team.rank}</span>
+                        ) : null}
+                      </span>
                       <span class="sg-team-record">{formatRecord(team, conf.name)}</span>
                     </span>
                   </span>
@@ -247,7 +328,12 @@ const columns: Array<{ slot_id: string; label: string }> =
                       {view.gameName ? <span class="sg-game-name">{view.gameName}</span> : null}
                       {view.kind === "game" ? (
                         <span class="sg-game-body">
-                          <span class="sg-prefix">{view.prefix}</span>
+                          <span
+                            class="sg-prefix"
+                            title={cell.neutral_site ? "Neutral-site game" : undefined}
+                            role={cell.neutral_site ? "img" : undefined}
+                            aria-label={cell.neutral_site ? "vs, neutral site" : undefined}
+                          >{view.prefix}</span>
                           {view.logo ? (
                             <img class="sg-opp-logo" src={view.logo} alt={cell.opponent ?? ""} loading="lazy" decoding="async" />
                           ) : null}
@@ -268,9 +354,12 @@ const columns: Array<{ slot_id: string; label: string }> =
                   );
                 })}
               </tr>
-            ))}
+              </>
+              );
+            })}
           </>
-        ))}
+          );
+        })}
       </tbody>
     </table>
   ) : (
@@ -295,7 +384,38 @@ const columns: Array<{ slot_id: string; label: string }> =
     max-height: 82vh;
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.02);
+    /* Solid, matching .sg-team-col below (T10): this shell is the backdrop behind
+       every cell that doesn't paint its own opaque background (e.g. the non-sticky
+       half of .sg-conf-header, and the padding added below for T11b), so it has to
+       be opaque too or the page's grid-line pattern still shows through those gaps. */
+    background: rgba(16, 23, 32, 0.98);
+    /* T11b: room at the bottom so the horizontal scrollbar (see below) never
+       overlaps the last team row. */
+    padding-bottom: 0.85rem;
+    /* T11b: dark, translucent scrollbar consistent with the site's theme. Standards
+       property first (Firefox and any Chromium build honoring it); WebKit
+       pseudo-elements below cover Chrome/Safari, since neither alone covers both. */
+    scrollbar-color: rgba(173, 196, 221, 0.35) rgba(255, 255, 255, 0.04);
+    scrollbar-width: thin;
+  }
+
+  .schedule-grid-shell::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .schedule-grid-shell::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .schedule-grid-shell::-webkit-scrollbar-thumb {
+    background-color: rgba(173, 196, 221, 0.35);
+    border-radius: 6px;
+    border: 2px solid rgba(16, 23, 32, 0.98);
+  }
+
+  .schedule-grid-shell::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(173, 196, 221, 0.5);
   }
 
   .sg-empty {
@@ -311,6 +431,14 @@ const columns: Array<{ slot_id: string; label: string }> =
     min-width: 46rem;
     border-collapse: separate;
     border-spacing: 0;
+    /* T11a: with the default auto layout, each column sized itself to its own
+       widest cell -- a column with even one no-logo opponent (whose name falls
+       back to text, see .sg-opp-fallback) came out visibly wider than its
+       neighbors. table-layout: fixed makes every column's width come from its
+       <th> in the header row instead, so declaring one width for the data
+       columns below (and its own width on .sg-corner) makes them all equal
+       regardless of what any individual cell contains. */
+    table-layout: fixed;
   }
 
   #schedule-grid-table th,
@@ -321,10 +449,52 @@ const columns: Array<{ slot_id: string; label: string }> =
     text-align: left;
     white-space: nowrap;
     font-size: 0.75rem;
+    overflow: hidden;
   }
 
-  /* Sticky header row. */
-  .sg-th {
+  /* T11a: one fixed width for every data column (week AND postseason alike --
+     see the .sg-th rule below). Sized to fit the widest ordinary cell content,
+     "vs {logo} W 99-99" (prefix + opponent logo + result badge + a 2-digit-2-digit
+     score), measured in a real browser render; the sole thing that used to be
+     wider, the no-logo opponent-name fallback, already self-truncates via its own
+     max-width + ellipsis (see .sg-opp-fallback) so it no longer drives column
+     width. .sg-corner and .sg-team-col keep their own separate 9.75rem, and the
+     postseason columns (Conference Championship / Bowls / CFP slots) share this
+     same width rather than a distinct one: their header <th> carries no marker
+     that distinguishes them from a plain week column, and the client-side mirror
+     in index.astro (out of this task's owned scope) creates every non-corner
+     header with the identical "sg-th" class, so any new class added only here
+     would silently stop applying the moment a season switch rebuilds the table
+     client-side -- the same hazard this file's own header comment warns about.
+     Sharing the width is a safe, always-in-sync default; the task's constraint
+     only requires week columns to match each other, not to differ from these. */
+  .sg-th:not(.sg-corner),
+  #schedule-grid-table td:not(.sg-team-col) {
+    /* min and max, not width alone. table-layout: fixed above is NOT sufficient on its
+       own: Chromium falls back to auto layout when the table's own width is auto (this
+       table is deliberately content-sized, not width:100%), so a bare `width` becomes a
+       hint that auto layout is free to ignore in favour of content. It did exactly that --
+       columns holding a played score came out 105px while unplayed ones collapsed to 50px,
+       and the regression only appeared once a later change altered cell content, because
+       until then every column happened to hold similarly-sized content and looked uniform.
+       Pinning min and max makes the width independent of what any cell contains. */
+       Widened from 5.75rem: the neutral-site "*" was added to the prefix AFTER the 5.75rem
+       measurement was taken, and it costs 6.55px ("vs" 13.11px -> "vs*" 19.66px), which the
+       overflow: hidden above then clipped. Measured: 14 of 2793 cells overflowed, every one
+       of them a "vs*" cell -- "vs* W 24-21" wanted 104px of a 102px box, shaving the last
+       score digit. 6rem restores the headroom. */
+    width: 6rem;
+    min-width: 6rem;
+    max-width: 6rem;
+  }
+
+  /* Sticky header row. Selector is qualified with the table's ID (rather than
+     plain .sg-th) so its white-space: normal actually beats the higher-specificity
+     #schedule-grid-table th, td { white-space: nowrap } above -- a bare class
+     selector cannot out-rank an ID selector regardless of source order. Wrapping
+     lets a label like "Conference Championship" fall onto a second line now that
+     every header cell shares one fixed width instead of growing to fit its text. */
+  #schedule-grid-table .sg-th {
     position: sticky;
     top: 0;
     z-index: 2;
@@ -334,17 +504,27 @@ const columns: Array<{ slot_id: string; label: string }> =
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    white-space: normal;
   }
 
   /* Sticky corner cell: both top AND left, above every other sticky layer, with
      its own explicit opaque background so scrolled content never bleeds through
-     the intersection -- no existing component in this codebase combines both. */
-  .sg-corner {
+     the intersection -- no existing component in this codebase combines both.
+     Selector is qualified with the table ID, matching #schedule-grid-table
+     .sg-th above (same reason: a bare .sg-corner class cannot out-rank that
+     ID-qualified rule, which also targets this element since it also carries
+     "sg-th" -- without the qualification here, .sg-th's z-index: 2 and header
+     background would silently win over this cell's z-index: 4 and background). */
+  #schedule-grid-table .sg-corner {
     position: sticky;
     top: 0;
     left: 0;
     z-index: 4;
     background: rgba(10, 15, 20, 0.98);
+    /* table-layout: fixed (above) sizes every column from the header row's <th>
+       widths alone -- matches .sg-team-col's own min/max-width below so the two
+       stay in lockstep. */
+    width: 12rem;
   }
 
   .sg-conf-row .sg-conf-header {
@@ -367,6 +547,43 @@ const columns: Array<{ slot_id: string; label: string }> =
     z-index: 1;
   }
 
+  /* T15: division sub-heading, one visual tier below the conference header above --
+     lighter tint, smaller and lighter type, and indented so it reads as nested under
+     the conference rather than as a second conference.
+
+     Selector is qualified with the table's ID, unlike .sg-conf-row .sg-conf-header
+     above. That is not cosmetic: #schedule-grid-table th, td sets font-size, padding
+     and white-space with an ID in the selector, which a bare class selector cannot
+     out-rank at any source position. Measured in a browser -- the unqualified form of
+     this rule left the sub-heading at the shared 0.75rem/0.3rem, visually identical to
+     the conference header it is supposed to sit beneath. (The conference header rule
+     loses the same three properties for the same reason; that is pre-existing rendered
+     behavior and deliberately left alone here, so the two headings still differ by the
+     properties this rule does win -- size, weight, tint and indent.) */
+  #schedule-grid-table .sg-div-header {
+    background: rgba(125, 211, 252, 0.035);
+    color: var(--muted);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: normal;
+  }
+
+  #schedule-grid-table .sg-div-header--sticky {
+    /* Indent applies only to the named first cell, not the colspan filler beside it. */
+    padding-left: 1.1rem;
+  }
+
+  /* Sticky-left for the same reason as .sg-conf-header--sticky: without it, the opaque
+     sticky first column beneath would show through this row once the grid is scrolled
+     horizontally, leaving a color seam down the heading rows. */
+  .sg-div-header--sticky {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
   /* Sticky first column (team name/logo/record) for every data row. */
   .sg-team-col {
     position: sticky;
@@ -374,9 +591,17 @@ const columns: Array<{ slot_id: string; label: string }> =
     z-index: 1;
     background: rgba(16, 23, 32, 0.98);
     /* Keeps logo + name + record (the user's explicit choice over name-only), but
-       compressed: the record moves under the name in smaller mono type. */
-    min-width: 9.75rem;
-    max-width: 9.75rem;
+       compressed: the record moves under the name in smaller mono type.
+
+       Widened from 9.75rem when the rank was added to the name line. The rank and its gap
+       take ~24px of a line the name used to own outright, and at 9.75rem that truncated 11
+       real FBS teams -- "Mississippi State" rendered "Mississippi Sta...", with no way to
+       recover the full name. Measured by ablation (hide the rank spans, re-measure
+       scrollWidth vs clientWidth): 11 names truncated with the rank present, 0 without, and
+       the widest name needs 130px. 12rem clears that with room to spare, and .sg-corner
+       above carries the same value. Re-measure this if anything is added to that line. */
+    min-width: 12rem;
+    max-width: 12rem;
     white-space: normal;
   }
 
@@ -404,6 +629,21 @@ const columns: Array<{ slot_id: string; label: string }> =
     flex-direction: column;
     gap: 0;
     min-width: 0;
+    /* T15: grow to fill the column so the rank's margin-left: auto below has slack to
+       push against -- without this the block shrink-wraps the name and the rank sits
+       flush against it instead of at the column's right edge. */
+    flex: 1 1 auto;
+  }
+
+  /* T15: the name and the rank share one line, the rank pinned right. align-items:
+     baseline (not center) so the two sit on the same text baseline even though they
+     differ in size; with a name long enough to wrap, a flex item's first baseline is
+     its first line's, which is the line the rank should align to. */
+  .sg-team-name-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    min-width: 0;
   }
 
   .sg-team-name {
@@ -413,6 +653,20 @@ const columns: Array<{ slot_id: string; label: string }> =
     line-height: 1.15;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  /* Right-aligned via margin-left: auto rather than a fixed width: ranks run 1-3
+     characters and a fixed slot would either clip a 3-digit rank or leave a gap after
+     a 1-digit one. flex-shrink: 0 keeps the number intact when a long team name
+     competes for the same line. */
+  .sg-team-rank {
+    margin-left: auto;
+    flex-shrink: 0;
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    line-height: 1.15;
   }
 
   .sg-team-record {
@@ -425,28 +679,48 @@ const columns: Array<{ slot_id: string; label: string }> =
 
   /* Cell status coloring -- full-cell background on every played game, not
      alternating rows (a real CSS-specificity bug in the original mockup that
-     must not be reintroduced). */
+     must not be reintroduced).
+
+     T10: all five statuses now get a SOLID background so the page's grid-line
+     pattern (BaseLayout.astro's --grid-line, painted behind everything) never
+     shows through a cell. --schedule-win-bg/--schedule-loss-bg are translucent
+     tints (rgba(21,128,61,0.18) and rgba(153,27,27,0.18)) that used to composite
+     over that grid pattern; simply setting their alpha to 1 would make them read
+     far more saturated than before. Instead each is pre-composited onto the same
+     solid base .sg-team-col already uses -- rgb(16, 23, 32) -- so the apparent
+     tint intensity is unchanged while the result is fully opaque:
+
+       result = tint * alpha + base * (1 - alpha), per channel, alpha = 0.18
+
+       win:  R 21*0.18 + 16*0.82 = 16.90 -> 17
+             G 128*0.18 + 23*0.82 = 41.90 -> 42
+             B 61*0.18 + 32*0.82 = 37.22 -> 37   => rgb(17, 42, 37)
+
+       loss: R 153*0.18 + 16*0.82 = 40.66 -> 41
+             G 27*0.18 + 23*0.82 = 23.72 -> 24
+             B 27*0.18 + 32*0.82 = 31.10 -> 31   => rgb(41, 24, 31)
+  */
   .sg-cell--win {
-    background: var(--schedule-win-bg);
+    background: rgb(17, 42, 37);
     color: var(--schedule-win-text);
   }
 
   .sg-cell--loss {
-    background: var(--schedule-loss-bg);
+    background: rgb(41, 24, 31);
     color: var(--schedule-loss-text);
   }
 
   .sg-cell--upcoming {
-    background: transparent;
+    background: rgba(16, 23, 32, 0.98);
     color: var(--text-soft);
   }
 
   .sg-cell--bye {
-    background: transparent;
+    background: rgba(16, 23, 32, 0.98);
   }
 
   .sg-cell--muted {
-    background: transparent;
+    background: rgba(16, 23, 32, 0.98);
   }
 
   .sg-game-name {
@@ -467,7 +741,9 @@ const columns: Array<{ slot_id: string; label: string }> =
   }
 
   /* The "@" / "vs" that used to lead a full "@ Stanford" label. It now leads the
-     opponent's LOGO instead, so a cell reads "@ {logo} W 45-6". */
+     opponent's LOGO instead, so a cell reads "@ {logo} W 45-6". A neutral-site
+     game reads "vs*" -- see opponentPrefix() above for the asterisk regression
+     fix and its accessible aria-label/title. */
   .sg-prefix {
     font-family: var(--font-mono);
     font-size: 0.68rem;
@@ -526,9 +802,19 @@ const columns: Array<{ slot_id: string; label: string }> =
      win/loss keep their solid highlight, and the sticky team column keeps its
      own opaque background regardless of hover, so it never looks translucent
      while other content scrolls underneath it. */
+  /* Pre-composited onto the same rgb(16, 23, 32) base every cell now uses, rather than left
+     as rgba(125, 211, 252, 0.05). A 95%-transparent hover replaced the solid base outright
+     and reopened the T10 hole -- the page's grid-line pattern showing through -- on whichever
+     cell the pointer happened to be over. Same arithmetic as RankingsTable.astro's zebra and
+     hover tints:
+
+       result = tint * alpha + base * (1 - alpha), per channel, alpha = 0.05
+         R 125*0.05 + 16*0.95 = 21.45 -> 21
+         G 211*0.05 + 23*0.95 = 32.40 -> 32
+         B 252*0.05 + 32*0.95 = 43.00 -> 43        => rgb(21, 32, 43) */
   tbody tr:hover td.sg-cell--upcoming,
   tbody tr:hover td.sg-cell--bye,
   tbody tr:hover td.sg-cell--muted {
-    background-color: rgba(125, 211, 252, 0.05);
+    background-color: rgb(21, 32, 43);
   }
 </style>

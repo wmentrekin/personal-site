@@ -60,8 +60,14 @@ interface WeekCell {
 interface TeamEntry {
   team: string;
   logo_url: string | null;
+  // Optional, matching ScheduleGrid.astro's own TeamEntry -- see the note there. This
+  // hand-mirrored copy going stale is not a silent failure: `astro check` catches it
+  // (`Type 'TeamEntry' is missing the following properties: rank, division`), though
+  // `astro build` does not type-check, so run the former after touching either copy.
+  rank?: number | null;
   record: { wins: number; losses: number };
   conf_record: { wins: number; losses: number } | null;
+  division?: string | null;
   weeks: WeekCell[];
 }
 
@@ -78,10 +84,6 @@ interface SchedulePayload {
 
 function padWeek(week: number): string {
   return String(week).padStart(2, "0");
-}
-
-function formatDelta(delta: number): string {
-  return delta > 0 ? `+${delta}` : `${delta}`;
 }
 
 function readJsonSafe<T>(url: URL): T | null {
@@ -165,14 +167,18 @@ const weekPayload =
       )
     : null;
 
+// Column order (T12): Rank, Team, Record, Rating, Delta, Conference -- Conference moved last
+// since it's auxiliary information, not primary ranking content. Delta is wrapped as
+// { delta } (not pre-formatted to a string) so RankingsTable.astro's isDeltaCell can render it
+// as a rich glyph node; see that component for the rise/fall/flat rendering + sign convention.
 const rows =
   weekPayload?.rankings.map((team) => [
     team.rank,
     { logo: team.logo ?? null, name: team.team },
-    team.conference,
     team.record,
     Number(team.rating).toFixed(2),
-    formatDelta(Number(team.delta))
+    { delta: Number(team.delta) },
+    team.conference
   ]) ?? [];
 
 const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
@@ -202,7 +208,8 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         <p class="hero-kicker">Active Project</p>
         <h1>Entrekin Quadratic Index</h1>
         <h1>College Football Rankings</h1>
-        <p class="hero-text">Optimization-based college football ratings based solely on objective metrics like record and game outcomes</p>
+        <p class="hero-text">Optimization-based college football ratings based solely on objective metrics like record and game outcomes.</p>
+        <p class="hero-text">Season Grid pairs conference standings and up-to-date results and rankings with every FBS team's full remaining schedule in one view.</p>
         <div class="hero-tags">
           <span>Optimization</span>
           <span>Sports Analytics</span>
@@ -235,7 +242,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       {hasAnyData ? (
         <>
           <div class="panel-head">
-            <h2 id="panel-title">FBS College Football Rankings</h2>
+            <h2 id="panel-title">Rankings</h2>
             <div class="tab-switch" id="view-tab-switch">
                 <span class="tab-switch-label is-active" data-tab-label="rankings">Rankings</span>
                 <button
@@ -271,11 +278,44 @@ const hasAnyData = hasRankingsData || hasScheduleData;
                     ))
                   }
                 </select>
+                {/*
+                  T14: conference filter. Occupies the week selector's slot -- the week
+                  selector is Rankings-only and already hides on Season Grid, so this is
+                  the free slot for a Season-Grid-only control. `hidden` here matches the
+                  page's default active tab (Rankings); setActiveTab() reconciles hidden
+                  and disabled on load and on every tab switch.
+
+                  Values are the RAW abbreviated conference names the schedule artifact
+                  actually emits (ACC, BIG 12, BIG 10, SEC, American, CUSA, MAC, MWC,
+                  PAC 12, SBC, FBS Independent) -- NOT the English group labels below.
+                  Matching on the English names would silently fail to filter 7 of the
+                  11 conferences; see applyConferenceFilter() and the data-conference
+                  attribute ScheduleGrid.astro stamps on every row for how these values
+                  are consumed.
+                */}
+                <select class="filter-select" id="conference-select" aria-label="Conference" hidden>
+                  <option value="all">All</option>
+                  <optgroup label="Power 4">
+                    <option value="ACC">ACC</option>
+                    <option value="BIG 12">Big 12</option>
+                    <option value="BIG 10">Big 10</option>
+                    <option value="SEC">SEC</option>
+                  </optgroup>
+                  <option value="FBS Independent">Independents</option>
+                  <optgroup label="Group of 6">
+                    <option value="American">American</option>
+                    <option value="CUSA">Conference USA</option>
+                    <option value="MAC">MAC</option>
+                    <option value="MWC">Mountain West</option>
+                    <option value="PAC 12">Pac-12</option>
+                    <option value="SBC">Sun Belt</option>
+                  </optgroup>
+                </select>
           </div>
 
           <div id="rankings-tab-panel" class="tab-panel">
             {hasRankingsData ? (
-              <RankingsTable headers={["Rank", "Team", "Conference", "Record", "Rating", "Delta"]} rows={rows} />
+              <RankingsTable headers={["Rank", "Team", "Record", "Rating", "Delta", "Conference"]} rows={rows} />
             ) : (
               <div class="panel-empty">
                 <p>Rankings data isn't available for this selection yet.</p>
@@ -285,6 +325,14 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
           <div id="schedule-tab-panel" class="tab-panel" hidden>
             <ScheduleGrid data={schedulePayload} />
+            {/*
+              T13c footnote: outside ScheduleGrid's own shell (#schedule-grid-shell), which
+              the client-side season re-render clears and rebuilds wholesale -- keeping this
+              paragraph out of that subtree means it survives every re-render for free, no
+              client-side mirror needed. Static and always shown on this tab; it doesn't
+              depend on whether the current season/filter selection has a neutral-site game.
+            */}
+            <p class="table-footnote">* Neutral-site game</p>
           </div>
         </>
       ) : (
@@ -322,6 +370,16 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       text-transform: uppercase;
     }
 
+    /* flex: 1 makes hero-copy grow into the row's remaining space (rather than
+       shrink-to-fit its content, the flex default), which is what lets hero-text
+       below use the card's full width instead of stopping partway across it.
+       .hero-actions keeps its own flex-shrink: 0, so it's still never crushed --
+       the two rules are two sides of the same layout decision. */
+    .hero-copy {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
     .hero-copy h1 {
       margin: 0.35rem 0 0.45rem;
       font-family: var(--font-display);
@@ -330,12 +388,18 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       letter-spacing: -0.05em;
     }
 
+    /* No max-width: previously 34rem, which wrapped the copy about halfway across
+       the card. Removed rather than raised -- with .hero-copy now flex:1 (above),
+       an explicit max-width would just reintroduce the same cap at a new number. */
     .hero-text {
       margin: 0;
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.65;
-      max-width: 34rem;
+    }
+
+    .hero-text + .hero-text {
+      margin-top: 0.35rem;
     }
 
     .hero-tags {
@@ -431,9 +495,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       justify-content: space-between;
       gap: 0.8rem;
       flex-wrap: wrap;
-      /* The h2 swaps between "FBS College Football Rankings" and "Season Grid" on every
-         tab change. Reserving the row's height keeps the toggle pinned: without it the
-         shorter title let the row collapse slightly and dragged the toggle up with it. */
+      /* The h2 swaps between "Rankings" and "Season Grid" on every tab change.
+         Reserving the row's height keeps the toggle pinned: without it a shorter
+         title could let the row collapse slightly and drag the toggle up with it. */
       min-height: 2.4rem;
       margin-bottom: 0.9rem;
     }
@@ -584,10 +648,13 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         align-items: flex-start;
       }
 
-      /* Stacked, the title sits ABOVE the toggle and wraps to two lines on "FBS College
-         Football Rankings" but one on "Season Grid", moving the toggle on every tab switch.
-         The reservation has to sit on the title itself: a column-flex container's own
-         min-height pads below its last child, so it can never hold an earlier child still. */
+      /* Stacked, the title sits ABOVE the toggle, so a title that wraps to two lines on one
+         tab and one on the other moves the toggle on every tab switch. Both titles are now
+         single-line ("Rankings" / "Season Grid"), which makes this reservation inert at
+         today's strings -- kept because it costs one line and the alternative is the toggle
+         jumping the next time a longer title is introduced. The reservation has to sit on
+         the title itself: a column-flex container's own min-height pads below its last
+         child, so it can never hold an earlier child still. */
       .panel-head h2 {
         min-height: 2lh;
       }
@@ -645,6 +712,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
     function initRankingsSelector() {
       const seasonSelect = document.getElementById("season-select");
       const weekSelect = document.getElementById("week-select");
+      const confSelect = document.getElementById("conference-select");
       const tabSwitch = document.getElementById("tab-switch-control");
       const tabLabels = document.querySelectorAll(".tab-switch-label");
       const panelTitle = document.getElementById("panel-title");
@@ -673,9 +741,50 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         return String(week).padStart(2, "0");
       }
 
-      function formatDelta(delta) {
+      // Mirrors RankingsTable.astro's deltaDirection/deltaAriaLabel + isDeltaCell branch
+      // node-for-node -- see that component for the full rationale (sign convention: delta =
+      // previous_rank - current_rank with rank 1 best, so positive means the team ROSE; the
+      // accessible markup shape; and the colour tokens reused from the site's win/loss/method
+      // palette). Duplicated here rather than shared because client-rebuilt rows never carry
+      // Astro's scoped data-astro-cid-* attribute -- see the header comment on this script.
+      function deltaDirection(delta) {
         const value = Number(delta);
-        return value > 0 ? `+${value}` : `${value}`;
+        if (value > 0) return "up";
+        if (value < 0) return "down";
+        return "flat";
+      }
+
+      function deltaAriaLabel(delta) {
+        const value = Number(delta);
+        if (value > 0) return `Up ${value}`;
+        if (value < 0) return `Down ${Math.abs(value)}`;
+        // Expected, not a bug: delta is never null -- a team with no previous week emits 0,
+        // so "held rank" and "no prior week" are indistinguishable here. See RankingsTable.astro.
+        return "No change";
+      }
+
+      function buildDeltaCellNode(delta) {
+        const direction = deltaDirection(delta);
+        const wrapper = document.createElement("span");
+        wrapper.className = `delta-cell delta-cell--${direction}`;
+        wrapper.setAttribute("role", "img");
+        wrapper.setAttribute("aria-label", deltaAriaLabel(delta));
+
+        const glyph = document.createElement("span");
+        glyph.className = "delta-glyph";
+        glyph.setAttribute("aria-hidden", "true");
+        glyph.textContent = direction === "flat" ? "–" : direction === "up" ? "▲" : "▼";
+        wrapper.appendChild(glyph);
+
+        if (direction !== "flat") {
+          const value = document.createElement("span");
+          value.className = "delta-value";
+          value.setAttribute("aria-hidden", "true");
+          value.textContent = String(Math.abs(Number(delta)));
+          wrapper.appendChild(value);
+        }
+
+        return wrapper;
       }
 
       function weeksForSeason(season) {
@@ -701,19 +810,24 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         if (!tableBody) return;
         tableBody.textContent = "";
         for (const team of rankings) {
+          // Column order (T12): Rank, Team, Record, Rating, Delta, Conference -- must match
+          // RankingsTable.astro's server-rendered row array and the headers array above it
+          // exactly, or the table's appearance changes the moment the user switches week.
           const cells = [
             team.rank,
             { logo: team.logo ?? null, name: team.team },
-            team.conference,
             team.record,
             Number(team.rating).toFixed(2),
-            formatDelta(team.delta)
+            { delta: Number(team.delta) },
+            team.conference
           ];
           const row = document.createElement("tr");
           cells.forEach((cell, index) => {
             const td = document.createElement("td");
             if (index === 0) td.className = "rank-col";
-            if (cell !== null && typeof cell === "object") {
+            if (cell !== null && typeof cell === "object" && "delta" in cell) {
+              td.appendChild(buildDeltaCellNode(cell.delta));
+            } else if (cell !== null && typeof cell === "object") {
               if (cell.logo) {
                 const span = document.createElement("span");
                 span.className = "team-cell";
@@ -797,7 +911,10 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       function opponentPrefix(cell) {
         // Mirrors ScheduleGrid.astro's opponentPrefix() -- neutral-site games read
         // "vs" for BOTH teams, and the opponent's name is replaced by their logo.
-        if (cell.neutral_site) return "vs";
+        // The trailing "*" is the restored neutral-site marker -- glued onto the
+        // prefix itself, since neutral-site games never read "@". See
+        // ScheduleGrid.astro's opponentPrefix() for the full regression note.
+        if (cell.neutral_site) return "vs*";
         return cell.home_away === "away" ? "@" : "vs";
       }
 
@@ -815,7 +932,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
       const STATUS_TEXT_BY_SLOT = {
         "conf-championship": {
-          possible: "Still in the Hunt",
+          possible: "In the Hunt",
           clinched: "Clinched",
           eliminated: "Eliminated"
         },
@@ -909,7 +1026,16 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
         if (view.kind === "game") {
           const body = el("span", "sg-game-body");
-          body.appendChild(el("span", "sg-prefix", view.prefix));
+          const prefixNode = el("span", "sg-prefix", view.prefix);
+          if (cell.neutral_site) {
+            prefixNode.title = "Neutral-site game";
+            // role first, then the label -- see ScheduleGrid.astro: a bare aria-label on a
+            // role=generic span is prohibited by ARIA and is dropped or half-honored
+            // depending on the browser.
+            prefixNode.setAttribute("role", "img");
+            prefixNode.setAttribute("aria-label", "vs, neutral site");
+          }
+          body.appendChild(prefixNode);
           if (view.logo) {
             const img = document.createElement("img");
             img.className = "sg-opp-logo";
@@ -972,14 +1098,39 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         for (const conf of data.conferences) {
           const confRow = document.createElement("tr");
           confRow.className = "sg-conf-row";
+          confRow.dataset.conference = conf.name;
           confRow.appendChild(el("th", "sg-conf-header sg-conf-header--sticky", conf.name));
           const confFillTh = el("th", "sg-conf-header");
           confFillTh.colSpan = columns.length;
           confRow.appendChild(confFillTh);
           tbody.appendChild(confRow);
 
+          // T15: mirrors ScheduleGrid.astro -- teams[] is already grouped by division, so
+          // a sub-heading row is emitted where the division changes. previousDivision starts
+          // as null per conference, so the first division in a divisional conference always
+          // gets a heading; in a conference with no divisions every team's division is null
+          // and no heading row is ever created.
+          let previousDivision = null;
+          // Mirrors ScheduleGrid.astro's seenDivisions -- see the comment there for why the
+          // change-detection alone is not enough against a non-contiguous payload.
+          const seenDivisions = new Set();
           for (const team of conf.teams) {
+            const division = team.division ?? null;
+            if (division !== null && division !== previousDivision && !seenDivisions.has(division)) {
+              seenDivisions.add(division);
+              const divRow = document.createElement("tr");
+              divRow.className = "sg-div-row";
+              divRow.dataset.conference = conf.name;
+              divRow.appendChild(el("th", "sg-div-header sg-div-header--sticky", division));
+              const divFillTh = el("th", "sg-div-header");
+              divFillTh.colSpan = columns.length;
+              divRow.appendChild(divFillTh);
+              tbody.appendChild(divRow);
+            }
+            previousDivision = division;
+
             const row = document.createElement("tr");
+            row.dataset.conference = conf.name;
             const teamTd = document.createElement("td");
             teamTd.className = "sg-team-col";
             const teamCell = el("span", "sg-team-cell");
@@ -999,7 +1150,18 @@ const hasAnyData = hasRankingsData || hasScheduleData;
               teamCell.appendChild(placeholder);
             }
             const nameBlock = el("span", "sg-team-name-block");
-            nameBlock.appendChild(el("span", "sg-team-name", team.team));
+            const nameLine = el("span", "sg-team-name-line");
+            const nameNode = el("span", "sg-team-name", team.team);
+            // Mirrors ScheduleGrid.astro: insurance against a name longer than the column.
+            nameNode.title = team.team;
+            nameLine.appendChild(nameNode);
+            if (team.rank !== null && team.rank !== undefined) {
+              const rankNode = el("span", "sg-team-rank", String(team.rank));
+              rankNode.setAttribute("role", "img");
+              rankNode.setAttribute("aria-label", `Rank ${team.rank}`);
+              nameLine.appendChild(rankNode);
+            }
+            nameBlock.appendChild(nameLine);
             nameBlock.appendChild(el("span", "sg-team-record", formatRecord(team, conf.name)));
             teamCell.appendChild(nameBlock);
             teamTd.appendChild(teamCell);
@@ -1013,6 +1175,38 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         }
         table.appendChild(tbody);
         scheduleShell.appendChild(table);
+        // T14: a client-side re-render replaces every row wholesale, so any conference
+        // filter the user had picked before switching season must be reapplied to the
+        // freshly built rows -- they start with no filter state of their own.
+        //
+        // But only if the selected conference still EXISTS in the season just loaded.
+        // Reapplying a stale pick hid every row and left a 46px box holding nothing but a
+        // header -- no message, no hint that a filter was responsible, and the only way out
+        // was noticing the other dropdown. Realignment makes this reachable rather than
+        // theoretical: pick Pac-12 on one season, switch to a season on the other side of
+        // its collapse, and the conference the user is filtering on has no teams at all.
+        // Falling back to "all" shows the grid, which is the recoverable failure.
+        if (confSelect && confSelect.value !== "all") {
+          const present = new Set(data.conferences.map((c) => c.name));
+          if (!present.has(confSelect.value)) confSelect.value = "all";
+        }
+        applyConferenceFilter();
+      }
+
+      // T14 conference filter. Applied by hiding DOM rows rather than re-rendering a
+      // filtered subset: renderScheduleGrid() already owns the one code path that builds
+      // rows (for both the initial server-rendered grid, via the data-conference
+      // attributes ScheduleGrid.astro stamps server-side, and every client rebuild), so
+      // filtering only has to toggle `hidden` on rows already tagged with their
+      // conference's raw value -- no second render path to keep in sync, and no need to
+      // re-fetch or re-slice the payload on every filter change.
+      function applyConferenceFilter() {
+        if (!scheduleShell) return;
+        const value = confSelect ? confSelect.value : "all";
+        const rows = scheduleShell.querySelectorAll("[data-conference]");
+        rows.forEach((row) => {
+          row.hidden = value !== "all" && row.dataset.conference !== value;
+        });
       }
 
       async function loadScheduleSeason(season) {
@@ -1090,6 +1284,13 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         weekSelect.hidden = isSchedule;
         weekSelect.disabled = isSchedule;
 
+        // T14: the conference filter occupies the week selector's freed slot -- it's
+        // Season-Grid-only, the mirror image of the week selector above.
+        if (confSelect) {
+          confSelect.hidden = !isSchedule;
+          confSelect.disabled = !isSchedule;
+        }
+
         syncSeasonOptions(tab);
 
         if (tabSwitch) {
@@ -1100,7 +1301,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           label.classList.toggle("is-active", label.dataset.tabLabel === tab);
         });
         if (panelTitle) {
-          panelTitle.textContent = isSchedule ? "Season Grid" : "FBS College Football Rankings";
+          panelTitle.textContent = isSchedule ? "Season Grid" : "Rankings";
         }
 
         if (isSchedule && Number(seasonSelect.value) !== loadedScheduleSeason) {
@@ -1130,10 +1331,19 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         loadWeek(seasonSelect.value ?? defaultSeason, weekSelect.value);
       });
 
+      if (confSelect) {
+        confSelect.addEventListener("change", applyConferenceFilter);
+      }
+
       // Every page-load/transition starts on Rankings, per spec -- this also
       // re-syncs the DOM (hidden/disabled/aria states) in case this handler is
       // re-run against already-rendered markup.
       setActiveTab("rankings");
+      // Establishes baseline filter state against the server-rendered Season Grid
+      // rows (default "All", so a no-op today) -- kept explicit rather than relying
+      // solely on the season-change path, since the initial schedule-tab-panel grid
+      // is server-rendered and never passes through renderScheduleGrid().
+      applyConferenceFilter();
     }
 
     document.addEventListener("astro:page-load", initRankingsSelector);
