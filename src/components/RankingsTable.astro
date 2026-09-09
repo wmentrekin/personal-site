@@ -13,6 +13,19 @@ interface Props {
 
 const { headers, rows } = Astro.props;
 
+// Accessible names for headers whose visible text is a symbol rather than a word. "\u0394"
+// is the Greek capital delta the Delta column now uses: screen readers announce a bare
+// mathematical symbol inconsistently (Chromium says "increment", others read nothing at
+// all), so the column header gets a real name. aria-label is valid here where it was NOT on
+// the plain <span> in ScheduleGrid.astro -- a <th> is role=columnheader, which permits
+// author naming; a role=generic span does not.
+//
+// A header not in this map gets `undefined`, and Astro omits an attribute set to undefined,
+// so every word header renders exactly as before with no aria-label at all.
+const HEADER_ARIA_LABELS: Record<string, string> = {
+  "\u0394": "Delta",
+};
+
 function isTeamCell(cell: string | number | TeamCell | DeltaCell): cell is TeamCell {
   return typeof cell === "object" && cell !== null && "name" in cell;
 }
@@ -43,7 +56,7 @@ function deltaAriaLabel(delta: number): string {
   <table>
     <thead>
       <tr>
-        {headers.map((header) => <th>{header}</th>)}
+        {headers.map((header) => <th aria-label={HEADER_ARIA_LABELS[header]}>{header}</th>)}
       </tr>
     </thead>
     <tbody>

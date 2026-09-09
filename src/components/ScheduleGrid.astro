@@ -22,6 +22,8 @@
 // image at all. No placeholder-initial badge (confirmed there is no precedent
 // for one anywhere in this codebase).
 
+import { conferenceFullName, conferenceShortName } from "../lib/conferences";
+
 interface WeekCell {
   slot_id: string;
   label: string;
@@ -219,10 +221,15 @@ function buildCellView(cell: WeekCell): CellView {
 
 // Mirrored 1:1 by formatRecord() in index.astro's client script. conf_record is
 // null for Independents -- overall record only, no ", 0-0 XXX" suffix.
+//
+// The suffix takes the SHORT display name, not the raw token: with the heading row above now
+// reading "Big Ten Conference", leaving "2-0, 2-0 BIG 10" underneath it looks like a bug
+// rather than a deliberate abbreviation. Short rather than full because this line is 0.6rem
+// secondary text inside a 12rem column -- "2-0, 2-0 Southeastern Conference" would not fit.
 function formatRecord(team: TeamEntry, confName: string): string {
   const { wins, losses } = team.record;
   if (team.conf_record) {
-    return `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} ${confName}`;
+    return `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} ${conferenceShortName(confName)}`;
   }
   return `${wins}-${losses}`;
 }
@@ -281,7 +288,7 @@ const columns: Array<{ slot_id: string; label: string }> =
           return (
           <>
             <tr class="sg-conf-row" data-conference={conf.name}>
-              <th class="sg-conf-header sg-conf-header--sticky">{conf.name}</th>
+              <th class="sg-conf-header sg-conf-header--sticky">{conferenceFullName(conf.name)}</th>
               <th class="sg-conf-header" colspan={columns.length}></th>
             </tr>
             {conf.teams.map((team, teamIndex) => {

@@ -14,8 +14,12 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Anchored to the repo root. These come from a Python packaging template (they sit among
+# build/, eggs/, sdist/, wheels/) and mean the root-level Python build directory -- but
+# unanchored they also match src/lib/, which in an Astro project is ordinary source. That
+# bit: src/lib/conferences.ts was silently refused by `git add`. There is no root lib/ here.
+/lib/
+/lib64/
 parts/
 sdist/
 var/
