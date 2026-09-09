@@ -135,8 +135,18 @@ function deltaAriaLabel(delta: number): string {
     max-width: 100%;
     /* Centred in the tile. Hugging the content left the compact table pinned to the card's
        left edge with all the slack pooled on one side, which read as misaligned rather than
-       as deliberate. Auto margins collapse to 0 once max-width: 100% binds on a narrow
-       viewport, so this costs nothing there. */
+       as deliberate.
+
+       Once max-width: 100% binds on a narrow viewport there is no slack to distribute and
+       the shell sits where it did before -- NOT because the auto margins resolve to 0 on
+       both sides, which is what an earlier version of this comment claimed. They resolve to
+       0 and -2px: this element computes box-sizing: content-box, because the site's
+       * { box-sizing: border-box } lives in BaseLayout's SCOPED style block and is rewritten
+       to *[data-astro-cid-...], which never reaches an is:global element like this one. Its
+       two 1px borders therefore fall outside max-width: 100%, over-constraining the box.
+       The resulting 2px overhang predates this rule (main has the same 2px, all on the
+       right) and is left alone here rather than "fixed" with box-sizing: border-box, which
+       would also change how width: max-content above resolves. */
     margin-left: auto;
     margin-right: auto;
   }

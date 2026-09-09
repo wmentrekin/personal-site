@@ -484,7 +484,8 @@ const columns: Array<{ slot_id: string; label: string }> =
        columns holding a played score came out 105px while unplayed ones collapsed to 50px,
        and the regression only appeared once a later change altered cell content, because
        until then every column happened to hold similarly-sized content and looked uniform.
-       Pinning min and max makes the width independent of what any cell contains. */
+       Pinning min and max makes the width independent of what any cell contains.
+
        Widened from 5.75rem: the neutral-site "*" was added to the prefix AFTER the 5.75rem
        measurement was taken, and it costs 6.55px ("vs" 13.11px -> "vs*" 19.66px), which the
        overflow: hidden above then clipped. Measured: 14 of 2793 cells overflowed, every one
@@ -546,6 +547,30 @@ const columns: Array<{ slot_id: string; label: string }> =
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    white-space: normal;
+  }
+
+  /* The heading cells must not be allowed to DRIVE column 1's width, and this rule is what
+     stops them.
+
+     They sit in column 1 alongside .sg-team-col, and their white-space: normal above never
+     applied: #schedule-grid-table th, td sets nowrap with an ID in the selector, which the
+     bare class rules above cannot out-rank. Unbreakable text has a min-content width equal to
+     the whole string, and a cell's min-content wins over any declared width in auto table
+     layout -- which is the layout actually in force here, because Chromium falls back to it
+     when the table's own width is auto (see the .sg-th width rule below for the same trap).
+     So the moment the headings started rendering full conference names, column 1 stopped
+     being the declared 12rem and started being "however wide the longest conference name
+     is": measured 202.59px -> 220.38px, governed by "Atlantic Coast Conference", and it
+     would move again on any future rename with nothing to catch it.
+
+     ID-qualifying white-space: normal lets the text wrap, which drops each heading's
+     min-content to its longest single WORD ("Southeastern", ~112px) -- comfortably inside
+     12rem, so .sg-team-col's own min/max-width governs the column again and the lockstep
+     .sg-corner documents is real. The longer names now wrap to two lines, which is the
+     intended trade. */
+  #schedule-grid-table .sg-conf-header,
+  #schedule-grid-table .sg-div-header {
     white-space: normal;
   }
 
