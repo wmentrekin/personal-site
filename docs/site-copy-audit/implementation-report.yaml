@@ -1,0 +1,86 @@
+artifact: implementation_report
+feature: "site-copy-audit"
+mode: "bounded-feature"
+status: "implemented"
+owner_skill: work
+based_on: "docs/site-copy-audit/plan.yaml"
+
+summary:
+  scope_executed: "Applied the approved objective-only corrections across seven site source files."
+  outcome: "All enumerated substitutions were applied without changing deferred editorial copy; local build and rendered-output checks passed."
+
+task_batches_attempted:
+  - "B1"
+task_batches_completed:
+  - "B1"
+
+domains_touched:
+  - "frontend-engineer"
+
+model_usage:
+  tasks:
+    - task_id: "T1"
+      role: "frontend-engineer"
+      requested_tier: "balanced"
+      requested_model: "GPT-5.6 Terra"
+      actual_model: "GPT-5.6 Terra"
+      requested_reasoning: "medium"
+      actual_reasoning: "medium"
+      accepted_first_attempt: true
+      escalation_count: 0
+      tool_calls: null
+      input_tokens: null
+      output_tokens: null
+      wall_time_seconds: null
+      cost_or_quota: null
+  routing_notes: []
+
+pr:
+  number: null
+  url: null
+
+changes:
+  files:
+    - "src/pages/index.astro"
+    - "src/pages/about.astro"
+    - "src/data/now/entries/2026-03-15.ts"
+    - "src/pages/resume.astro"
+    - "src/pages/stats.astro"
+    - "src/pages/projects/2020-election-model.astro"
+    - "src/pages/projects/cfb-rankings/methodology.astro"
+  modules:
+    - "Core page copy and accessibility labels"
+    - "2020 election archive copy"
+    - "CFB methodology copy and equations"
+  docs_updated:
+    - "docs/site-copy-audit/status.yaml"
+    - "docs/site-copy-audit/requirements.yaml"
+    - "docs/site-copy-audit/plan.yaml"
+    - "docs/site-copy-audit/implementation-report.yaml"
+
+local_validation:
+  checks_run:
+    - "npm run build: passed"
+    - "Generated HTML inspection for accessible names, education separation, status punctuation, and methodology math: passed"
+    - "Targeted search for every approved old phrase: no matches"
+    - "git diff --check: passed"
+  failures: []
+  skipped:
+    - "Interactive browser verification was not reported by the implementation agent; independent verification remains pending."
+
+review_summary:
+  status: "not_started"
+  key_findings: []
+
+test_summary:
+  status: "not_started"
+  checks_run: []
+  failures: []
+  gaps: []
+
+open_issues: []
+
+handoff:
+  current_state: "in_progress"
+  next_owner: "orchestrator"
+  next_action: "Commit and push the implementation, open the PR, then begin independent verification."

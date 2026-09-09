@@ -1,0 +1,150 @@
+# Contract: live coordination artifact maintained by $work
+
+artifact: status
+feature: "site-copy-audit"
+mode: "bounded-feature"
+stage: "execution"
+owner_skill: work
+
+objective: "Correct only objective language errors across the personal site while preserving editorial choices for a later review."
+
+repository_sync:
+  completed_before_work: true
+  checked_at: "2026-09-08"
+  repositories:
+    - path: "/Users/wentrekin/dev/personal-site"
+      remote: "https://github.com/wmentrekin/personal-site.git"
+      relevant_branch: "origin/main"
+      local_commit_before: "352531d"
+      remote_commit_after_fetch: "cb950a9"
+      local_commit_after: "cb950a9"
+      result: "updated"
+      notes: "Existing work/site-copy-audit branch was fast-forwarded to the newest origin/main before implementation planning."
+    - path: "/Users/wentrekin/dev/cfb-rankings"
+      remote: "https://github.com/wmentrekin/cfb-rankings.git"
+      relevant_branch: "main"
+      local_commit_before: "2dd9cfc"
+      remote_commit_after_fetch: "65951ae"
+      local_commit_after: "65951ae"
+      result: "updated"
+      notes: "Clean primary checkout fast-forwarded with pull --ff-only; read-only source of truth for methodology claims."
+
+branching:
+  branch_name: "work/site-copy-audit"
+
+summary:
+  current_focus: "Commit and push the validated implementation, then open the PR."
+  last_completed: "Applied all approved objective corrections across seven source files; local build and generated-output checks passed."
+  current_blocker: ""
+
+artifacts:
+  requirements: "docs/site-copy-audit/requirements.yaml"
+  plan: "docs/site-copy-audit/plan.yaml"
+  implementation_report: "docs/site-copy-audit/implementation-report.yaml"
+
+pr:
+  number: null
+  url: null
+  status: "not_opened"
+
+agents:
+  - id: "orchestrator"
+    role: "orchestrator"
+    task_profile: "orchestration"
+    requested_model_tier: "frontier"
+    requested_reasoning: "high"
+    requested_provider_model: "GPT-6 Astra"
+    actual_model: "current Codex session model (exact identifier not exposed)"
+    actual_reasoning: "not exposed"
+    routing_enforced: false
+    escalation_count: 0
+    status: "active"
+    stage: "execution"
+    task: "Coordinate implementation, local validation, and PR creation."
+    last_update: "User approved execution; frontend implementation is starting."
+    blocker: ""
+  - id: "refreshed-audit"
+    role: "repo-researcher"
+    task_profile: "research"
+    requested_model_tier: "fast"
+    requested_reasoning: "medium"
+    requested_provider_model: "GPT-5.6 Luna"
+    actual_model: "GPT-5.6 Luna"
+    actual_reasoning: "medium"
+    routing_enforced: true
+    escalation_count: 0
+    status: "completed"
+    stage: "planning"
+    task: "Revalidate objective findings against refreshed personal-site and CFB model sources."
+    last_update: "Completed refreshed audit; removed obsolete CFB findings and separated objective errors from editorial items."
+    blocker: ""
+  - id: "plan-reviewer"
+    role: "reviewer"
+    task_profile: "review"
+    requested_model_tier: "balanced"
+    requested_reasoning: "medium"
+    requested_provider_model: "GPT-5.6 Terra"
+    actual_model: "GPT-5.6 Terra"
+    actual_reasoning: "medium"
+    routing_enforced: true
+    escalation_count: 0
+    status: "completed"
+    stage: "planning"
+    task: "Review the objective-versus-editorial boundary and validation plan."
+    last_update: "Approved the plan after the second bounded review cycle with no blocking findings."
+    blocker: ""
+  - id: "copy-implementer"
+    role: "frontend-engineer"
+    task_profile: "implementation"
+    requested_model_tier: "balanced"
+    requested_reasoning: "medium"
+    requested_provider_model: "GPT-5.6 Terra"
+    actual_model: "GPT-5.6 Terra"
+    actual_reasoning: "medium"
+    routing_enforced: true
+    escalation_count: 0
+    status: "completed"
+    stage: "execution"
+    task: "Apply only the corrections enumerated in approved plan task T1 and run local validation."
+    last_update: "Applied the approved substitutions; production build and generated-output checks passed."
+    blocker: ""
+
+loops:
+  planning_review:
+    count: 2
+    max: 2
+  execution_verification:
+    count: 0
+    max: 2
+
+checkpoint:
+  pre_execution_required: true
+  pre_execution_status: "approved"
+  options:
+    - proceed
+    - revise_plan
+    - narrow_scope
+    - stop
+
+blockers: []
+decisions:
+  - "Promote the original investigation to bounded-feature mode for implementation."
+  - "Fix only objective errors; defer stale personal facts, tone preferences, broad rewrites, and ambiguous terminology."
+  - "Recheck all CFB UI copy after syncing the recent main-branch changes."
+  - "Exclude obsolete neutral-site and ranking-header accessibility findings already addressed on main."
+  - "Use the original audit's Error threshold, plus implementation-proven technical contradictions; defer all remaining Should fix and Optional polish items."
+  - "Defer the Stats double hyphen as typography rather than an objective error."
+  - "Constrain election edits to enumerated minimal substitutions and add source-backed prior-definition and lambda(w) corrections to the methodology."
+  - "At the second and final planning revision, defer constrained-optimization terminology plus style-dependent So far/self-growth mechanics."
+  - "User selected proceed at the pre-execution checkpoint."
+
+model_routing:
+  provider: "Codex / OpenAI"
+  provider_map_verified_at: "2026-09-07"
+  substitutions: []
+  unresolved_limitations:
+    - "The orchestrator runtime does not expose its exact provider model identifier or reasoning setting."
+
+next_action: "Commit and push the branch, open the PR, and begin independent verification."
+next_recommended_command: "$work"
+user_input_needed: false

@@ -1,0 +1,108 @@
+artifact: plan
+feature: "site-copy-audit"
+mode: "bounded-feature"
+status: "draft"
+owner_skill: work
+based_on: "docs/site-copy-audit/requirements.yaml"
+
+objective: "Apply only objective copy corrections across the refreshed personal site, validate the result, and open a focused PR."
+
+approach:
+  summary: "Revalidate the audit after synchronization, apply deterministic corrections in one frontend-owned branch, then build and review the complete diff."
+  key_decisions:
+    - "Treat tone improvements, stale facts, and ambiguous terminology as out of scope."
+    - "Allow small markup changes only when required to repair accessible names or text concatenation."
+    - "Use refreshed model code to resolve technical methodology contradictions."
+    - "Exclude earlier should-fix findings such as Travel interaction wording, election table labels, CFB hero repetition, percentage-point explanations, and broad sentence rewrites."
+    - "Leave the mathematically inconsistent FCS-loss notation unchanged because the source proves a defect but does not uniquely determine the preferred presentation."
+
+contracts:
+  interfaces: []
+  schemas: []
+  config_changes: []
+
+branching:
+  strategy: "single-branch"
+  branch_name: "work/site-copy-audit"
+  worktrees: []
+
+execution_batches:
+  - id: "B1"
+    goal: "Correct objective errors without crossing into editorial rewrites."
+    tasks:
+      - id: "T1"
+        title: "Apply objective site-copy corrections"
+        objective: "Correct verified errors across core pages, project pages, accessibility labels, embedded tables, and methodology text that remains current after revalidation."
+        assigned_domain: "frontend-engineer"
+        model_routing:
+          task_profile: "implementation"
+          uncertainty: "medium"
+          consequence: "medium"
+          scope_size: "bounded"
+          determinism: "interpretive"
+          requested_tier: "balanced"
+          requested_reasoning: "medium"
+          provider: "Codex / OpenAI"
+          provider_model: "GPT-5.6 Terra"
+          routing_enforced: true
+          escalation_tier: "frontier"
+          escalation_condition: "A proposed correction requires deciding personal facts, archive policy, mathematical notation without source evidence, or other editorial intent."
+        owned_scope:
+          - "src/pages/"
+          - "src/components/TravelGlobe.astro"
+          - "src/components/ScheduleGrid.astro"
+          - "src/data/now/entries/2026-03-15.ts"
+          - "public/data/2020-election/tables/"
+        forbidden_scope:
+          - "Page redesign or styling changes"
+          - "Ranking behavior, data ingestion, or model logic"
+          - "New personal facts or broad prose rewrites"
+          - "Changes to /Users/wentrekin/dev/cfb-rankings"
+        dependencies:
+          - "Refreshed audit classification"
+          - "Approved pre-execution checkpoint"
+        parallelizable: false
+        expected_validation:
+          - "Targeted text searches"
+          - "npm run build"
+
+        objective_corrections:
+          - "Home: add accessible names to the three icon-only social/contact links."
+          - "About: correct Homewtown and Engineeering; render the two existing education values with an explicit separator without changing their wording."
+          - "Now entry: add the missing comma after Atlanta and change in awhile to in a while."
+          - "Resume and Stats: add textual punctuation after Status so assistive output does not concatenate the label and sentence."
+          - "Election archive: make only these substitutions: peaks→piques; Scipy→SciPy; Numpy→NumPy; Pandas→pandas; webscraping→web scraping; remove the comma in objects, to implement; were how→was that; add an before 80% and 90%; This reflects in→This is reflected in; Trump's chance rely→Trump's chances rely; repeating as closely his victory in 2016→replicating his 2016 victory as closely as possible; and electoral college→Electoral College."
+          - "CFB methodology: split the At the core comma splice with a colon; change the hard-constraint description to identify game-result inconsistencies as penalties subject to rating bounds; complete the comparison minimally as as interesting and useful as I have found it to be while building it; split the prior-rating run-on without changing its meaning; change the implementation-note default prior from 15 to the implemented value 1; use lambda(w) in the objective where only lambda(w) is defined; repair the dangling lambda implementation sentence; and state that the application sorts ratings after CVXPY solves the optimization."
+
+        explicitly_deferred:
+          - "Current Now-page facts and all fitness terminology/style changes."
+          - "Travel instructions, legend, text-equivalent location list, and Puerto Rico terminology."
+          - "Election percentage-point explanations, table headings, long methods rewrite, and archival tense."
+          - "CFB hero wording, visible Delta terminology, and formal FCS-loss notation."
+          - "Cross-site apostrophe, metadata, capitalization, link-label, and summary-punctuation consistency."
+          - "Stats double-hyphen typography."
+          - "Now-entry comma after So far and self-growth hyphenation."
+          - "CFB constrained-optimization terminology."
+
+ordering_notes:
+  - "Finish refreshed audit and plan review before the execution checkpoint."
+  - "Run implementation in a single branch because copy and shared-component edits are tightly coupled."
+  - "Validate built HTML for homepage accessible names, About education separation, Resume/Stats status punctuation, and methodology math rendering."
+
+risks:
+  - "A stylistic preference could be mistaken for an objective correction; mitigate by requiring source or language-rule evidence for every edit."
+  - "Recent CFB UI changes could make old line-level findings obsolete; mitigate through refreshed targeted research."
+  - "Editing archived election prose could weaken historical authenticity; restrict changes to indisputable errors."
+
+open_questions: []
+
+review:
+  status: "approved"
+  loop_count: 2
+  notes:
+    - "Deferred Stats typography, enumerated minimal election substitutions, added the prior-rating grammar fix and lambda(w) correction, and expanded rendered-output validation."
+    - "Deferred constrained-optimization terminology and the style-guide-dependent So far/self-growth mechanics for the strictest objective-only scope."
+
+checkpoint:
+  required_before_execution: true
+  status: "approved"
