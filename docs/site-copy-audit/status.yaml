@@ -3,7 +3,7 @@
 artifact: status
 feature: "site-copy-audit"
 mode: "bounded-feature"
-stage: "execution"
+stage: "verification"
 owner_skill: work
 
 objective: "Correct only objective language errors across the personal site while preserving editorial choices for a later review."
@@ -33,8 +33,8 @@ branching:
   branch_name: "work/site-copy-audit"
 
 summary:
-  current_focus: "Commit and push the validated implementation, then open the PR."
-  last_completed: "Applied all approved objective corrections across seven source files; local build and generated-output checks passed."
+  current_focus: "Hand PR #22 to the user for final review."
+  last_completed: "Independent review approved the diff; Node 24 build, generated-output inspection, and local browser checks all passed."
   current_blocker: ""
 
 artifacts:
@@ -45,7 +45,7 @@ artifacts:
 pr:
   number: 22
   url: "https://github.com/wmentrekin/personal-site/pull/22"
-  status: "open"
+  status: "ready_for_review"
 
 agents:
   - id: "orchestrator"
@@ -59,9 +59,9 @@ agents:
     routing_enforced: false
     escalation_count: 0
     status: "active"
-    stage: "execution"
-    task: "Coordinate implementation, local validation, and PR creation."
-    last_update: "User approved execution; frontend implementation is starting."
+    stage: "verification"
+    task: "Coordinate independent review, testing, and final PR readiness."
+    last_update: "Verification completed with no blocking findings; PR comment posted."
     blocker: ""
   - id: "refreshed-audit"
     role: "repo-researcher"
@@ -108,6 +108,36 @@ agents:
     task: "Apply only the corrections enumerated in approved plan task T1 and run local validation."
     last_update: "Applied the approved substitutions; production build and generated-output checks passed."
     blocker: ""
+  - id: "code-reviewer"
+    role: "reviewer"
+    task_profile: "review"
+    requested_model_tier: "balanced"
+    requested_reasoning: "medium"
+    requested_provider_model: "GPT-5.6 Terra"
+    actual_model: "GPT-5.6 Terra"
+    actual_reasoning: "medium"
+    routing_enforced: true
+    escalation_count: 0
+    status: "completed"
+    stage: "verification"
+    task: "Review PR #22 for correctness and strict objective-only scope."
+    last_update: "Approved PR #22 with no correctness or scope findings."
+    blocker: ""
+  - id: "verification-tester"
+    role: "tester"
+    task_profile: "test_execution"
+    requested_model_tier: "fast"
+    requested_reasoning: "low"
+    requested_provider_model: "GPT-5.6 Luna"
+    actual_model: "GPT-5.6 Luna"
+    actual_reasoning: "low"
+    routing_enforced: true
+    escalation_count: 0
+    status: "completed"
+    stage: "verification"
+    task: "Run the smallest sufficient build, rendered-output, and scope validation for PR #22."
+    last_update: "Default Node 12 was incompatible; rerun with bundled Node 24 passed build and rendered checks."
+    blocker: ""
 
 loops:
   planning_review:
@@ -137,6 +167,7 @@ decisions:
   - "Constrain election edits to enumerated minimal substitutions and add source-backed prior-definition and lambda(w) corrections to the methodology."
   - "At the second and final planning revision, defer constrained-optimization terminology plus style-dependent So far/self-growth mechanics."
   - "User selected proceed at the pre-execution checkpoint."
+  - "Resolved the tester's old-Node environment gap with the bundled Node 24 runtime; no execution correction loop was needed."
 
 model_routing:
   provider: "Codex / OpenAI"
@@ -145,6 +176,6 @@ model_routing:
   unresolved_limitations:
     - "The orchestrator runtime does not expose its exact provider model identifier or reasoning setting."
 
-next_action: "Begin independent reviewer and tester verification on PR #22."
+next_action: "User reviews PR #22 and decides whether to merge or request changes."
 next_recommended_command: "$work"
 user_input_needed: false
