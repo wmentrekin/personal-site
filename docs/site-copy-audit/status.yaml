@@ -33,8 +33,8 @@ branching:
   branch_name: "work/site-copy-audit"
 
 summary:
-  current_focus: "Validate and publish the user's selected editorial follow-up changes to PR #22."
-  last_completed: "Applied the selected notation, typography, metadata, Grizzlies wording, project-summary, and project-hero-width changes; Astro check and production build passed."
+  current_focus: "Hand the updated PR #22 to the user for review."
+  last_completed: "Pushed the selected follow-up changes; Astro check, production build, Cloudflare Pages, and GitGuardian all passed."
   current_blocker: ""
 
 artifacts:
@@ -183,6 +183,6 @@ model_routing:
   unresolved_limitations:
     - "The orchestrator runtime does not expose its exact provider model identifier or reasoning setting."
 
-next_action: "Commit and push the editorial follow-up, then return PR #22 to the user for review."
+next_action: "User reviews PR #22 and decides whether to merge or request changes."
 next_recommended_command: "$work"
 user_input_needed: false

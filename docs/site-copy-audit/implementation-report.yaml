@@ -118,6 +118,7 @@ test_summary:
     - "Astro production build under Node 24.19.0"
     - "Generated HTML inspection"
     - "Local browser accessibility and methodology rendering inspection"
+    - "Updated PR checks: Cloudflare Pages and GitGuardian passed"
   failures: []
   gaps:
     - "The system-default Node 12 runtime cannot build this repository; verification used the bundled compatible Node 24 runtime."
