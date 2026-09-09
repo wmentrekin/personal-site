@@ -7,19 +7,19 @@ const quickFacts = [
     value: "Atlanta, Georgia"
   },
   {
-    label: "Homewtown",
+    label: "Hometown",
     value: "Memphis, Tennessee"
   },
   {
     label: "Education",
     value: [
-      "Georgia Tech, BS ISyE '23",
-      "Georgia Tech, MS in Analytics - Starting Spring 2027"
+      "Georgia Tech, BS ISyE ’23",
+      "Georgia Tech, MS Analytics, starting Spring 2027"
     ]
   },
   {
     label: "Current Role",
-    value: "Data Engineeering Consultant at CapTech"
+    value: "Data Engineering Consultant at CapTech"
   }
 ];
 
@@ -28,7 +28,7 @@ const aboutCards = [
     eyebrow: "Background",
     paragraphs: [
       "I studied Industrial & Systems Engineering at Georgia Tech, where I became especially interested in optimization, modeling, analytics, and the kinds of technical problems that sit between math, systems, and decision-making.",
-      "That background still shapes how I work. I'm drawn to open-ended problems that need measurable, practical, and operationally useful solutions.",
+      "That background still shapes how I work. I’m drawn to open-ended problems that need measurable, practical, and operationally useful solutions.",
       "Whether that means data pipelines, ranking models, or explaining a messy problem clearly, I tend to enjoy work that combines technical depth, analytical thinking, creativity, and real-world constraints.",
       "Starting in January 2027, I will be pursuing a Master of Science in Analytics at Georgia Tech to further develop my computational and analytical modeling skills and become a more well-rounded end-to-end data professional."
     ]
@@ -37,7 +37,7 @@ const aboutCards = [
     eyebrow: "Work",
     paragraphs: [
       "At CapTech, I work as a Consultant in the Data & Analytics practice area. Much of that work has involved building and supporting data pipelines, improving testing and data quality processes, and contributing to large-scale data migration and platform efforts.",
-      "I'm most interested in work that makes systems more reliable, understandable, and useful over time. In practice, that usually means focusing on data quality, maintainability, and delivery rather than complexity for its own sake.",
+      "I’m most interested in work that makes systems more reliable, understandable, and useful over time. In practice, that usually means focusing on data quality, maintainability, and delivery rather than complexity for its own sake.",
       "That same preference carries into the projects on this site. I care less about novelty alone and more about building things that are technically sound, clearly reasoned, and actually useful or interesting."
     ]
   },
@@ -45,7 +45,7 @@ const aboutCards = [
     eyebrow: "Interests",
     paragraphs: [
       "Outside of work, a lot of my time goes toward fitness, food, travel, and learning.",
-      "I spend much of my free time staying active through lifting, running, and playing sports. I also enjoy cooking, traveling, sports, language learning, and working on side projects. I'm especially interested in college football, NBA basketball, history, languages, and questions about how people and systems behave over time.",
+      "I spend much of my free time staying active through lifting, running, and playing sports. I also enjoy cooking, traveling, sports, language learning, and working on side projects. I’m especially interested in college football, NBA basketball, history, languages, and questions about how people and systems behave over time.",
       "A lot of the projects here come from that mix. They usually start with something I genuinely care about, then turn into a way to explore it more seriously through data, modeling, writing, or engineering."
     ]
   },
@@ -60,7 +60,10 @@ const aboutCards = [
 ];
 ---
 
-<BaseLayout title="About | Wyatt Entrekin">
+<BaseLayout
+  title="About | Wyatt Entrekin"
+  description="Background, experience, interests, and current work of Wyatt Entrekin."
+>
   <section class="about-shell">
     <section class="about-hero reveal">
       <a class="back-link" href="/">
@@ -70,7 +73,7 @@ const aboutCards = [
       <p class="hero-kicker">About</p>
       <p class="hero-text">
         This page is a high-level overview of my background, experience, and interests. For a more current view of what
-        I&apos;m focused on right now, check out my <a href="/now">now page</a>.
+        I’m focused on right now, check out my <a href="/now">now page</a>.
       </p>
     </section>
 
@@ -78,7 +81,9 @@ const aboutCards = [
       {quickFacts.map((fact) => (
         <article class="fact-card reveal">
           <p class="fact-label">{fact.label}</p>
-          <p class="fact-value">{fact.value}</p>
+          <p class="fact-value">
+            {Array.isArray(fact.value) ? fact.value.join("; ") : fact.value}
+          </p>
         </article>
       ))}
     </section>

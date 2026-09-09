@@ -1,0 +1,132 @@
+artifact: implementation_report
+feature: "site-copy-audit"
+mode: "bounded-feature"
+status: "ready_for_review"
+owner_skill: work
+based_on: "docs/site-copy-audit/plan.yaml"
+
+summary:
+  scope_executed: "Applied the approved objective corrections, followed by the user's selected editorial and layout refinements."
+  outcome: "The current site copy reflects the settled conventions while Now and Travel remain unchanged; compatible-runtime checks pass."
+
+task_batches_attempted:
+  - "B1"
+task_batches_completed:
+  - "B1"
+
+domains_touched:
+  - "frontend-engineer"
+
+model_usage:
+  tasks:
+    - task_id: "T1"
+      role: "frontend-engineer"
+      requested_tier: "balanced"
+      requested_model: "GPT-5.6 Terra"
+      actual_model: "GPT-5.6 Terra"
+      requested_reasoning: "medium"
+      actual_reasoning: "medium"
+      accepted_first_attempt: true
+      escalation_count: 0
+      tool_calls: null
+      input_tokens: null
+      output_tokens: null
+      wall_time_seconds: null
+      cost_or_quota: null
+    - task_id: "V1"
+      role: "reviewer"
+      requested_tier: "balanced"
+      requested_model: "GPT-5.6 Terra"
+      actual_model: "GPT-5.6 Terra"
+      requested_reasoning: "medium"
+      actual_reasoning: "medium"
+      accepted_first_attempt: true
+      escalation_count: 0
+      tool_calls: null
+      input_tokens: null
+      output_tokens: null
+      wall_time_seconds: null
+      cost_or_quota: null
+    - task_id: "V2"
+      role: "tester"
+      requested_tier: "fast"
+      requested_model: "GPT-5.6 Luna"
+      actual_model: "GPT-5.6 Luna"
+      requested_reasoning: "low"
+      actual_reasoning: "low"
+      accepted_first_attempt: true
+      escalation_count: 0
+      tool_calls: null
+      input_tokens: null
+      output_tokens: null
+      wall_time_seconds: null
+      cost_or_quota: null
+  routing_notes: []
+
+pr:
+  number: 22
+  url: "https://github.com/wmentrekin/personal-site/pull/22"
+
+changes:
+  files:
+    - "src/pages/index.astro"
+    - "src/pages/about.astro"
+    - "src/data/now/entries/2026-03-15.ts"
+    - "src/pages/resume.astro"
+    - "src/pages/stats.astro"
+    - "src/pages/projects/2020-election-model.astro"
+    - "src/pages/projects/cfb-rankings/methodology.astro"
+    - "src/pages/projects/index.astro"
+    - "src/pages/projects/agent-skills.astro"
+    - "src/pages/projects/cbb-rankings.astro"
+    - "src/pages/projects/cfb-rankings/index.astro"
+    - "src/pages/projects/chronicle.astro"
+    - "src/pages/projects/grizzlies-asset-lineage.astro"
+    - "src/components/ScheduleGrid.astro"
+  modules:
+    - "Core page copy and accessibility labels"
+    - "2020 election archive copy"
+    - "CFB methodology copy and equations"
+  docs_updated:
+    - "docs/site-copy-audit/status.yaml"
+    - "docs/site-copy-audit/requirements.yaml"
+    - "docs/site-copy-audit/plan.yaml"
+    - "docs/site-copy-audit/implementation-report.yaml"
+
+local_validation:
+  checks_run:
+    - "Full-width project hero and Stats description follow-up: Astro check and 14-route production build passed"
+    - "Astro check with bundled Node 24.19.0: passed with 0 errors, warnings, or hints"
+    - "npm run build with bundled Node 24.19.0: passed; all 14 routes generated"
+    - "Generated HTML inspection for accessible names, education separation, status punctuation, and methodology math: passed"
+    - "Targeted search for every approved old phrase: no matches"
+    - "git diff --check: passed"
+    - "Local browser accessibility-tree inspection of Home, About, and CFB Methodology: passed"
+  failures: []
+  skipped: []
+
+review_summary:
+  status: "approved"
+  key_findings:
+    - "No correctness or scope findings; all changes match the objective-only plan."
+    - "CFB methodology claims match the synchronized model implementation."
+
+test_summary:
+  status: "passed"
+  checks_run:
+    - "git diff --check"
+    - "Targeted obsolete-string search"
+    - "Astro production build under Node 24.19.0"
+    - "Generated HTML inspection"
+    - "Local browser accessibility and methodology rendering inspection"
+    - "Updated PR checks: Cloudflare Pages and GitGuardian passed"
+  failures: []
+  gaps:
+    - "The system-default Node 12 runtime cannot build this repository; verification used the bundled compatible Node 24 runtime."
+
+open_issues: []
+
+handoff:
+  current_state: "ready_for_review"
+  next_owner: "user"
+  next_action: "Review PR #22 and merge or request changes."

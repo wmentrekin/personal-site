@@ -2,12 +2,15 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="CFB Rankings Methodology | Wyatt Entrekin">
+<BaseLayout
+  title="CFB Rankings Methodology | Wyatt Entrekin"
+  description="Methodology for the Entrekin Quadratic Index college football ranking model."
+>
   <section class="method-shell">
     <a class="back-link reveal" href="/projects/cfb-rankings"><span aria-hidden="true">←</span> Rankings</a>
 
     <section class="method-hero reveal glass-card">
-      <div>
+      <div class="method-copy">
         <p class="method-kicker">Technical Documentation</p>
         <h1>Entrekin Quadratic Index - Methodology</h1>
         <p class="method-intro">
@@ -53,7 +56,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
             without the influence of subjective factors such as recruiting rankings, preseason expectations, or
             traditional power ratings. I chose to implement this using a constraint optimization approach, specifically a
             convex quadratic programming model, because I had not seen many existing models that took this approach in a
-            transparent and mathematically rigorous way. At the core, this model is very simple, it tries to assign
+            transparent and mathematically rigorous way. At the core, this model is very simple: it tries to assign
             ratings to teams such that:
           </p>
           <ul>
@@ -68,7 +71,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
               common opponents. Imagine a network graph where teams are nodes and games are edges; as more edges are
               added, the relative positions of nodes become clearer.
             </li>
-            <li>It minimizes total ranking inconsistency subject to logical constraints about game results.</li>
+            <li>It minimizes game-result inconsistencies as penalties, subject to rating bounds.</li>
           </ul>
           <p>
             Additionally, this model has been a great exercise for me to apply my optimization and mathematical modeling
@@ -80,7 +83,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
             Unlike some computer rankings, my code and methodology are fully open and transparent for anyone to review,
             critique, and improve upon, so please feel free to reach out to me if you have any suggestions, thoughts, or
             questions. I plan on continuing to refine and improve this model over time and adding more features to this
-            app as well. I hope you find this model as interesting and useful as I have building it.
+            app as well. I hope you find this model as interesting and useful as I have found it to be while building it.
           </p>
         </section>
 
@@ -91,7 +94,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
           <ul>
             <li>{String.raw`\(\mathcal{T}\): set of all FBS teams`}</li>
             <li>{String.raw`\(\mathcal{G}\): set of all games \((i,j,k)\) where team \(i \in \mathcal{T}\) played team \(j \in \mathcal{T}\) in their \(k\)th matchup`}</li>
-            <li>{String.raw`\(\mathcal{F}\): set of FBS teams that lost to FCS opponents`}</li>
+            <li>{String.raw`\(\mathcal{F}\): set of FCS-loss records \((i,m,\alpha)\), where \(i \in \mathcal{T}\) is the FBS team, \(m\) is the loss margin, and \(\alpha\) is the location adjustment`}</li>
             <li>{String.raw`\(\mathcal{M}\): set of margins of victory \(\forall (i,j,k) \in \mathcal{G}\)`}</li>
           </ul>
 
@@ -123,7 +126,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
             <li>{String.raw`\(r_{\text{fcs-min}} = 0.01\): lower bound for FCS team rating`}</li>
             <li>{String.raw`\(r_{\text{fcs-max}} = 15\): upper bound for FCS team rating`}</li>
             <li>
-              {String.raw`\(\text{prior}_i\): prior rating for team \(i\) from previous season's final rankings (default \(1\) for new FBS teams), model for prior is same as this model, but run on prior season's data`}
+              {String.raw`\(\text{prior}_i\): prior rating for team \(i\) from previous season’s final rankings (default \(1\) for new FBS teams). The prior model uses the same formulation but runs on the prior season’s data.`}
             </li>
           </ul>
 
@@ -154,9 +157,9 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
             {String.raw`\[
             \begin{aligned}
             \text{minimize} \quad & \sum_{(i,j,k) \in \mathcal{G}} \gamma_{\text{margin}} \cdot [\max(0, r_{\text{loser}} + m_{i,j,k} - r_{\text{winner}})]^2 & [\text{Margin Penalty}] \\
-            & + \sum_{(i,j,k) \in \mathcal{F}} \gamma_{\text{fcs}} \cdot [\max(0, r_{\text{i}} + m_{i,j,k} - r_{\text{fcs}})]^2 & [\text{FCS Margin Penalty}] \\
+            & + \sum_{(i,m,\alpha) \in \mathcal{F}} \gamma_{\text{fcs}} \cdot [\max(0, r_i + \alpha m - r_{\text{fcs}})]^2 & [\text{FCS Margin Penalty}] \\
             & + \sum_{i \in \mathcal{T}} \gamma_{\text{loss}} \cdot (r_i \cdot \frac{\text{losses}_i}{\text{wins}_i + \text{losses}_i})^2 & [\text{Loss Rate Penalty}] \\
-            & + \sum_{i \in \mathcal{T}} \lambda \cdot (r_i - \text{prior}_i)^2 & [\text{Prior Regularization}]
+            & + \sum_{i \in \mathcal{T}} \lambda(w) \cdot (r_i - \text{prior}_i)^2 & [\text{Prior Regularization}]
             \end{aligned}
             \]`}
           </div>
@@ -172,7 +175,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
               </ul>
             </li>
             <li>Loss rate penalties discourage teams with poor win-loss records from having high ratings.</li>
-            <li>Prior regularization ties team ratings to their prior season's ratings early in the season when data is sparse.</li>
+            <li>Prior regularization ties team ratings to their prior season’s ratings early in the season when data is sparse.</li>
           </ul>
         </section>
 
@@ -196,8 +199,8 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
         <section id="implementation-notes" class="method-section">
           <h2>Implementation Notes</h2>
           <ul>
-            <li>{String.raw`Prior ratings are carried over from the previous season's final model output. New FBS teams receive a default prior rating of \(15\).`}</li>
-            <li>{String.raw`The \(\lambda\) parameter enforces prior-season influence, linearly dropping to \(0\) from Week \(1\) to Week \(7\), eventually to rely entirely on current season results.`}</li>
+            <li>{String.raw`Prior ratings are carried over from the previous season’s final model output. New FBS teams receive a default prior rating of \(1\).`}</li>
+            <li>{String.raw`The \(\lambda(w)\) parameter enforces prior-season influence, linearly dropping to \(0\) from Week \(1\) to Week \(7\), after which the model relies entirely on current-season results.`}</li>
             <li>{String.raw`FCS losses are handled via a dummy FCS team whose rating is constrained between \(r_{\text{fcs-min}}\) and \(r_{\text{fcs-max}}\). This allows the model to penalize FBS teams losing to FCS opponents without needing to explicitly rate every FCS team.`}</li>
             <li>Margin penalties encourage appropriate rating separation based on game margins.</li>
             <li>Loss rate penalties discourage high ratings for teams with poor win-loss records.</li>
@@ -205,7 +208,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
             <li>{String.raw`Home/away adjustments use \(\alpha\) multipliers to account for game location advantage.`}</li>
             <li>
               The optimization is solved using <a href="https://www.cvxpy.org/" target="_blank" rel="noreferrer">CVXPY</a>
-              with default convex solvers, returning team ratings sorted in descending order.
+              with default convex solvers. The application then sorts the resulting team ratings in descending order.
             </li>
           </ul>
         </section>
@@ -222,11 +225,14 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     }
 
     .method-hero {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 1rem;
       padding: 1.05rem 1.15rem;
+    }
+
+    .method-copy {
+      display: contents;
     }
 
     .method-kicker {
@@ -252,13 +258,15 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.7;
-      max-width: 30rem;
+      grid-column: 1 / -1;
     }
 
     .hero-actions {
       display: flex;
       align-items: center;
       gap: 0.8rem;
+      grid-column: 2;
+      grid-row: 1 / span 2;
       flex-shrink: 0;
     }
 
@@ -393,10 +401,12 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
     @media (max-width: 980px) {
       .method-hero {
-        flex-direction: column;
+        grid-template-columns: 1fr;
       }
 
       .hero-actions {
+        grid-column: 1;
+        grid-row: auto;
         width: 100%;
       }
 

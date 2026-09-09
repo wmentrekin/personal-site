@@ -2,7 +2,10 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Chronicle | Wyatt Entrekin">
+<BaseLayout
+  title="Chronicle | Wyatt Entrekin"
+  description="Chronicle is an AI-assisted workflow for transcription, speaker diarization, and family history documentation."
+>
   <section class="project-shell">
     <a class="back-link reveal" href="/projects"><span aria-hidden="true">←</span> Projects</a>
 
@@ -54,11 +57,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .project-hero {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 1rem;
       padding: 1.05rem 1.15rem;
+    }
+
+    .hero-copy {
+      display: contents;
     }
 
     .hero-kicker {
@@ -84,13 +90,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.65;
-      max-width: 34rem;
-      text-wrap: pretty;
+      grid-column: 1 / -1;
     }
 
     .hero-tags {
       display: flex;
       flex-wrap: wrap;
+      grid-column: 1 / -1;
       gap: 0.45rem;
       margin-top: 0.8rem;
     }
@@ -114,6 +120,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       display: flex;
       align-items: center;
       gap: 0.55rem;
+      grid-column: 2;
+      grid-row: 1 / span 3;
       flex-shrink: 0;
     }
 
@@ -181,7 +189,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     @media (max-width: 920px) {
       .project-hero {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+      }
+
+      .hero-actions {
+        grid-column: 1;
+        grid-row: auto;
+        width: 100%;
       }
     }
   </style>

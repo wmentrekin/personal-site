@@ -1,0 +1,82 @@
+artifact: requirements
+feature: "site-copy-audit"
+mode: "bounded-feature"
+status: "ready"
+owner_skill: work
+
+summary:
+  problem: "The site contains objective typos, grammar defects, accessibility-facing text defects, and verified technical contradictions."
+  motivation: "Correct clear errors without prematurely deciding subjective voice, tone, personal facts, or archive-editing policy."
+  requested_outcome: "A reviewed pull request containing only defensible objective corrections, with editorial choices left unchanged and separately documented."
+
+goals:
+  - "Fix spelling, word-choice, capitalization, punctuation, agreement, and rendering errors with a single clear correction."
+  - "Fix accessibility-facing wording defects where the existing label is missing or concatenated."
+  - "Fix technical contradictions only when the refreshed implementation provides a definitive source of truth."
+  - "Revalidate findings against the newest origin/main before editing."
+
+non_goals:
+  - "Rewrite copy for tone, concision, or personal branding."
+  - "Update the stale Now entry without new facts from Wyatt."
+  - "Choose a public job title, degree-name style, gym terminology, or Grizzlies project terminology."
+  - "Decide whether the election archive should preserve original prose or use retrospective tense."
+  - "Change page layout, component behavior, data pipelines, or ranking logic."
+
+constraints:
+  technical:
+    - "Preserve Astro syntax and existing page behavior."
+    - "Keep generated or embedded table edits limited to human-readable headings."
+    - "Use the refreshed cfb-rankings main branch as the source of truth for methodology claims."
+  product:
+    - "Do not alter defensible editorial phrasing merely because an alternative is smoother."
+    - "Do not infer new personal facts."
+    - "Preserve the 2020 election page's current archival posture unless a sentence contains an objective error."
+  process:
+    - "Work only on work/site-copy-audit and open one PR against main."
+    - "Stop at the explicit pre-execution checkpoint before modifying site source files."
+
+assumptions:
+  - "An objective error has one strongly preferred correction supported by grammar, accessibility semantics, official product naming, rendered output, or implementation evidence."
+  - "Recent CFB UI changes may invalidate some earlier audit findings and must be rechecked."
+
+repository_sync:
+  source: "docs/site-copy-audit/status.yaml"
+  repositories_confirmed:
+    - "/Users/wentrekin/dev/personal-site"
+    - "/Users/wentrekin/dev/cfb-rankings"
+  accepted_unverified_states: []
+
+repo_context:
+  relevant_paths:
+    - "src/pages/"
+    - "src/components/TravelGlobe.astro"
+    - "src/components/ScheduleGrid.astro"
+    - "src/data/now/entries/2026-03-15.ts"
+    - "public/data/2020-election/tables/"
+    - "/Users/wentrekin/dev/cfb-rankings/model/model.py"
+  systems_in_scope:
+    - "Astro static site copy"
+    - "Accessibility-facing link and canvas labels"
+    - "Embedded archived HTML table headings"
+  prior_artifacts:
+    - "docs/site-copy-audit/audit-report.md"
+
+research:
+  repo_findings:
+    - "The initial audit covered all 14 public routes and shared visitor-facing copy."
+    - "The newest main branch substantially changed the CFB rankings UI, requiring targeted revalidation."
+  platform_findings: []
+
+acceptance_criteria:
+  - "Every changed phrase is classified as an objective correction, not optional polish."
+  - "No unresolved personal or editorial decision is silently made."
+  - "The static site builds successfully."
+  - "Targeted searches confirm known misspellings and contradictions are removed where still present."
+  - "Built HTML confirms descriptive homepage social-link names, explicit About education separation, punctuated Resume/Stats status text, and intact methodology math output."
+  - "A reviewer confirms scope discipline and a tester confirms build/output integrity."
+  - "One PR is opened against main and reported ready for review."
+
+open_questions: []
+
+ready_for_planning: true
+planning_blockers: []

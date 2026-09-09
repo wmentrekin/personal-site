@@ -19,7 +19,7 @@ const entry: NowEntry = {
     },
     {
       label: "Connections",
-      text: "I'm making a conscious effort to stay connected with friends and family. I don't have any family here in Atlanta and as each year passes, it feels that my friends become more and more spread out. I'm trying to call people more often. If you haven't heard from me in awhile, please reach out! I love catching up and hearing about what people are up to."
+      text: "I'm making a conscious effort to stay connected with friends and family. I don't have any family here in Atlanta, and as each year passes, it feels that my friends become more and more spread out. I'm trying to call people more often. If you haven't heard from me in a while, please reach out! I love catching up and hearing about what people are up to."
     }
   ]
 };

@@ -38,7 +38,10 @@ const tables = {
 };
 ---
 
-<BaseLayout title="2020 Election Model | Wyatt Entrekin">
+<BaseLayout
+  title="2020 Election Model | Wyatt Entrekin"
+  description="An archived state-by-state forecasting model for the 2020 U.S. presidential election."
+>
   <section class="project-shell">
     <a class="back-link reveal" href="/projects"><span aria-hidden="true">←</span> Projects</a>
 
@@ -51,7 +54,7 @@ const tables = {
 
     <section class="project-hero reveal">
       <div class="hero-copy glass-card">
-        <div>
+        <div class="hero-content">
           <p class="hero-kicker">Archived Project</p>
           <h1>2020 Election Model</h1>
           <p class="hero-text">
@@ -109,12 +112,12 @@ const tables = {
         <strong>Disclaimer</strong>: This model is not an official prediction. I am in no way attesting to its
         potential accuracy or claiming it to be correct. The point of this project was to be a learning exercise for
         me as well as an outlet for an interest of mine. I am not in any way a professional election forecaster.
-        Nonetheless, I hope this peaks your interest.
+        Nonetheless, I hope this piques your interest.
       </p>
       <p class="muted">
         When I first decided to begin working on this model in August, I wanted to challenge myself to learn more
-        about different Python libraries, such as Scipy, Numpy, Pandas, and Matplotlib and to see if I could come up
-        with anything accurate. I utilized my prior skills in webscraping and data manipulation while using new
+        about different Python libraries, such as SciPy, NumPy, pandas, and Matplotlib and to see if I could come up
+        with anything accurate. I utilized my prior skills in web scraping and data manipulation while using new
         knowledge in statistics and data visualization. The entire model is written in Python.
       </p>
       <p class="muted">
@@ -127,7 +130,7 @@ const tables = {
       </p>
       <p class="muted">
         After the data was gathered and cleaned, I had three classes of objects: States, Polls, and Pollsters. I
-        wanted to use the data I gathered about each of these objects, to implement this model. The model thus breaks
+        wanted to use the data I gathered about each of these objects to implement this model. The model thus breaks
         down into these parts: correcting polls based on the grade and historical bias of their pollsters, aggregating
         polls in each state into a singular rating with a vote share for both candidates and margin of error based on
         the combined margins of all the polls (for states with no polling data, this rating was simply based on the
@@ -213,30 +216,30 @@ const tables = {
     <section class="info-card reveal glass-card" id="insights">
       <h2>Insights</h2>
       <p class="muted">
-        The first interesting result that I noted while getting the first results of this model were how some states
+        The first interesting result that I noted while getting the first results of this model was that some states
         have very slim projected margins while the candidate favored to win had very high chances of victory. For
         example, Donald Trump is expected to win South Carolina and Alaska by margins of less than 10%, yet has more
-        than 80% chance of victory in both states. Likewise, Joe Biden is expected to win both Minnesota and Virginia
-        by margins of less than 5%, yet has more than 90% chance of victory in both states. This is probably a result
+        than an 80% chance of victory in both states. Likewise, Joe Biden is expected to win both Minnesota and Virginia
+        by margins of less than 5%, yet has more than a 90% chance of victory in both states. This is probably a result
         of the polling data in these states having low variance and error.
       </p>
       <p class="muted">
         Next, I noticed that the model only predicts four true toss-up states: North Carolina, Arizona, Ohio, and
         Georgia, all of which Donald Trump won in 2016. While candidates campaign all over the country, many of the
-        states they visit are, at least statistically, already likely to vote a certain way. This reflects in the
+        states they visit are, at least statistically, already likely to vote a certain way. This is reflected in the
         projected flipped states as well, where all of them are expected to flip from Trump to Biden, with Biden
         projected to win by larger margins than Trump won them in 2016, with the exception of Arizona and North
         Carolina, which out of these states, are the more traditionally Republican states.
       </p>
       <p class="muted">
-        Lastly, my model gives Joe Biden an almost guaranteed victory in the electoral college. While many models and
+        Lastly, my model gives Joe Biden an almost guaranteed victory in the Electoral College. While many models and
         pundits show Biden as the favorite, I am wary of the results of my own model. In general, I believe that my
         results don't paint an unrealistic picture, but that some of the numbers can be potentially misleading. The
         goal was not to definitively predict the winner of the election, but rather to project the chances of victory
         and vote shares in each state. Nonetheless, Joe Biden wins in almost every scenario. I believe that my model's
         victory chances don't necessarily represent an accurate number, but that they do reflect the narrow path to
         victory for the incumbent president. While Joe Biden has many paths to the presidency (winning in the Rust
-        Belt, the South, or the Southwest), Trump's chance rely heavily on repeating as closely his victory in 2016,
+        Belt, the South, or the Southwest), Trump's chances rely heavily on replicating his 2016 victory as closely as possible,
         which relied heavily on slim margins in key states. While this model gives the president decent chances in
         states he needs to win, such as Wisconsin, Michigan, Pennsylvania, and Florida, there are not many scenarios
         where my model has him winning all or enough of them to secure a victory. It shows that Biden can win either
@@ -272,17 +275,22 @@ const tables = {
     }
 
     .hero-copy {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 1rem;
       padding: 1.1rem 1.2rem;
+    }
+
+    .hero-content {
+      display: contents;
     }
 
     .hero-actions {
       display: flex;
       align-items: center;
       gap: 0.55rem;
+      grid-column: 2;
+      grid-row: 1 / span 2;
       flex-shrink: 0;
     }
 
@@ -360,11 +368,13 @@ const tables = {
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.68;
+      grid-column: 1 / -1;
     }
 
     .hero-tags {
       display: flex;
       flex-wrap: wrap;
+      grid-column: 1 / -1;
       gap: 0.55rem;
       margin-top: 0.8rem;
     }
@@ -492,10 +502,12 @@ const tables = {
 
     @media (max-width: 900px) {
       .hero-copy {
-        flex-direction: column;
+        grid-template-columns: 1fr;
       }
 
       .hero-actions {
+        grid-column: 1;
+        grid-row: auto;
         width: 100%;
       }
 
