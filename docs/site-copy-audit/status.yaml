@@ -43,9 +43,9 @@ artifacts:
   implementation_report: "docs/site-copy-audit/implementation-report.yaml"
 
 pr:
-  number: null
-  url: null
-  status: "not_opened"
+  number: 22
+  url: "https://github.com/wmentrekin/personal-site/pull/22"
+  status: "open"
 
 agents:
   - id: "orchestrator"
@@ -145,6 +145,6 @@ model_routing:
   unresolved_limitations:
     - "The orchestrator runtime does not expose its exact provider model identifier or reasoning setting."
 
-next_action: "Commit and push the branch, open the PR, and begin independent verification."
+next_action: "Begin independent reviewer and tester verification on PR #22."
 next_recommended_command: "$work"
 user_input_needed: false

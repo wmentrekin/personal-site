@@ -36,8 +36,8 @@ model_usage:
   routing_notes: []
 
 pr:
-  number: null
-  url: null
+  number: 22
+  url: "https://github.com/wmentrekin/personal-site/pull/22"
 
 changes:
   files:
