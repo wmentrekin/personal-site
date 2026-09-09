@@ -120,6 +120,12 @@ function deltaAriaLabel(delta: number): string {
        from overflowing on a narrow viewport, where it scrolls instead. */
     width: max-content;
     max-width: 100%;
+    /* Centred in the tile. Hugging the content left the compact table pinned to the card's
+       left edge with all the slack pooled on one side, which read as misaligned rather than
+       as deliberate. Auto margins collapse to 0 once max-width: 100% binds on a narrow
+       viewport, so this costs nothing there. */
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .rankings-shell::-webkit-scrollbar {
@@ -182,22 +188,23 @@ function deltaAriaLabel(delta: number): string {
     background: rgba(16, 23, 32, 0.98);
   }
 
-  /* Column order (T12): Rank, Team, Record, Rating, Delta, Conference. Centered: Rank(1),
+  /* Every column NAME is centred (see .rankings-shell th below); these rules now govern the
+     BODY cells only, which is why they dropped their th selectors rather than being
+     out-specificitied by a later th rule -- an equal-specificity override that depends on
+     source order is the kind of thing a later edit reorders and silently breaks.
+  
+     Column order (T12): Rank, Team, Record, Rating, Delta, Conference. Centered: Rank(1),
      Record(3), Delta(5) -- same three columns that were centered before the reorder, just at
      their new positions. Team(2) and Conference(6) stay left-aligned (the default `text-align:
      left` above); Rating(4) is right-aligned below. Getting these nth-child indices wrong after
      a reorder fails silently -- no error, just wrong alignment -- so check the computed
      text-align per column in a browser rather than trusting the source to read correctly. */
-  th:nth-child(1),
   td:nth-child(1),
-  th:nth-child(3),
   td:nth-child(3),
-  th:nth-child(5),
   td:nth-child(5) {
     text-align: center;
   }
 
-  th:nth-child(4),
   td:nth-child(4) {
     text-align: right;
   }
@@ -212,6 +219,10 @@ function deltaAriaLabel(delta: number): string {
      are currently load-bearing for the Season Grid's own typography, so unpicking them is a
      visual change in its own right rather than a fix. */
   .rankings-shell th {
+    /* All six column names centred over their columns, regardless of how the cells beneath
+       them are aligned -- the header row reads as one band that way, where per-column header
+       alignment made the compact table look ragged along its top edge. */
+    text-align: center;
     position: sticky;
     top: 0;
     background: rgba(10, 15, 20, 0.96);

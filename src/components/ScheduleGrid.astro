@@ -495,6 +495,11 @@ const columns: Array<{ slot_id: string; label: string }> =
      lets a label like "Conference Championship" fall onto a second line now that
      every header cell shares one fixed width instead of growing to fit its text. */
   #schedule-grid-table .sg-th {
+    /* Column names centred over their columns, matching RankingsTable.astro. Scoped to
+       .sg-th rather than to `th`: the conference and division heading rows are also <th>
+       cells, and those are section labels down the left edge, not column names -- centring
+       them would push each conference name into the middle of the sticky first column. */
+    text-align: center;
     position: sticky;
     top: 0;
     z-index: 2;
