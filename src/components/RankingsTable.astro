@@ -20,8 +20,12 @@ const { headers, rows } = Astro.props;
 // the plain <span> in ScheduleGrid.astro -- a <th> is role=columnheader, which permits
 // author naming; a role=generic span does not.
 //
+// The same string is also the `title`, so a sighted reader who does not know the convention
+// gets the word on hover -- the aria-label alone serves screen readers and leaves everyone
+// else with an unexplained symbol where a word used to be.
+//
 // A header not in this map gets `undefined`, and Astro omits an attribute set to undefined,
-// so every word header renders exactly as before with no aria-label at all.
+// so every word header renders exactly as before, with neither attribute.
 const HEADER_ARIA_LABELS: Record<string, string> = {
   "\u0394": "Delta",
 };
@@ -56,7 +60,9 @@ function deltaAriaLabel(delta: number): string {
   <table>
     <thead>
       <tr>
-        {headers.map((header) => <th aria-label={HEADER_ARIA_LABELS[header]}>{header}</th>)}
+        {headers.map((header) => (
+          <th aria-label={HEADER_ARIA_LABELS[header]} title={HEADER_ARIA_LABELS[header]}>{header}</th>
+        ))}
       </tr>
     </thead>
     <tbody>

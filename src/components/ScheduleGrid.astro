@@ -566,12 +566,24 @@ const columns: Array<{ slot_id: string; label: string }> =
 
      ID-qualifying white-space: normal lets the text wrap, which drops each heading's
      min-content to its longest single WORD ("Southeastern", ~112px) -- comfortably inside
-     12rem, so .sg-team-col's own min/max-width governs the column again and the lockstep
+     12rem, so .sg-team-col's min/max-width governs the column again and the lockstep
      .sg-corner documents is real. The longer names now wrap to two lines, which is the
-     intended trade. */
-  #schedule-grid-table .sg-conf-header,
-  #schedule-grid-table .sg-div-header {
+     intended trade.
+
+     overflow-wrap: anywhere is the actual guard, and it is not belt-and-braces. Wrapping
+     alone only LOWERS the threshold from "longest name" to "longest word"; it does not cap
+     it, because .sg-team-col's max-width cannot bind a column whose other cell has none.
+     Measured: a display name containing a single 22-character word still pushes column 1 to
+     212px and clips eight team cells against the overflow: hidden above. Allowing a break
+     inside a word makes min-content one character wide, so no conference name can move this
+     column no matter how it is spelled.
+
+     Scoped to .sg-conf-header alone: .sg-div-header already has its own ID-qualified
+     white-space: normal further down, and division labels ("East"/"West") never drove the
+     width in the first place. */
+  #schedule-grid-table .sg-conf-header {
     white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   /* The conference-name cell is ALSO sticky-left (same tier as .sg-team-col below it),

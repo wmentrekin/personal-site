@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import {
   CONFERENCE_FULL_NAMES,
   CONFERENCE_SHORT_NAMES,
+  conferenceFilterLabel,
   conferenceShortName,
 } from "../../../lib/conferences";
 
@@ -297,23 +298,28 @@ const hasAnyData = hasRankingsData || hasScheduleData;
                   11 conferences; see applyConferenceFilter() and the data-conference
                   attribute ScheduleGrid.astro stamps on every row for how these values
                   are consumed.
+
+                  The VALUES stay literal here on purpose -- they are the contract with the
+                  artifact and belong where a reader can see them. Only the LABELS come from
+                  src/lib/conferences.ts, so renaming a conference there cannot leave this
+                  dropdown quietly saying the old thing.
                 */}
                 <select class="filter-select" id="conference-select" aria-label="Conference" hidden>
                   <option value="all">All Conferences</option>
                   <optgroup label="Power 4">
-                    <option value="ACC">ACC</option>
-                    <option value="BIG 12">Big 12</option>
-                    <option value="BIG 10">Big Ten</option>
-                    <option value="SEC">SEC</option>
+                    <option value="ACC">{conferenceFilterLabel("ACC")}</option>
+                    <option value="BIG 12">{conferenceFilterLabel("BIG 12")}</option>
+                    <option value="BIG 10">{conferenceFilterLabel("BIG 10")}</option>
+                    <option value="SEC">{conferenceFilterLabel("SEC")}</option>
                   </optgroup>
-                  <option value="FBS Independent">FBS Independents</option>
+                  <option value="FBS Independent">{conferenceFilterLabel("FBS Independent")}</option>
                   <optgroup label="Group of 6">
-                    <option value="American">American</option>
-                    <option value="CUSA">C-USA</option>
-                    <option value="MAC">MAC</option>
-                    <option value="MWC">Mountain West</option>
-                    <option value="PAC 12">Pac-12</option>
-                    <option value="SBC">Sun Belt</option>
+                    <option value="American">{conferenceFilterLabel("American")}</option>
+                    <option value="CUSA">{conferenceFilterLabel("CUSA")}</option>
+                    <option value="MAC">{conferenceFilterLabel("MAC")}</option>
+                    <option value="MWC">{conferenceFilterLabel("MWC")}</option>
+                    <option value="PAC 12">{conferenceFilterLabel("PAC 12")}</option>
+                    <option value="SBC">{conferenceFilterLabel("SBC")}</option>
                   </optgroup>
                 </select>
           </div>
@@ -820,13 +826,19 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       // Mirrors conferenceShortName() in src/lib/conferences.ts. The MAP itself is not
       // duplicated -- it arrives via define:vars above -- so only this two-line lookup is
       // mirrored, and an unmapped token passes through unchanged exactly as it does there.
-      function shortConference(token) {
-        return conferenceShortNames[token] ?? token;
+      // Object.hasOwn rather than `map[token] ?? token`, mirroring lookup() in
+      // src/lib/conferences.ts -- see the comment there for why an inherited
+      // Object.prototype member would otherwise be returned instead of the token.
+      function lookupConference(map, token) {
+        return Object.hasOwn(map, token) ? map[token] : token;
       }
 
-      // Mirrors conferenceFullName(), same arrangement as shortConference above.
+      function shortConference(token) {
+        return lookupConference(conferenceShortNames, token);
+      }
+
       function fullConference(token) {
-        return conferenceFullNames[token] ?? token;
+        return lookupConference(conferenceFullNames, token);
       }
 
       function renderRows(rankings) {

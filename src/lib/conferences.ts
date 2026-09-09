@@ -50,10 +50,38 @@ export const CONFERENCE_SHORT_NAMES: Record<string, string> = {
   SBC: "Sun Belt",
 };
 
+/**
+ * Labels for the Season Grid's conference filter. Derived from the short names rather than
+ * hand-written beside the <option> elements: those labels are a THIRD copy of this
+ * vocabulary otherwise, in a file that already imports this module, and renaming a
+ * conference here would leave the dropdown silently saying the old thing.
+ *
+ * The one entry that is not simply the short name is deliberate and specified: the dropdown
+ * reads "FBS Independents" where the Rankings column reads "Independent". Spelling it as an
+ * explicit override makes that a decision rather than a drift.
+ */
+export const CONFERENCE_FILTER_LABELS: Record<string, string> = {
+  ...CONFERENCE_SHORT_NAMES,
+  "FBS Independent": "FBS Independents",
+};
+
+// Object.hasOwn, not `MAP[token] ?? token`: these maps are object literals, so they inherit
+// Object.prototype, and a token of "constructor" or "toString" would return the inherited
+// FUNCTION instead of falling through to the token. Not reachable with any real conference
+// name, but the tokens arrive from a fetched artifact, which is exactly the boundary not to
+// assume about. The client mirrors in index.astro do the same, so the two stay equivalent.
+function lookup(map: Record<string, string>, token: string): string {
+  return Object.hasOwn(map, token) ? map[token] : token;
+}
+
 export function conferenceFullName(token: string): string {
-  return CONFERENCE_FULL_NAMES[token] ?? token;
+  return lookup(CONFERENCE_FULL_NAMES, token);
 }
 
 export function conferenceShortName(token: string): string {
-  return CONFERENCE_SHORT_NAMES[token] ?? token;
+  return lookup(CONFERENCE_SHORT_NAMES, token);
+}
+
+export function conferenceFilterLabel(token: string): string {
+  return lookup(CONFERENCE_FILTER_LABELS, token);
 }
