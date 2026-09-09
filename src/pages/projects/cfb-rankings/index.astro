@@ -1,5 +1,11 @@
 ---
 import { readFileSync } from "node:fs";
+import {
+  CONFERENCE_FULL_NAMES,
+  CONFERENCE_SHORT_NAMES,
+  conferenceFilterLabel,
+  conferenceShortName,
+} from "../../../lib/conferences";
 
 import RankingsTable from "../../../components/RankingsTable.astro";
 import ScheduleGrid from "../../../components/ScheduleGrid.astro";
@@ -178,7 +184,7 @@ const rows =
     team.record,
     Number(team.rating).toFixed(2),
     { delta: Number(team.delta) },
-    team.conference
+    conferenceShortName(team.conference)
   ]) ?? [];
 
 const hasRankingsData = rankingsIndex !== null && weekPayload !== null;
@@ -292,30 +298,35 @@ const hasAnyData = hasRankingsData || hasScheduleData;
                   11 conferences; see applyConferenceFilter() and the data-conference
                   attribute ScheduleGrid.astro stamps on every row for how these values
                   are consumed.
+
+                  The VALUES stay literal here on purpose -- they are the contract with the
+                  artifact and belong where a reader can see them. Only the LABELS come from
+                  src/lib/conferences.ts, so renaming a conference there cannot leave this
+                  dropdown quietly saying the old thing.
                 */}
                 <select class="filter-select" id="conference-select" aria-label="Conference" hidden>
-                  <option value="all">All</option>
+                  <option value="all">All Conferences</option>
                   <optgroup label="Power 4">
-                    <option value="ACC">ACC</option>
-                    <option value="BIG 12">Big 12</option>
-                    <option value="BIG 10">Big 10</option>
-                    <option value="SEC">SEC</option>
+                    <option value="ACC">{conferenceFilterLabel("ACC")}</option>
+                    <option value="BIG 12">{conferenceFilterLabel("BIG 12")}</option>
+                    <option value="BIG 10">{conferenceFilterLabel("BIG 10")}</option>
+                    <option value="SEC">{conferenceFilterLabel("SEC")}</option>
                   </optgroup>
-                  <option value="FBS Independent">Independents</option>
+                  <option value="FBS Independent">{conferenceFilterLabel("FBS Independent")}</option>
                   <optgroup label="Group of 6">
-                    <option value="American">American</option>
-                    <option value="CUSA">Conference USA</option>
-                    <option value="MAC">MAC</option>
-                    <option value="MWC">Mountain West</option>
-                    <option value="PAC 12">Pac-12</option>
-                    <option value="SBC">Sun Belt</option>
+                    <option value="American">{conferenceFilterLabel("American")}</option>
+                    <option value="CUSA">{conferenceFilterLabel("CUSA")}</option>
+                    <option value="MAC">{conferenceFilterLabel("MAC")}</option>
+                    <option value="MWC">{conferenceFilterLabel("MWC")}</option>
+                    <option value="PAC 12">{conferenceFilterLabel("PAC 12")}</option>
+                    <option value="SBC">{conferenceFilterLabel("SBC")}</option>
                   </optgroup>
                 </select>
           </div>
 
           <div id="rankings-tab-panel" class="tab-panel">
             {hasRankingsData ? (
-              <RankingsTable headers={["Rank", "Team", "Record", "Rating", "Delta", "Conference"]} rows={rows} />
+              <RankingsTable headers={["Rank", "Team", "Record", "Rating", "\u0394", "Conference"]} rows={rows} />
             ) : (
               <div class="panel-empty">
                 <p>Rankings data isn't available for this selection yet.</p>
@@ -679,6 +690,12 @@ const hasAnyData = hasRankingsData || hasScheduleData;
   <script
     is:inline
     define:vars={{
+      // The client mirrors below need the same token -> label map the frontmatter used.
+      // define:vars rather than an import: this script is is:inline, so it cannot import --
+      // but it CAN be handed the one map, which beats a hand-copied duplicate of eleven
+      // string pairs that would drift silently the first time a conference is renamed.
+      conferenceFullNames: CONFERENCE_FULL_NAMES,
+      conferenceShortNames: CONFERENCE_SHORT_NAMES,
       rankingsSeasonsForClient,
       rankingsSeasonList,
       scheduleSeasonList,
@@ -806,6 +823,24 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       // Uses DOM APIs (textContent/createElement + property assignment) rather than innerHTML
       // with interpolated strings, so team/conference/record values from the fetched JSON can
       // never be interpreted as markup.
+      // Mirrors conferenceShortName() in src/lib/conferences.ts. The MAP itself is not
+      // duplicated -- it arrives via define:vars above -- so only this two-line lookup is
+      // mirrored, and an unmapped token passes through unchanged exactly as it does there.
+      // Object.hasOwn rather than `map[token] ?? token`, mirroring lookup() in
+      // src/lib/conferences.ts -- see the comment there for why an inherited
+      // Object.prototype member would otherwise be returned instead of the token.
+      function lookupConference(map, token) {
+        return Object.hasOwn(map, token) ? map[token] : token;
+      }
+
+      function shortConference(token) {
+        return lookupConference(conferenceShortNames, token);
+      }
+
+      function fullConference(token) {
+        return lookupConference(conferenceFullNames, token);
+      }
+
       function renderRows(rankings) {
         if (!tableBody) return;
         tableBody.textContent = "";
@@ -819,7 +854,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
             team.record,
             Number(team.rating).toFixed(2),
             { delta: Number(team.delta) },
-            team.conference
+            shortConference(team.conference)
           ];
           const row = document.createElement("tr");
           cells.forEach((cell, index) => {
@@ -1003,7 +1038,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       function formatRecord(team, confName) {
         const { wins, losses } = team.record;
         if (team.conf_record) {
-          return `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} ${confName}`;
+          return `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} ${shortConference(confName)}`;
         }
         return `${wins}-${losses}`;
       }
@@ -1099,7 +1134,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           const confRow = document.createElement("tr");
           confRow.className = "sg-conf-row";
           confRow.dataset.conference = conf.name;
-          confRow.appendChild(el("th", "sg-conf-header sg-conf-header--sticky", conf.name));
+          // Display name for the heading; conf.name (the raw token) stays on data-conference
+          // above, since that is what the filter's option values match against.
+          confRow.appendChild(el("th", "sg-conf-header sg-conf-header--sticky", fullConference(conf.name)));
           const confFillTh = el("th", "sg-conf-header");
           confFillTh.colSpan = columns.length;
           confRow.appendChild(confFillTh);

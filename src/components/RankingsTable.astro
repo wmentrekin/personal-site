@@ -13,6 +13,23 @@ interface Props {
 
 const { headers, rows } = Astro.props;
 
+// Accessible names for headers whose visible text is a symbol rather than a word. "\u0394"
+// is the Greek capital delta the Delta column now uses: screen readers announce a bare
+// mathematical symbol inconsistently (Chromium says "increment", others read nothing at
+// all), so the column header gets a real name. aria-label is valid here where it was NOT on
+// the plain <span> in ScheduleGrid.astro -- a <th> is role=columnheader, which permits
+// author naming; a role=generic span does not.
+//
+// The same string is also the `title`, so a sighted reader who does not know the convention
+// gets the word on hover -- the aria-label alone serves screen readers and leaves everyone
+// else with an unexplained symbol where a word used to be.
+//
+// A header not in this map gets `undefined`, and Astro omits an attribute set to undefined,
+// so every word header renders exactly as before, with neither attribute.
+const HEADER_ARIA_LABELS: Record<string, string> = {
+  "\u0394": "Delta",
+};
+
 function isTeamCell(cell: string | number | TeamCell | DeltaCell): cell is TeamCell {
   return typeof cell === "object" && cell !== null && "name" in cell;
 }
@@ -43,7 +60,9 @@ function deltaAriaLabel(delta: number): string {
   <table>
     <thead>
       <tr>
-        {headers.map((header) => <th>{header}</th>)}
+        {headers.map((header) => (
+          <th aria-label={HEADER_ARIA_LABELS[header]} title={HEADER_ARIA_LABELS[header]}>{header}</th>
+        ))}
       </tr>
     </thead>
     <tbody>
@@ -120,6 +139,22 @@ function deltaAriaLabel(delta: number): string {
        from overflowing on a narrow viewport, where it scrolls instead. */
     width: max-content;
     max-width: 100%;
+    /* Centred in the tile. Hugging the content left the compact table pinned to the card's
+       left edge with all the slack pooled on one side, which read as misaligned rather than
+       as deliberate.
+
+       Once max-width: 100% binds on a narrow viewport there is no slack to distribute and
+       the shell sits where it did before -- NOT because the auto margins resolve to 0 on
+       both sides, which is what an earlier version of this comment claimed. They resolve to
+       0 and -2px: this element computes box-sizing: content-box, because the site's
+       * { box-sizing: border-box } lives in BaseLayout's SCOPED style block and is rewritten
+       to *[data-astro-cid-...], which never reaches an is:global element like this one. Its
+       two 1px borders therefore fall outside max-width: 100%, over-constraining the box.
+       The resulting 2px overhang predates this rule (main has the same 2px, all on the
+       right) and is left alone here rather than "fixed" with box-sizing: border-box, which
+       would also change how width: max-content above resolves. */
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .rankings-shell::-webkit-scrollbar {
@@ -182,22 +217,23 @@ function deltaAriaLabel(delta: number): string {
     background: rgba(16, 23, 32, 0.98);
   }
 
-  /* Column order (T12): Rank, Team, Record, Rating, Delta, Conference. Centered: Rank(1),
+  /* Every column NAME is centred (see .rankings-shell th below); these rules now govern the
+     BODY cells only, which is why they dropped their th selectors rather than being
+     out-specificitied by a later th rule -- an equal-specificity override that depends on
+     source order is the kind of thing a later edit reorders and silently breaks.
+  
+     Column order (T12): Rank, Team, Record, Rating, Delta, Conference. Centered: Rank(1),
      Record(3), Delta(5) -- same three columns that were centered before the reorder, just at
      their new positions. Team(2) and Conference(6) stay left-aligned (the default `text-align:
      left` above); Rating(4) is right-aligned below. Getting these nth-child indices wrong after
      a reorder fails silently -- no error, just wrong alignment -- so check the computed
      text-align per column in a browser rather than trusting the source to read correctly. */
-  th:nth-child(1),
   td:nth-child(1),
-  th:nth-child(3),
   td:nth-child(3),
-  th:nth-child(5),
   td:nth-child(5) {
     text-align: center;
   }
 
-  th:nth-child(4),
   td:nth-child(4) {
     text-align: right;
   }
@@ -212,6 +248,10 @@ function deltaAriaLabel(delta: number): string {
      are currently load-bearing for the Season Grid's own typography, so unpicking them is a
      visual change in its own right rather than a fix. */
   .rankings-shell th {
+    /* All six column names centred over their columns, regardless of how the cells beneath
+       them are aligned -- the header row reads as one band that way, where per-column header
+       alignment made the compact table look ragged along its top edge. */
+    text-align: center;
     position: sticky;
     top: 0;
     background: rgba(10, 15, 20, 0.96);
