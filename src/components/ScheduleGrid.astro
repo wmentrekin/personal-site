@@ -37,6 +37,17 @@ interface WeekCell {
   status: string;
   team_score: number | null;
   opp_score: number | null;
+  // Both added by cfb-rankings PR #15. playoff_round: the CFP round name
+  // ("First Round"/"Quarterfinal"/"Semifinal"/"National Championship") for a real
+  // playoff game, null for an ordinary bowl, a regular-season cell, or any placeholder.
+  // game_name_short: a shortened display form of game_name ("Union Home Mortgage
+  // Gasparilla Bowl" -> "Gasparilla Bowl"); an unmatched name passes through whole.
+  // Optional, not just nullable -- same reasoning as rank/division above: the artifact
+  // currently published to R2 predates both fields entirely, so a payload that omits
+  // them is a live, reachable case, not a theoretical one (only 2025 and 2026 get
+  // republished with these fields; everything else keeps shipping the old shape).
+  playoff_round?: string | null;
+  game_name_short?: string | null;
 }
 
 interface TeamEntry {
@@ -78,7 +89,14 @@ const { data } = Astro.props;
 
 type CellView = {
   className: string;
-  gameName: string | null;
+  // gameNameShort: what renders on the label line -- game_name_short falling back to
+  // game_name for a payload that predates the new field (K5). gameNameFull: the full
+  // official name, used only as the accessible/tooltip description (K7) -- never
+  // rendered as visible text directly, since AC6's one-line guarantee lives on
+  // gameNameShort alone.
+  gameNameShort: string | null;
+  gameNameFull: string | null;
+  playoffRound: string | null;
   kind: "game" | "muted" | "blank";
   prefix: string | null;
   logo: string | null;
@@ -136,6 +154,11 @@ const STATUS_TEXT_BY_SLOT: Record<string, Record<string, string>> = {
     possible: "Not Yet Eligible",
     eligible: "Eligible",
     ineligible: "Ineligible",
+    // Fallback only: when a seed resolved, cell.game_name is "Bye (No. 1)" and the
+    // unconditional game-name line below renders that instead of this text (see
+    // buildCellView's muted branch, which suppresses mutedText whenever game_name is
+    // set). This text is what shows when no seed resolved and game_name is null.
+    cfp_bye: "CFP Bye",
   },
 };
 
@@ -171,12 +194,19 @@ function cellClassName(status: string): string {
 // a presentation lookup that can change without touching this dispatch.
 function buildCellView(cell: WeekCell): CellView {
   const className = cellClassName(cell.status);
-  const gameName = cell.game_name;
+  // K5: both new fields are optional as well as nullable, so `?? cell.game_name` is
+  // the payload's own migration path -- a pre-PR#15 payload that omits game_name_short
+  // entirely renders exactly what it always rendered.
+  const gameNameShort = cell.game_name_short ?? cell.game_name;
+  const gameNameFull = cell.game_name;
+  const playoffRound = cell.playoff_round ?? null;
 
   if (cell.status === "win" || cell.status === "loss") {
     return {
       className,
-      gameName,
+      gameNameShort,
+      gameNameFull,
+      playoffRound,
       kind: "game",
       prefix: opponentPrefix(cell),
       logo: cell.opponent_logo_url,
@@ -190,7 +220,9 @@ function buildCellView(cell: WeekCell): CellView {
   if (cell.status === "upcoming") {
     return {
       className,
-      gameName,
+      gameNameShort,
+      gameNameFull,
+      playoffRound,
       kind: "game",
       prefix: opponentPrefix(cell),
       logo: cell.opponent_logo_url,
@@ -202,20 +234,28 @@ function buildCellView(cell: WeekCell): CellView {
   }
 
   if (cell.status === "bye") {
-    return { className, gameName, kind: "blank", prefix: null, logo: null, opponentFallback: null, badge: null, scoreText: null, mutedText: null };
+    return { className, gameNameShort, gameNameFull, playoffRound, kind: "blank", prefix: null, logo: null, opponentFallback: null, badge: null, scoreText: null, mutedText: null };
   }
 
-  // tbd / clinched / possible / eliminated / eligible / ineligible
+  // tbd / clinched / possible / eliminated / eligible / ineligible / cfp_bye
   return {
     className,
-    gameName,
+    gameNameShort,
+    gameNameFull,
+    playoffRound,
     kind: "muted",
     prefix: null,
     logo: null,
     opponentFallback: null,
     badge: null,
     scoreText: null,
-    mutedText: statusMutedText(cell),
+    // cfp_bye WITH a resolved seed carries game_name "Bye (No. 1)", which the
+    // unconditional game-name line (template below) already renders -- showing the
+    // slot-text fallback underneath it too would just repeat the same fact in two
+    // different styles. Suppressing mutedText whenever a game_name is present covers
+    // that case generically rather than special-casing cfp_bye by name; no other
+    // muted status carries a game_name today, so this is a no-op for the rest.
+    mutedText: cell.game_name ? null : statusMutedText(cell),
   };
 }
 
@@ -332,7 +372,36 @@ const columns: Array<{ slot_id: string; label: string }> =
                   const view = buildCellView(cell);
                   return (
                     <td class={view.className}>
-                      {view.gameName ? <span class="sg-game-name">{view.gameName}</span> : null}
+                      {view.gameNameShort ? (
+                        <span class="sg-game-name-row">
+                          {/* K5/AC8: badges any cell whose playoff_round is non-null -- a real
+                              CFP game, never an ordinary bowl. aria-hidden: decorative for
+                              sighted scanning only. Screen reader users already get "playoff"
+                              context from the full name itself (aria-label below), which for a
+                              real CFP game names the round/competition by name -- a second
+                              announcement here would just be noise. */}
+                          {view.playoffRound ? <span class="sg-cfp-badge" aria-hidden="true">CFP</span> : null}
+                          {/* AC6: the CSS clamp on .sg-game-name (single line, ellipsis) is the
+                              actual guarantee, not this text being short -- an unmapped or
+                              newly-sponsored bowl name still renders here at full length and
+                              still gets truncated to one line.
+                              K7: tabindex makes ONLY this label focusable, not the whole cell
+                              (explicitly not "every postseason cell" -- most postseason cells
+                              carry no game name at all: byes without a seed, eligibility
+                              placeholders, in-the-hunt/clinched/eliminated text). role="img" +
+                              aria-label follows this file's existing vs* precedent (see
+                              opponentPrefix's comment) so screen reader and touch users reach
+                              the full name via the virtual cursor / explore-by-touch, independent
+                              of the tabindex. The CSS tooltip below keys off the SAME element's
+                              :hover/:focus-visible for sighted keyboard users. */}
+                          <span
+                            class="sg-game-name"
+                            tabindex="0"
+                            role="img"
+                            aria-label={view.gameNameFull ?? view.gameNameShort}
+                          >{view.gameNameShort}</span>
+                        </span>
+                      ) : null}
                       {view.kind === "game" ? (
                         <span class="sg-game-body">
                           <span
@@ -353,7 +422,10 @@ const columns: Array<{ slot_id: string; label: string }> =
                           {view.scoreText ? <span class="sg-score">{view.scoreText}</span> : null}
                         </span>
                       ) : null}
-                      {view.kind === "muted" ? <span class="sg-muted-text">{view.mutedText}</span> : null}
+                      {/* mutedText can be null on a "muted" kind cell now (cfp_bye with a
+                          resolved seed -- see buildCellView above): guard on the text itself,
+                          not just the kind, so that case doesn't leave a bare empty span. */}
+                      {view.kind === "muted" && view.mutedText ? <span class="sg-muted-text">{view.mutedText}</span> : null}
                       {view.kind === "blank" ? (
                         <span class="sg-blank" aria-hidden="true">{"\u2014"}</span>
                       ) : null}
@@ -772,15 +844,112 @@ const columns: Array<{ slot_id: string; label: string }> =
     background: rgba(16, 23, 32, 0.98);
   }
 
+  /* AC6/AC8: badge + label share one row, both starved for the same 6rem column that
+     also has to fit the score below -- see .sg-cfp-badge and .sg-game-name for how each
+     stays compact. */
+  .sg-game-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    min-width: 0;
+    position: relative;
+  }
+
+  /* AC8: the owner's chosen mechanism is a text badge, not color/icon alone -- a
+     color-only signal fails for colorblind users and this column has no room for both an
+     icon and a label. "CFP" instead of the full round name because .sg-game-name (below)
+     is where the round/bowl NAME goes, and this badge only needs to answer "is this a
+     playoff game" at a glance, not which round. */
+  .sg-cfp-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.15rem;
+    border-radius: 2px;
+    background: rgba(250, 204, 21, 0.22);
+    color: #facc15;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+  }
+
+  /* AC6: ONE LINE, GUARANTEED BY THIS RULE -- not by game_name_short being short. A
+     newly-sponsored bowl the cfb-rankings mapping doesn't recognise still lands here at
+     full length (see K6 in docs/season-grid-postseason-format/plan.yaml) and still gets
+     ellipsis-truncated rather than wrapping, because overflow/text-overflow/white-space
+     are set directly on THIS element, not inherited from the td's own white-space: nowrap
+     -- inherited properties are only a fallback when nothing targets the element
+     directly, so this rule needs no ID qualification to win; it isn't competing with the
+     `#schedule-grid-table th, td` rule at all, it's simply the first rule that DOES target
+     .sg-game-name specifically. flex: 1 1 auto + min-width: 0 let it shrink below its
+     content's natural width inside .sg-game-name-row so the ellipsis can actually engage
+     next to a badge. */
   .sg-game-name {
     display: block;
+    flex: 1 1 auto;
+    min-width: 0;
     margin-bottom: 0.05rem;
     color: inherit;
     opacity: 0.85;
     font-size: 0.6rem;
     font-weight: 600;
     letter-spacing: 0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: default;
+  }
+
+  /* K7: visible focus ring, matching this codebase's existing :focus-visible convention
+     (.tab-switch-control / .filter-select in index.astro) rather than inventing a new one. */
+  #schedule-grid-table .sg-game-name:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  /* K7: CSS tooltip carrying the FULL name, shown on :hover (mouse) and :focus-visible
+     (sighted keyboard user tabbed to the label above). Screen reader and touch users get
+     the same full name a different way -- aria-label on .sg-game-name itself, reached via
+     the virtual cursor / explore-by-touch -- so this popup is additive for them, not their
+     only path to it. content: attr(aria-label) reuses that same attribute rather than
+     duplicating the full name into a second data-* attribute. */
+  #schedule-grid-table .sg-game-name:hover::after,
+  #schedule-grid-table .sg-game-name:focus-visible::after {
+    content: attr(aria-label);
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 0.3rem);
+    z-index: 6;
+    display: block;
+    width: max-content;
+    max-width: 11rem;
+    padding: 0.3rem 0.45rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: rgba(10, 15, 20, 0.98);
+    color: var(--text);
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: normal;
+    text-transform: none;
     white-space: normal;
+    line-height: 1.3;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  /* The tooltip above escapes .sg-game-name's own box, but its ancestor <td> still has
+     overflow: hidden (ID-qualified, further up this file) -- without lifting that too,
+     the popup would be clipped by the very cell it describes the instant it crossed the
+     cell's edge. Must be ID-qualified for the same reason as every other override in this
+     file: a bare .sg-cell:has(...) cannot out-rank #schedule-grid-table th, td's own
+     overflow: hidden. :has() already has precedent in this codebase
+     (projects/index.astro's .project-tile__inner:has(...)). */
+  #schedule-grid-table td:has(.sg-game-name:hover),
+  #schedule-grid-table td:has(.sg-game-name:focus-visible) {
+    overflow: visible;
   }
 
   .sg-game-body {
