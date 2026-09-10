@@ -127,19 +127,11 @@ const rankingsSeasonsForClient = rankingsIndex
 const rankingsSeasonList = rankingsSeasonsForClient.map((entry) => entry.season);
 
 // A season appearing in schedule/index.json only means an object exists in the bucket, NOT
-// that its contents were ever verified. The index is rebuilt by listing the bucket, so a
-// bad or half-finished backfill stays listed until its object is deleted.
-//
-// 2025 is exactly that case: schedule/2025/latest.json exists but its records are wrong
-// (it has Georgia Tech at 10-3, which is not their 2025 record). The 2025 Season Grid
-// backfill is deliberately scoped to a separate pass, so until that pass regenerates and
-// verifies it, the season must not be offerable -- a selectable season that renders wrong
-// data is worse than one that isn't offered.
-//
-// REMOVE the entry below when 2025 is regenerated and checked. The durable fix is deleting
-// the unverified object from R2 so the index stops listing it; this guard makes the UI
-// correct regardless of bucket state.
-const UNVERIFIED_SCHEDULE_SEASONS = new Set([2025]);
+// that its contents were ever verified -- the index is rebuilt by listing the bucket, so a
+// bad or half-finished backfill stays listed until its object is deleted. That hazard is
+// permanent, so this set stays as a lever even while empty: add a season here to hide it
+// from the selector without waiting on an R2 delete.
+const UNVERIFIED_SCHEDULE_SEASONS = new Set<number>([]);
 
 const scheduleSeasonList = [...(scheduleIndex?.seasons ?? [])]
   .filter((season) => !UNVERIFIED_SCHEDULE_SEASONS.has(season))
