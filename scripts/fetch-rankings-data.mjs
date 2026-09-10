@@ -11,12 +11,22 @@
 // index.json plus schedule/{season}/latest.json for every season it lists,
 // written to public/data/cfb/schedule/ alongside the rankings data.
 //
-// If credentials aren't configured (e.g. local dev without secrets set), this
-// script warns and exits 0 -- it must never break `npm run dev` or a build.
-// If credentials ARE configured but a fetch fails, it exits non-zero so a
-// Cloudflare Pages build fails loudly instead of shipping stale/missing data.
+// Credential handling is deliberately asymmetric, because "no credentials" means
+// two very different things:
+//
+//   - Local dev, with data already in public/data/cfb/ from an earlier fetch:
+//     warn and exit 0. Working offline must stay possible.
+//   - A build with neither credentials NOR data on disk: exit non-zero. This is
+//     the case that used to ship silently. public/data/cfb/ is gitignored, so a
+//     Cloudflare Pages build starts empty; without credentials the fetch was
+//     skipped, `astro build` happily produced a site whose rankings page renders
+//     its empty state, and the deploy went green. A preview URL that looks
+//     finished but has no data in it is worse than a build that fails.
+//
+// If credentials ARE configured but a fetch fails, it exits non-zero too, so a
+// build fails loudly instead of shipping stale or partial data.
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -35,11 +45,36 @@ async function main() {
   const missingVars = REQUIRED_ENV_VARS.filter((name) => !process.env[name]);
 
   if (missingVars.length > 0) {
-    console.warn(
-      "[fetch-rankings-data] R2 credentials not configured, skipping rankings data fetch -- " +
-        "existing public/data/cfb/ contents (if any) will be used."
+    // Is there already data to fall back on? That is what separates a local dev
+    // run from a misconfigured CI build -- see the header comment.
+    const haveLocalData = await Promise.all(
+      [join(outputDir, "index.json"), join(scheduleOutputDir, "index.json")].map((f) =>
+        access(f).then(
+          () => true,
+          () => false
+        )
+      )
+    ).then((results) => results.every(Boolean));
+
+    if (haveLocalData) {
+      console.warn(
+        "[fetch-rankings-data] R2 credentials not configured; using the existing " +
+          "public/data/cfb/ contents. Fine locally -- but this data is whatever was " +
+          `fetched last, not necessarily current. Missing: ${missingVars.join(", ")}`
+      );
+      return;
+    }
+
+    console.error(
+      "[fetch-rankings-data] R2 credentials not configured AND public/data/cfb/ is empty, " +
+        "so this build would produce a site with no rankings and no Season Grid -- and would " +
+        "otherwise succeed, which is how an empty preview ships looking finished.\n" +
+        `  Missing: ${missingVars.join(", ")}\n` +
+        "  On Cloudflare Pages these are set per environment. If production works but a " +
+        "branch preview does not, they are configured for Production only and need adding " +
+        "to Preview as well."
     );
-    return;
+    process.exit(1);
   }
 
   const accountId = process.env.R2_ACCOUNT_ID;
