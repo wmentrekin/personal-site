@@ -66,6 +66,11 @@ interface WeekCell {
   // R2 predates them, so a payload omitting them entirely is a live, reachable case.
   playoff_round?: string | null;
   game_name_short?: string | null;
+  // REVISED after a cfb-rankings review cycle: a cfp_bye cell no longer bakes the seed
+  // into game_name/game_name_short (both always null there) -- see ScheduleGrid.astro's
+  // comment. The label is composed client-side from status === "cfp_bye" plus this
+  // field. Optional and nullable for the same reason as the two fields above.
+  cfp_seed?: number | null;
 }
 
 interface TeamEntry {
@@ -971,9 +976,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           possible: "Not Yet Eligible",
           eligible: "Eligible",
           ineligible: "Ineligible",
-          // Fallback only -- mirrors ScheduleGrid.astro's own comment. When a seed
-          // resolved, game_name is "Bye (No. 1)" and buildCellView suppresses mutedText
-          // in favor of the unconditional game-name line rendering that instead.
+          // Fallback only -- mirrors ScheduleGrid.astro's own comment. When cfp_seed
+          // resolved, buildCellView composes "Bye (No. N)" and suppresses mutedText in
+          // favor of the unconditional game-name line rendering that instead.
           cfp_bye: "CFP Bye"
         }
       };
@@ -988,10 +993,18 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
       function buildCellView(cell) {
         const className = cellClassName(cell.status);
+        // REVISED (mirrors ScheduleGrid.astro): a cfp_bye cell carries no
+        // game_name/game_name_short at all any more -- the seed is its own integer
+        // field, composed into a label here instead of parsed back out of prose.
+        const byeLabel =
+          cell.status === "cfp_bye" && cell.cfp_seed !== null && cell.cfp_seed !== undefined
+            ? `Bye (No. ${cell.cfp_seed})`
+            : null;
         // K5: `?? cell.game_name` is the migration path for a payload that omits
-        // game_name_short entirely -- renders exactly what it always rendered.
-        const gameNameShort = cell.game_name_short ?? cell.game_name;
-        const gameNameFull = cell.game_name;
+        // game_name_short entirely -- renders exactly what it always rendered. byeLabel
+        // takes priority when present.
+        const gameNameShort = byeLabel ?? (cell.game_name_short ?? cell.game_name);
+        const gameNameFull = byeLabel ?? cell.game_name;
         const playoffRound = cell.playoff_round ?? null;
 
         if (cell.status === "win" || cell.status === "loss") {
@@ -1042,10 +1055,10 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           badge: null,
           scoreText: null,
           // Mirrors ScheduleGrid.astro's own suppression: a cfp_bye WITH a resolved seed
-          // carries game_name "Bye (No. 1)", already rendered by the unconditional
-          // game-name node in buildCellNode below, so don't also render the slot-text
-          // fallback underneath it.
-          mutedText: cell.game_name ? null : statusMutedText(cell)
+          // composes "Bye (No. N)" into gameNameShort above, already rendered by the
+          // unconditional game-name node in buildCellNode below, so don't also render
+          // the slot-text fallback underneath it.
+          mutedText: gameNameShort ? null : statusMutedText(cell)
         };
       }
 
