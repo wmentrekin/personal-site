@@ -973,6 +973,33 @@ const columns: Array<{ slot_id: string; label: string }> =
     overflow: visible;
   }
 
+  /* K10: the LAST column's tooltip anchors from the right instead of the left. Every
+     interior column's tooltip already opens rightward (left: 0 above) and can run up to
+     11rem wide against a 6rem column, but that overflow lands on top of the NEXT column's
+     already-rendered cells, which never changes the table's rendered extent. The last
+     column has no next column to grow over, so the same rightward growth was expanding
+     .schedule-grid-shell's scrollWidth for as long as the tooltip was shown -- the
+     reported "table temporarily widens" defect. Flipping just this column's anchor to
+     right: 0 keeps its growth pointed back over already-rendered columns too.
+
+     Keyed on the structural td:last-child, not a render-time modifier class: this <style>
+     is is:global specifically because index.astro's client script rebuilds this exact
+     table via document.createElement on every season switch (see this file's header
+     comment), reusing these same class names on byte-identical markup. A modifier class
+     would need that script to compute and inject "is this the last column" itself on
+     every rebuild -- one more thing to hand-mirror and let drift, which is the standing
+     maintenance hazard this component already works to avoid. A structural selector
+     instead re-evaluates against whatever DOM is on screen, server-rendered or
+     client-rebuilt, with nothing to keep in sync. left: auto is required alongside
+     right: 0 -- with width: max-content (above) an explicit left: 0 would otherwise still
+     win the position per CSS's left-over-right rule, and right: 0 alone would have no
+     effect. */
+  #schedule-grid-table td:last-child .sg-game-name:hover::after,
+  #schedule-grid-table td:last-child .sg-game-name:focus-visible::after {
+    left: auto;
+    right: 0;
+  }
+
   .sg-game-body {
     display: inline-flex;
     align-items: center;
