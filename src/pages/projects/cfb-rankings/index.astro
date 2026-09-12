@@ -61,6 +61,16 @@ interface WeekCell {
   status: string;
   team_score: number | null;
   opp_score: number | null;
+  // Mirrors ScheduleGrid.astro's own WeekCell -- see that file's comment. Both added by
+  // cfb-rankings PR #15, both optional AND nullable: the artifact currently published to
+  // R2 predates them, so a payload omitting them entirely is a live, reachable case.
+  playoff_round?: string | null;
+  game_name_short?: string | null;
+  // REVISED after a cfb-rankings review cycle: a cfp_bye cell no longer bakes the seed
+  // into game_name/game_name_short (both always null there) -- see ScheduleGrid.astro's
+  // comment. The label is composed client-side from status === "cfp_bye" plus this
+  // field. Optional and nullable for the same reason as the two fields above.
+  cfp_seed?: number | null;
 }
 
 interface TeamEntry {
@@ -127,19 +137,11 @@ const rankingsSeasonsForClient = rankingsIndex
 const rankingsSeasonList = rankingsSeasonsForClient.map((entry) => entry.season);
 
 // A season appearing in schedule/index.json only means an object exists in the bucket, NOT
-// that its contents were ever verified. The index is rebuilt by listing the bucket, so a
-// bad or half-finished backfill stays listed until its object is deleted.
-//
-// 2025 is exactly that case: schedule/2025/latest.json exists but its records are wrong
-// (it has Georgia Tech at 10-3, which is not their 2025 record). The 2025 Season Grid
-// backfill is deliberately scoped to a separate pass, so until that pass regenerates and
-// verifies it, the season must not be offerable -- a selectable season that renders wrong
-// data is worse than one that isn't offered.
-//
-// REMOVE the entry below when 2025 is regenerated and checked. The durable fix is deleting
-// the unverified object from R2 so the index stops listing it; this guard makes the UI
-// correct regardless of bucket state.
-const UNVERIFIED_SCHEDULE_SEASONS = new Set([2025]);
+// that its contents were ever verified -- the index is rebuilt by listing the bucket, so a
+// bad or half-finished backfill stays listed until its object is deleted. That hazard is
+// permanent, so this set stays as a lever even while empty: add a season here to hide it
+// from the selector without waiting on an R2 delete.
+const UNVERIFIED_SCHEDULE_SEASONS = new Set<number>([]);
 
 const scheduleSeasonList = [...(scheduleIndex?.seasons ?? [])]
   .filter((season) => !UNVERIFIED_SCHEDULE_SEASONS.has(season))
@@ -973,7 +975,11 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         "cfp-r1-bowls": {
           possible: "Not Yet Eligible",
           eligible: "Eligible",
-          ineligible: "Ineligible"
+          ineligible: "Ineligible",
+          // Fallback only -- mirrors ScheduleGrid.astro's own comment. When cfp_seed
+          // resolved, buildCellView composes "Bye (No. N)" and suppresses mutedText in
+          // favor of the unconditional game-name line rendering that instead.
+          cfp_bye: "CFP Bye"
         }
       };
 
@@ -987,12 +993,26 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
       function buildCellView(cell) {
         const className = cellClassName(cell.status);
-        const gameName = cell.game_name;
+        // REVISED (mirrors ScheduleGrid.astro): a cfp_bye cell carries no
+        // game_name/game_name_short at all any more -- the seed is its own integer
+        // field, composed into a label here instead of parsed back out of prose.
+        const byeLabel =
+          cell.status === "cfp_bye" && cell.cfp_seed !== null && cell.cfp_seed !== undefined
+            ? `Bye (No. ${cell.cfp_seed})`
+            : null;
+        // K5: `?? cell.game_name` is the migration path for a payload that omits
+        // game_name_short entirely -- renders exactly what it always rendered. byeLabel
+        // takes priority when present.
+        const gameNameShort = byeLabel ?? (cell.game_name_short ?? cell.game_name);
+        const gameNameFull = byeLabel ?? cell.game_name;
+        const playoffRound = cell.playoff_round ?? null;
 
         if (cell.status === "win" || cell.status === "loss") {
           return {
             className,
-            gameName,
+            gameNameShort,
+            gameNameFull,
+            playoffRound,
             kind: "game",
             prefix: opponentPrefix(cell),
             logo: cell.opponent_logo_url,
@@ -1006,7 +1026,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         if (cell.status === "upcoming") {
           return {
             className,
-            gameName,
+            gameNameShort,
+            gameNameFull,
+            playoffRound,
             kind: "game",
             prefix: opponentPrefix(cell),
             logo: cell.opponent_logo_url,
@@ -1018,19 +1040,25 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         }
 
         if (cell.status === "bye") {
-          return { className, gameName, kind: "blank", prefix: null, logo: null, opponentFallback: null, badge: null, scoreText: null, mutedText: null };
+          return { className, gameNameShort, gameNameFull, playoffRound, kind: "blank", prefix: null, logo: null, opponentFallback: null, badge: null, scoreText: null, mutedText: null };
         }
 
         return {
           className,
-          gameName,
+          gameNameShort,
+          gameNameFull,
+          playoffRound,
           kind: "muted",
           prefix: null,
           logo: null,
           opponentFallback: null,
           badge: null,
           scoreText: null,
-          mutedText: statusMutedText(cell)
+          // Mirrors ScheduleGrid.astro's own suppression: a cfp_bye WITH a resolved seed
+          // composes "Bye (No. N)" into gameNameShort above, already rendered by the
+          // unconditional game-name node in buildCellNode below, so don't also render
+          // the slot-text fallback underneath it.
+          mutedText: gameNameShort ? null : statusMutedText(cell)
         };
       }
 
@@ -1054,8 +1082,21 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         const td = document.createElement("td");
         td.className = view.className;
 
-        if (view.gameName) {
-          td.appendChild(el("span", "sg-game-name", view.gameName));
+        if (view.gameNameShort) {
+          // Mirrors ScheduleGrid.astro's template exactly -- see its comment block for the
+          // AC6/AC8/K7 rationale on the badge, the tabindex, and role="img" + aria-label.
+          const row = el("span", "sg-game-name-row");
+          if (view.playoffRound) {
+            const badge = el("span", "sg-cfp-badge", "CFP");
+            badge.setAttribute("aria-hidden", "true");
+            row.appendChild(badge);
+          }
+          const nameSpan = el("span", "sg-game-name", view.gameNameShort);
+          nameSpan.tabIndex = 0;
+          nameSpan.setAttribute("role", "img");
+          nameSpan.setAttribute("aria-label", view.gameNameFull ?? view.gameNameShort);
+          row.appendChild(nameSpan);
+          td.appendChild(row);
         }
 
         if (view.kind === "game") {
@@ -1090,7 +1131,10 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           }
           td.appendChild(body);
         } else if (view.kind === "muted") {
-          td.appendChild(el("span", "sg-muted-text", view.mutedText));
+          // mutedText can be null on a "muted" kind cell now (cfp_bye with a resolved seed
+          // -- see buildCellView above): guard on the text itself, matching
+          // ScheduleGrid.astro, so that case doesn't leave a bare empty span.
+          if (view.mutedText) td.appendChild(el("span", "sg-muted-text", view.mutedText));
         } else if (view.kind === "blank") {
           const span = el("span", "sg-blank", "–");
           span.setAttribute("aria-hidden", "true");
