@@ -1,7 +1,7 @@
 artifact: status
 feature: "season-grid-layout"
 mode: "bounded-feature"
-stage: "execution"
+stage: "verification"
 owner_skill: work
 
 objective: >-
@@ -43,14 +43,14 @@ branching:
   notes: "Harness-pinned name; user accepted it on the prior feature rather than renaming."
 
 summary:
-  current_focus: "Execution batch 1: T1 -> T2 -> T3 by one frontend-engineer, one commit each."
-  last_completed: "Requirements + plan written; user approved at the checkpoint."
+  current_focus: "Verification: T4 measured checks + frontier review against the PR."
+  last_completed: "T1-T3 and four measured follow-ups; trailers normalised; 11 commits ahead of main."
   current_blocker: ""
 
 artifacts:
   requirements: "docs/season-grid-layout/requirements.yaml"
   plan: "docs/season-grid-layout/plan.yaml"
-  implementation_report: null
+  implementation_report: "docs/season-grid-layout/implementation-report.yaml"
 
 pr:
   number: null
@@ -69,7 +69,7 @@ agents:
     routing_enforced: true
     escalation_count: 0
     status: "active"
-    stage: "execution"
+    stage: "verification"
     task: "Coordinate; the design work (layout constraints, sticky-header analysis, mockups) was done before this pass and is treated as discovery input."
     last_update: "2026-09-14T00:00:00Z"
     blocker: ""
