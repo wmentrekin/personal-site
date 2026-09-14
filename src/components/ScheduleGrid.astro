@@ -1301,23 +1301,55 @@ const columns: Array<{ slot_id: string; label: string }> =
      the same three places the desktop value had to stay in sync across, now impossible
      to drift apart since none of them hardcodes its own width any more. */
   @media (max-width: 640px) {
+    /* 6.375rem (102px), not 6.4rem: 102 + 3 * 96 = 390px exactly, with NOTHING left to
+       subtract -- the border-box fix below already makes a cell's declared width its
+       full rendered width, and the shell's own side borders (which used to eat 2px out
+       of that 390, see .schedule-grid-shell below) are removed at this width instead of
+       budgeted around. The original 6.4rem/390.4px accounting missed both: measured
+       short by ~2.4px (three weeks' right edge past the shell's clientWidth) before
+       this pair of fixes, 0px after -- see the T3 follow-up report for the numbers. */
     :root {
-      --sg-col1-width: 6.4rem;
+      --sg-col1-width: 6.375rem;
     }
 
-    /* R5's own arithmetic ("6.4rem team column so three 6rem weeks fit a 390px
-       screen") only works out if a cell's declared width IS its rendered width --
-       6.4rem + 3 * 6rem = 24.4rem = 390.4px. This block is content-box (see .sg-table's
-       own comment: BaseLayout's scoped box-sizing: border-box rule never reaches an
-       is:global block), so outside this media query every cell's PADDING and BORDER add
-       on top of its declared width instead of being carried inside it -- at the shared
-       0.3rem horizontal padding + 1px border-right this file already sets, that is
-       ~10.6px extra per cell, 4 cells (team + 3 weeks) = ~42px, comfortably wider than
-       the 390px this arithmetic is built around. Desktop stays content-box (R5: "Desktop
-       column widths are unchanged") -- this opts in to border-box for cells ONLY inside
-       this 640px block, where R5's own numbers assume it. */
+    /* R5's own arithmetic (column widths summing to exactly 390px) only holds if a
+       cell's declared width IS its rendered width. This block is content-box outside
+       this media query (see .sg-table's own comment: BaseLayout's scoped
+       box-sizing: border-box rule never reaches an is:global block), so padding and
+       border normally add on top of the declared width instead of living inside it.
+       Scoped to cells inside this 640px block only -- desktop stays content-box
+       (R5: "Desktop column widths are unchanged"). */
     .sg-table th,
     .sg-table td {
+      box-sizing: border-box;
+    }
+
+    /* Edge to edge below 640px (.schedule-section's own gutter drops to 0), so the
+       shell's left/right border used to sit right on the screen edge and read as a
+       stray line rather than a frame -- dropped, along with the corner radii a
+       left/right-less border would otherwise round into nothing. Top/bottom stay: the
+       shell still visually separates the grid from the page above and below it. */
+    .schedule-grid-shell {
+      border-left: none;
+      border-right: none;
+      border-radius: 0;
+    }
+
+    /* T2's 1px compensations (padding-left / left, see each rule's own comment) exist
+       ONLY because of #schedule-grid-shell's 1px border eating into its content's start
+       position -- with that border removed above, the compensation would itself become
+       a 1px error instead of correcting one. */
+    .sg-pinned-table {
+      padding-left: 0;
+    }
+
+    .sg-pinned-corner {
+      left: 0;
+      /* Matches the border-box cells above: without this, the corner overlay's own
+         1px border-right would render 1px wider than --sg-col1-width instead of
+         within it, same reasoning as the .sg-table th/td rule just above. Doesn't
+         affect K2 alignment (a right-edge-only difference), but keeps this element
+         sized consistently with .sg-team-col at this width regardless. */
       box-sizing: border-box;
     }
 
