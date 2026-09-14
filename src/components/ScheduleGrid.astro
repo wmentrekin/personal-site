@@ -1403,22 +1403,140 @@ const columns: Array<{ slot_id: string; label: string }> =
     /* REVISED (T3 commit B): wrap, not ellipsis. The initial 6.4rem/nowrap/ellipsis pass
        (see this file's git history) traded readability for a one-line row -- fine for
        "Cincinnati" or "Kansas", unreadable for "Arizona State" ("Arizon...") or "Oklahoma
-       State" ("Oklah..."), and the mockup this shipped from happened to omit the rank
-       number sharing the name line, which is what actually made the column too narrow to
-       carry a truncated long name AND stay legible. The rank stays where it is; a long
-       name now wraps beneath it instead of losing its ending. overflow: hidden and
-       text-overflow: ellipsis are still set at the base rule above but have nothing left
-       to truncate once white-space allows wrapping -- text-overflow: clip here is explicit
-       insurance against that combination ever rendering a stray ellipsis character in some
-       browser's edge case, not a behavior change on its own. overflow-wrap: anywhere
-       (rather than the default break-word) is required for a genuinely un-splittable long
-       single word to still wrap rather than overflow the column -- the same reasoning as
-       the conference header's OWN overflow-wrap: anywhere below, a separate rule for a
-       separate element, untouched here. Rows now grow only for the names that need it. */
+       State" ("Oklah..."). overflow: hidden and text-overflow: ellipsis are still set at
+       the base rule above but have nothing left to truncate once white-space allows
+       wrapping -- text-overflow: clip here is explicit insurance against that combination
+       ever rendering a stray ellipsis character in some browser's edge case, not a
+       behavior change on its own. overflow-wrap: anywhere (rather than the default
+       break-word) is required for a genuinely un-splittable long single word to still
+       wrap rather than overflow the column -- the same reasoning as the conference
+       header's OWN overflow-wrap: anywhere below, a separate rule for a separate element,
+       untouched here. Rows now grow only for the names that need it.
+
+       REVISED AGAIN (T3 commit C): grid-area: name, not a bare flex child any more -- see
+       .sg-team-name-block below for why. Confirmed by measurement, not assumed (the
+       report's own instruction): the "rank reserves space even with none present"
+       hypothesis in the report did NOT hold up -- with no rank in the row,
+       .sg-team-name-block already had its full ~68px to itself, and "Cincinnati" alone
+       measures 58px at this font/weight, comfortably under that. It still broke mid-word.
+       Isolated by bisection instead: at this width, WITHIN this exact nesting (table,
+       table-layout: fixed, a flex row, then this grid), overflow-wrap: anywhere plus
+       white-space: normal was wrapping single words several pixels before their own
+       measured natural width should have required it, and widening the immediate
+       container alone (tested up to 150px, well past any single word's real need) did not
+       change that -- only the TD's own final rendered width mattered, and every word in
+       the report's test list needed several pixels more of it than 102px had to give
+       (bisected per-word: 108px for the 10-letter names, 123px for "Northwestern").
+       Moving the rank onto the record line and reclaiming the logo's width (see
+       .sg-team-logo's own comment below) is what actually closes that gap -- this rule's
+       job is narrower: grid-area: name plus a grid item's default stretch is what lets
+       the name actually USE the full width those other two changes free up, since a
+       lone flex child does not stretch to fill unclaimed space the same way. */
     .sg-team-name {
       white-space: normal;
       overflow-wrap: anywhere;
       text-overflow: clip;
+      grid-area: name;
+      min-width: 0;
+    }
+
+    /* T3 commit C: the logo no longer shares the row with the name at this width -- "the
+       name line gets the full cell content width" (the request's own words) turns out to
+       mean this literally, confirmed by measurement rather than assumed: even after
+       freeing the rank off the name line (below) and fixing the grid-sizing bug that
+       followed from that (also below), the logo + its flex gap were still the difference
+       between every one of the request's eight test names fitting on one line and not.
+       Bisected empirically: "Cincinnati" through "Vanderbilt" (10 letters) needed the
+       team column ~6px wider than its 102px budget allows to stop wrapping; "Northwestern"
+       (12) needed ~21px more -- both figures that would have meant widening
+       --sg-col1-width past what leaves room for three week columns at 390px (R5's other
+       hard requirement). Hiding the logo and its gap instead reclaims exactly the width
+       the name needs without touching that budget: verified, all eight names render at
+       getClientRects/height indicating one line once this rule is in effect, none did
+       with the logo still present. Empty-logo placeholders (.sg-team-logo--empty, T15's
+       own alignment spacer) are included -- there is no second column left for them to
+       keep two teams' name starts aligned against once the logo column itself is gone. */
+    .sg-team-logo,
+    .sg-team-logo--empty {
+      display: none;
+    }
+
+    .sg-team-cell {
+      gap: 0;
+    }
+
+    /* T3 commit C: the name/rank/record trio becomes a 2-column grid instead of flex
+       (flex column of [name-line, record-line], where name-line was itself a flex row of
+       [name, rank]) -- grid-template-areas keeps the exact same VISUAL result the
+       original nested-flex structure was going for (name on its own full-width row, rank
+       trailing the record on the row below) but without a flex item's default
+       non-stretching width behavior, which is what actually broke long single-word names
+       (see .sg-team-name's own comment). display: contents on .sg-team-name-line (below)
+       dissolves that now-redundant wrapper so .sg-team-name and .sg-team-rank -- still
+       nested inside it in the DOM, same markup as desktop, both renderers unchanged --
+       become direct grid items of THIS element instead, without a markup change in either
+       renderer. .sg-team-record was already this element's other direct child. The "auto"
+       rank column collapses to 0 width on a row with no rank (nothing assigns it that
+       grid-area), so "record" claims the full row via its own 1fr track instead of
+       leaving a dead gap where a rank would have been. */
+    .sg-team-name-block {
+      display: grid;
+      /* minmax(0, 1fr), not a bare 1fr -- confirmed by measurement (rendering the fix as
+         first written): a bare 1fr's IMPLICIT minimum is "auto", which for a grid track
+         holding text resolves to that content's own natural, unwrapped width unless
+         something tells it otherwise. .sg-team-record's text has no overflow-wrap of its
+         own (nothing forces it to shrink below "11-2, 7-2 B12"'s ~75px), so the 1fr track
+         sized itself to that instead of to whatever room was actually left after the auto
+         (rank) column -- measured: computed grid-template-columns "75px 12.5px" (87.5px
+         total) inside a 68.2px container, .sg-team-rank rendered with its right edge at
+         ~120px against a 102px-wide <td>, 18px past the cell's own boundary. minmax(0, 1fr)
+         is the standard grid fix for exactly this (the grid equivalent of a flex item's
+         min-width: 0) -- it allows the record/name track to actually shrink to whatever
+         width the auto column leaves it, at the cost of the record line wrapping to a
+         second line in the rare row where a long record breakdown AND a rank both have to
+         share it (same "grow only the rows that need it" trade this file already makes for
+         team names, not a new inconsistency). */
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "name name"
+        "record rank";
+      column-gap: 0.3rem;
+    }
+
+    .sg-team-name-line {
+      display: contents;
+    }
+
+    .sg-team-record {
+      grid-area: record;
+      /* min-width: 0 is already implied by the track's own minmax(0, 1fr) above, but
+         explicit here too: an item's own automatic minimum size can independently widen
+         its track even when the track's minimum is 0, if the item itself still computes
+         a non-zero intrinsic minimum. */
+      min-width: 0;
+      /* Confirmed by measurement, not assumed: this element's COMPUTED white-space was
+         nowrap, not the normal its declared font-size/color rule would suggest -- it
+         inherits from #schedule-grid-shell's <td>, where .sg-team-col's OWN attempt at
+         white-space: normal (a bare class selector) already loses to .sg-table td's
+         white-space: nowrap (one MORE type-selector component, so higher specificity
+         regardless of source order) -- a pre-existing quirk in this file, not introduced
+         by this commit (.sg-team-name needed the exact same explicit override in commit
+         B, for the same underlying reason). Without this, a record+rank row too tight to
+         fit on one line (see .sg-team-name-block's own comment on minmax(0, 1fr)) would
+         overflow past .sg-team-rank instead of wrapping under it. */
+      white-space: normal;
+    }
+
+    .sg-team-rank {
+      grid-area: rank;
+      /* margin-left: auto (the base rule, T15) was how a FLEX row right-aligned the rank
+         against the name -- meaningless once this element is a grid item in its own
+         "rank" column instead; justify-self: end is the grid equivalent, and align-self
+         keeps it vertically centered against the record text's line box now that the two
+         sit side by side instead of the name. */
+      margin-left: 0;
+      justify-self: end;
+      align-self: center;
     }
 
     /* T3 commit B: the record line's conference tag swaps to the more compact form --
