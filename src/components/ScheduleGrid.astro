@@ -800,6 +800,12 @@ const columns: Array<{ slot_id: string; label: string }> =
     top: 0;
     bottom: 0;
     width: var(--sg-gutter, 1.4rem);
+    /* Above .sg-pinned-corner's z-index: 2 -- at desktop the two never overlap (the
+       arrows sit outside .sg-pinned-viewport entirely, in the gutter), but at 640px
+       (T3) they become overlays ON TOP of the header instead, at which point DOM order
+       alone would put the viewport's later-painted corner above the left arrow (which
+       comes first in markup) without this. */
+    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1288,5 +1294,63 @@ const columns: Array<{ slot_id: string; label: string }> =
   tbody tr:hover td.sg-cell--bye,
   tbody tr:hover td.sg-cell--muted {
     background-color: rgb(21, 32, 43);
+  }
+
+  /* T3/R5: phone. The lockstep in --sg-col1-width (K2) means overriding this ONE custom
+     property here re-widths .sg-corner, .sg-team-col AND .sg-pinned-corner together --
+     the same three places the desktop value had to stay in sync across, now impossible
+     to drift apart since none of them hardcodes its own width any more. */
+  @media (max-width: 640px) {
+    :root {
+      --sg-col1-width: 6.4rem;
+    }
+
+    /* R5's own arithmetic ("6.4rem team column so three 6rem weeks fit a 390px
+       screen") only works out if a cell's declared width IS its rendered width --
+       6.4rem + 3 * 6rem = 24.4rem = 390.4px. This block is content-box (see .sg-table's
+       own comment: BaseLayout's scoped box-sizing: border-box rule never reaches an
+       is:global block), so outside this media query every cell's PADDING and BORDER add
+       on top of its declared width instead of being carried inside it -- at the shared
+       0.3rem horizontal padding + 1px border-right this file already sets, that is
+       ~10.6px extra per cell, 4 cells (team + 3 weeks) = ~42px, comfortably wider than
+       the 390px this arithmetic is built around. Desktop stays content-box (R5: "Desktop
+       column widths are unchanged") -- this opts in to border-box for cells ONLY inside
+       this 640px block, where R5's own numbers assume it. */
+    .sg-table th,
+    .sg-table td {
+      box-sizing: border-box;
+    }
+
+    /* Ellipsis, not wrap -- at 6.4rem a wrapped two-line name would grow the row height
+       inconsistently across teams. overflow/text-overflow are already set at the base
+       rule above; white-space: nowrap is the one property that changes here (desktop
+       lets a long name wrap; this column is too narrow for that to look intentional).
+       The conference header's own overflow-wrap: anywhere (a separate rule, unrelated
+       element) is untouched -- that guard is about conference NAMES, not team names,
+       and stays exactly as it is at every width. */
+    .sg-team-name {
+      white-space: nowrap;
+    }
+
+    /* K6: at 640px the arrows have no gutter to sit in (the section is edge-to-edge
+       below), so they move from the gutter into overlays on the pinned header's own
+       edges instead -- same element, same click handlers, just repositioned and
+       reskinned. A gradient (the shell's own opaque colour fading to transparent)
+       rather than a hard-edged solid block, so the chevron doesn't read as a stray tile
+       dropped on top of the first/last visible column. */
+    .sg-scroll-arrow {
+      width: 1.75rem;
+      background: none;
+    }
+
+    .sg-scroll-arrow--left {
+      left: 0;
+      background: linear-gradient(to right, rgba(16, 23, 32, 0.98) 60%, transparent);
+    }
+
+    .sg-scroll-arrow--right {
+      right: 0;
+      background: linear-gradient(to left, rgba(16, 23, 32, 0.98) 60%, transparent);
+    }
   }
 </style>

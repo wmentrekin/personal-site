@@ -719,6 +719,16 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         flex-direction: column;
         align-items: flex-start;
       }
+
+      /* T3/K4: gutter drops to 0 -- edge to edge, same full-bleed technique as the
+         desktop rule above (matched width + margin, both against 100vw/50vw so the two
+         stay in lockstep) with the gutter term simply removed rather than shrunk. No
+         cap term either: 2400px never binds below 640px. */
+      .schedule-section {
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+      }
     }
 
     @media (max-width: 480px) {
