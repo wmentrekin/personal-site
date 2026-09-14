@@ -53,9 +53,9 @@ artifacts:
   implementation_report: "docs/season-grid-layout/implementation-report.yaml"
 
 pr:
-  number: null
-  url: null
-  status: "not_opened"
+  number: 25
+  url: "https://github.com/wmentrekin/personal-site/pull/25"
+  status: "open_in_verification"
 
 agents:
   - id: "orchestrator"

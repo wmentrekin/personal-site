@@ -49,8 +49,8 @@ model_usage:
     - "K2 escalation (frontier) was authorised but never needed: alignment was exact by construction at every viewport."
 
 pr:
-  number: null
-  url: null
+  number: 25
+  url: "https://github.com/wmentrekin/personal-site/pull/25"
 
 changes:
   files:
