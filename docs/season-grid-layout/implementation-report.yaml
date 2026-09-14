@@ -86,8 +86,28 @@ local_validation:
   known_edge: "'Florida International' needs three lines at 390px."
 
 review_summary:
-  status: not_started
-  key_findings: []
+  status: complete
+  cycles: 2
+  key_findings:
+    - severity: must_fix
+      finding: "Pinned bar was position:sticky in normal flow; showing it moved the thead whose position decides visibility -> flip-flop across a 30px band, scroll anchoring shifting scrollY +-30px per toggle. Reproduced by execution."
+      resolution: "Zero-height sticky anchor with the bar absolute inside it (fd84050). Re-verified: 0/41 mismatches both directions, one transition, pinned at every depth incl. page bottom."
+    - severity: should_fix
+      finding: "Corner overlay 9.6px narrower than the cell it covers; cloned text peeked through."
+      resolution: "padding matched (d425308); edge 218.50 == cell."
+    - severity: should_fix
+      finding: "Conference band shrank 12px -> 10.88px via specificity after the ID was dropped from the shared cell rule."
+      resolution: "Restored to 12px; four stale comments citing the removed rule updated."
+    - severity: should_fix
+      finding: "100vw breakout at <=640 overflowed on classic-scrollbar browsers."
+      resolution: "width:auto; margin-inline:-1.4rem; plus min-width:0 (implicit grid item) found necessary by measurement -- without it the section blew out to 2118px at 390."
+    - severity: should_fix
+      finding: "prefers-reduced-motion ignored by the arrows; window listeners accumulated across View Transitions; clone table not aria-hidden."
+      resolution: "CSS scroll-behavior with the reduced-motion override; AbortController on astro:before-swap; aria-hidden on the clone viewport only."
+    - severity: should_fix
+      finding: "Cycle 2: the focus-handoff nit fix set tabindex=-1 on the shell, removing it from the Tab order after one use -- grid unreachable by keyboard with the default 2026 season."
+      resolution: "Permanent tabindex=0 + role=region + aria-label on the shell; focus({preventScroll:true}) (3118cd9 pre-rewrite). Verified with real CDP key events."
+  posted_to_pr: true
 
 test_summary:
   status: complete
@@ -107,6 +127,6 @@ open_issues:
   - "Desktop gutter renders ~15px rather than 22px on browsers that reserve scrollbar width (100vw includes it); no overflow results. Cosmetic; mac overlay scrollbars are unaffected."
 
 handoff:
-  current_state: "execution complete; PR being opened; verification (T4 + reviewer) runs against the PR"
-  next_owner: "tester + reviewer, then the user"
-  next_action: "Open the PR; run T4 and the frontier review; loop at most twice; hand to the user to merge."
+  current_state: "verification complete; loop cap reached; PR #25 ready"
+  next_owner: "the user"
+  next_action: "Merge PR #25. On confirmation, delete docs/season-grid-layout/ as the final commit."

@@ -43,7 +43,7 @@ branching:
   notes: "Harness-pinned name; user accepted it on the prior feature rather than renaming."
 
 summary:
-  current_focus: "Cycle 1 fixes pushed; focused frontier re-check of the fixes."
+  current_focus: "Verification complete. PR #25 ready for the user to merge."
   last_completed: "T1-T3 and four measured follow-ups; trailers normalised; 11 commits ahead of main."
   current_blocker: ""
 
@@ -55,7 +55,7 @@ artifacts:
 pr:
   number: 25
   url: "https://github.com/wmentrekin/personal-site/pull/25"
-  status: "open_in_verification"
+  status: "open_ready_for_user"
 
 agents:
   - id: "orchestrator"
@@ -79,9 +79,9 @@ loops:
     count: 0
     max: 2
   execution_verification:
-    count: 1
+    count: 2
     max: 2
-    note: "Cycle 1: frontier review found 1 must-fix (in-flow sticky bar toggles its own visibility -> scroll jitter), 6 should-fix, 2 nits; all verified by execution. Fixed in two commits, each item re-verified by number; plus a latent grid-item min-width:auto blowout at 390 found and fixed. Focused re-check next."
+    note: "Cycle 1: frontier review found 1 must-fix (in-flow sticky bar toggles its own visibility -> scroll jitter), 6 should-fix, 2 nits; all verified by execution. Fixed in two commits, each item re-verified by number; plus a latent grid-item min-width:auto blowout at 390 found and fixed. Focused re-check: all held; one new should-fix (keyboard reachability from the focus-handoff nit) fixed in cycle 2 and verified with real key events. Cap reached; no further autonomous looping."
 
 checkpoint:
   pre_execution_required: true
@@ -109,6 +109,6 @@ model_routing:
   unresolved_limitations:
     - "Subagents inherit the main conversation's extended-thinking setting; per-agent reasoning level is advisory."
 
-next_action: "Finish discovery, write requirements + plan, stop at the pre-execution checkpoint."
+next_action: "User reviews and merges PR #25. On merge confirmation: git rm -r docs/season-grid-layout/ and push as the final commit."
 next_recommended_command: "$work"
 user_input_needed: false
