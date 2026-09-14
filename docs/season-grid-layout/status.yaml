@@ -43,7 +43,7 @@ branching:
   notes: "Harness-pinned name; user accepted it on the prior feature rather than renaming."
 
 summary:
-  current_focus: "Verification: T4 measured checks + frontier review against the PR."
+  current_focus: "Verification cycle 1 fix round: in-flow sticky jitter + six should-fixes."
   last_completed: "T1-T3 and four measured follow-ups; trailers normalised; 11 commits ahead of main."
   current_blocker: ""
 
@@ -79,8 +79,9 @@ loops:
     count: 0
     max: 2
   execution_verification:
-    count: 0
+    count: 1
     max: 2
+    note: "Cycle 1: frontier review found 1 must-fix (in-flow sticky bar toggles its own visibility -> scroll jitter), 6 should-fix, 2 nits; all verified by execution. Fix round in progress."
 
 checkpoint:
   pre_execution_required: true
