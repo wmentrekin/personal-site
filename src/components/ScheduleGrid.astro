@@ -22,7 +22,7 @@
 // image at all. No placeholder-initial badge (confirmed there is no precedent
 // for one anywhere in this codebase).
 
-import { conferenceFullName, conferenceShortName } from "../lib/conferences";
+import { conferenceFullName, conferenceShortName, conferenceCompactName } from "../lib/conferences";
 
 interface WeekCell {
   slot_id: string;
@@ -287,12 +287,26 @@ function buildCellView(cell: WeekCell): CellView {
 // reading "Big Ten Conference", leaving "2-0, 2-0 BIG 10" underneath it looks like a bug
 // rather than a deliberate abbreviation. Short rather than full because this line is 0.6rem
 // secondary text inside a 12rem column -- "2-0, 2-0 Southeastern Conference" would not fit.
-function formatRecord(team: TeamEntry, confName: string): string {
+//
+// T3 commit B: returns BOTH the short (desktop, unchanged) and compact (phone-only) conference
+// forms rather than a single formatted string -- the template renders both as sibling spans
+// (.sg-conf-long/.sg-conf-short) and a 640px CSS rule picks one, so there is no re-render on
+// resize and no risk of the two ever showing at once. confLong/confShort are null together
+// with the same Independent-shaped record for the same reason the old single-string version
+// omitted the suffix entirely: no conf_record, nothing to attribute a conference number to.
+function formatRecord(
+  team: TeamEntry,
+  confName: string
+): { text: string; confLong: string | null; confShort: string | null } {
   const { wins, losses } = team.record;
   if (team.conf_record) {
-    return `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} ${conferenceShortName(confName)}`;
+    return {
+      text: `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} `,
+      confLong: conferenceShortName(confName),
+      confShort: conferenceCompactName(confName),
+    };
   }
-  return `${wins}-${losses}`;
+  return { text: `${wins}-${losses}`, confLong: null, confShort: null };
 }
 
 // T15: which team indexes within a conference get a division sub-heading above them.
@@ -401,6 +415,7 @@ const columns: Array<{ slot_id: string; label: string }> =
               // generically, so no filter change was needed.
               const showDivisionHeader = divisionHeaders.has(teamIndex);
               const division = team.division ?? null;
+              const record = formatRecord(team, conf.name);
               return (
               <>
               {showDivisionHeader ? (
@@ -427,7 +442,18 @@ const columns: Array<{ slot_id: string; label: string }> =
                           <span class="sg-team-rank" role="img" aria-label={`Rank ${team.rank}`}>{team.rank}</span>
                         ) : null}
                       </span>
-                      <span class="sg-team-record">{formatRecord(team, conf.name)}</span>
+                      <span class="sg-team-record">
+                        {record.text}
+                        {record.confLong !== null ? (
+                          <>
+                            {/* T3 commit B: both forms always render; a 640px CSS rule
+                                (see .sg-conf-long/.sg-conf-short below) picks one --
+                                see formatRecord()'s own comment for why. */}
+                            <span class="sg-conf-long">{record.confLong}</span>
+                            <span class="sg-conf-short">{record.confShort}</span>
+                          </>
+                        ) : null}
+                      </span>
                     </span>
                   </span>
                 </td>
@@ -1045,6 +1071,13 @@ const columns: Array<{ slot_id: string; label: string }> =
     letter-spacing: 0;
   }
 
+  /* T3 commit B: both conference-name forms are always in the DOM (see formatRecord()'s
+     own comment); .sg-conf-short is the one hidden by default (desktop keeps today's
+     text, unchanged), swapped for .sg-conf-long at 640px below. */
+  .sg-conf-short {
+    display: none;
+  }
+
   /* Cell status coloring -- full-cell background on every played game, not
      alternating rows (a real CSS-specificity bug in the original mockup that
      must not be reintroduced).
@@ -1367,15 +1400,36 @@ const columns: Array<{ slot_id: string; label: string }> =
       box-sizing: border-box;
     }
 
-    /* Ellipsis, not wrap -- at 6.4rem a wrapped two-line name would grow the row height
-       inconsistently across teams. overflow/text-overflow are already set at the base
-       rule above; white-space: nowrap is the one property that changes here (desktop
-       lets a long name wrap; this column is too narrow for that to look intentional).
-       The conference header's own overflow-wrap: anywhere (a separate rule, unrelated
-       element) is untouched -- that guard is about conference NAMES, not team names,
-       and stays exactly as it is at every width. */
+    /* REVISED (T3 commit B): wrap, not ellipsis. The initial 6.4rem/nowrap/ellipsis pass
+       (see this file's git history) traded readability for a one-line row -- fine for
+       "Cincinnati" or "Kansas", unreadable for "Arizona State" ("Arizon...") or "Oklahoma
+       State" ("Oklah..."), and the mockup this shipped from happened to omit the rank
+       number sharing the name line, which is what actually made the column too narrow to
+       carry a truncated long name AND stay legible. The rank stays where it is; a long
+       name now wraps beneath it instead of losing its ending. overflow: hidden and
+       text-overflow: ellipsis are still set at the base rule above but have nothing left
+       to truncate once white-space allows wrapping -- text-overflow: clip here is explicit
+       insurance against that combination ever rendering a stray ellipsis character in some
+       browser's edge case, not a behavior change on its own. overflow-wrap: anywhere
+       (rather than the default break-word) is required for a genuinely un-splittable long
+       single word to still wrap rather than overflow the column -- the same reasoning as
+       the conference header's OWN overflow-wrap: anywhere below, a separate rule for a
+       separate element, untouched here. Rows now grow only for the names that need it. */
     .sg-team-name {
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      text-overflow: clip;
+    }
+
+    /* T3 commit B: the record line's conference tag swaps to the more compact form --
+       see formatRecord()'s own comment for why CONFERENCE_SHORT_NAMES's values ("Big 12",
+       "Mountain West") don't fit this column's width, and CONFERENCE_COMPACT_NAMES's do. */
+    .sg-conf-long {
+      display: none;
+    }
+
+    .sg-conf-short {
+      display: inline;
     }
 
     /* K6: at 640px the arrows have no gutter to sit in (the section is edge-to-edge

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import {
   CONFERENCE_FULL_NAMES,
   CONFERENCE_SHORT_NAMES,
+  CONFERENCE_COMPACT_NAMES,
   conferenceFilterLabel,
   conferenceShortName,
 } from "../../../lib/conferences";
@@ -757,6 +758,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       // string pairs that would drift silently the first time a conference is renamed.
       conferenceFullNames: CONFERENCE_FULL_NAMES,
       conferenceShortNames: CONFERENCE_SHORT_NAMES,
+      conferenceCompactNames: CONFERENCE_COMPACT_NAMES,
       rankingsSeasonsForClient,
       rankingsSeasonList,
       scheduleSeasonList,
@@ -906,6 +908,12 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
       function fullConference(token) {
         return lookupConference(conferenceFullNames, token);
+      }
+
+      // Mirrors conferenceCompactName() in src/lib/conferences.ts (T3 commit B) -- same
+      // reasoning as shortConference()/fullConference() above.
+      function compactConference(token) {
+        return lookupConference(conferenceCompactNames, token);
       }
 
       function renderRows(rankings) {
@@ -1128,12 +1136,19 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         };
       }
 
+      // Mirrors formatRecord() in ScheduleGrid.astro -- see that file's own comment for why
+      // this now returns both conference-name forms instead of one formatted string (T3
+      // commit B).
       function formatRecord(team, confName) {
         const { wins, losses } = team.record;
         if (team.conf_record) {
-          return `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} ${shortConference(confName)}`;
+          return {
+            text: `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} `,
+            confLong: shortConference(confName),
+            confShort: compactConference(confName)
+          };
         }
-        return `${wins}-${losses}`;
+        return { text: `${wins}-${losses}`, confLong: null, confShort: null };
       }
 
       function el(tag, className, text) {
@@ -1314,7 +1329,13 @@ const hasAnyData = hasRankingsData || hasScheduleData;
               nameLine.appendChild(rankNode);
             }
             nameBlock.appendChild(nameLine);
-            nameBlock.appendChild(el("span", "sg-team-record", formatRecord(team, conf.name)));
+            const record = formatRecord(team, conf.name);
+            const recordSpan = el("span", "sg-team-record", record.text);
+            if (record.confLong !== null) {
+              recordSpan.appendChild(el("span", "sg-conf-long", record.confLong));
+              recordSpan.appendChild(el("span", "sg-conf-short", record.confShort));
+            }
+            nameBlock.appendChild(recordSpan);
             teamCell.appendChild(nameBlock);
             teamTd.appendChild(teamCell);
             row.appendChild(teamTd);
