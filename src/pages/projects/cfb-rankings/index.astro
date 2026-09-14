@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import {
   CONFERENCE_FULL_NAMES,
   CONFERENCE_SHORT_NAMES,
+  CONFERENCE_COMPACT_NAMES,
   conferenceFilterLabel,
   conferenceShortName,
 } from "../../../lib/conferences";
@@ -251,106 +252,84 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
     <section class="rankings-panel reveal glass-card">
       {hasAnyData ? (
-        <>
-          <div class="panel-head">
-            <h2 id="panel-title">Rankings</h2>
-            <div class="tab-switch" id="view-tab-switch">
-                <span class="tab-switch-label is-active" data-tab-label="rankings">Rankings</span>
-                <button
-                  type="button"
-                  class="tab-switch-control"
-                  id="tab-switch-control"
-                  role="switch"
-                  aria-checked="false"
-                  aria-label="Switch between Rankings and Season Grid views"
-                >
-                  <span class="tab-switch-thumb"></span>
-                </button>
-              <span class="tab-switch-label" data-tab-label="schedule">Season Grid</span>
-            </div>
-          </div>
-
+        <div class="panel-head">
+          {/* Visually hidden (R1): no visible title any more, but the id stays so the
+              text-swap in the script below keeps working, and the tab content keeps an
+              accessible heading to be announced around. */}
+          <h2 id="panel-title" class="visually-hidden">Rankings</h2>
           <div class="panel-filters">
-                <select class="filter-select" id="season-select" aria-label="Season">
-                  {
-                    seasonsForClient.map((season) => (
-                      <option value={season} selected={season === defaultSeason}>
-                        {season}
-                      </option>
-                    ))
-                  }
-                </select>
-                <select class="filter-select" id="week-select" aria-label="Week">
-                  {
-                    weeksForLatestSeason.map((week) => (
-                      <option value={week} selected={week === latestWeek}>
-                        Week {week}
-                      </option>
-                    ))
-                  }
-                </select>
-                {/*
-                  T14: conference filter. Occupies the week selector's slot -- the week
-                  selector is Rankings-only and already hides on Season Grid, so this is
-                  the free slot for a Season-Grid-only control. `hidden` here matches the
-                  page's default active tab (Rankings); setActiveTab() reconciles hidden
-                  and disabled on load and on every tab switch.
-
-                  Values are the RAW abbreviated conference names the schedule artifact
-                  actually emits (ACC, BIG 12, BIG 10, SEC, American, CUSA, MAC, MWC,
-                  PAC 12, SBC, FBS Independent) -- NOT the English group labels below.
-                  Matching on the English names would silently fail to filter 7 of the
-                  11 conferences; see applyConferenceFilter() and the data-conference
-                  attribute ScheduleGrid.astro stamps on every row for how these values
-                  are consumed.
-
-                  The VALUES stay literal here on purpose -- they are the contract with the
-                  artifact and belong where a reader can see them. Only the LABELS come from
-                  src/lib/conferences.ts, so renaming a conference there cannot leave this
-                  dropdown quietly saying the old thing.
-                */}
-                <select class="filter-select" id="conference-select" aria-label="Conference" hidden>
-                  <option value="all">All Conferences</option>
-                  <optgroup label="Power 4">
-                    <option value="ACC">{conferenceFilterLabel("ACC")}</option>
-                    <option value="BIG 12">{conferenceFilterLabel("BIG 12")}</option>
-                    <option value="BIG 10">{conferenceFilterLabel("BIG 10")}</option>
-                    <option value="SEC">{conferenceFilterLabel("SEC")}</option>
-                  </optgroup>
-                  <option value="FBS Independent">{conferenceFilterLabel("FBS Independent")}</option>
-                  <optgroup label="Group of 6">
-                    <option value="American">{conferenceFilterLabel("American")}</option>
-                    <option value="CUSA">{conferenceFilterLabel("CUSA")}</option>
-                    <option value="MAC">{conferenceFilterLabel("MAC")}</option>
-                    <option value="MWC">{conferenceFilterLabel("MWC")}</option>
-                    <option value="PAC 12">{conferenceFilterLabel("PAC 12")}</option>
-                    <option value="SBC">{conferenceFilterLabel("SBC")}</option>
-                  </optgroup>
-                </select>
-          </div>
-
-          <div id="rankings-tab-panel" class="tab-panel">
-            {hasRankingsData ? (
-              <RankingsTable headers={["Rank", "Team", "Record", "Rating", "\u0394", "Conference"]} rows={rows} />
-            ) : (
-              <div class="panel-empty">
-                <p>Rankings data isn’t available for this selection yet.</p>
-              </div>
-            )}
-          </div>
-
-          <div id="schedule-tab-panel" class="tab-panel" hidden>
-            <ScheduleGrid data={schedulePayload} />
+            <select class="filter-select" id="season-select" aria-label="Season">
+              {
+                seasonsForClient.map((season) => (
+                  <option value={season} selected={season === defaultSeason}>
+                    {season}
+                  </option>
+                ))
+              }
+            </select>
+            <select class="filter-select" id="week-select" aria-label="Week">
+              {
+                weeksForLatestSeason.map((week) => (
+                  <option value={week} selected={week === latestWeek}>
+                    Week {week}
+                  </option>
+                ))
+              }
+            </select>
             {/*
-              T13c footnote: outside ScheduleGrid's own shell (#schedule-grid-shell), which
-              the client-side season re-render clears and rebuilds wholesale -- keeping this
-              paragraph out of that subtree means it survives every re-render for free, no
-              client-side mirror needed. Static and always shown on this tab; it doesn't
-              depend on whether the current season/filter selection has a neutral-site game.
+              T14: conference filter. Occupies the week selector's slot -- the week
+              selector is Rankings-only and already hides on Season Grid, so this is
+              the free slot for a Season-Grid-only control. `hidden` here matches the
+              page's default active tab (Rankings); setActiveTab() reconciles hidden
+              and disabled on load and on every tab switch.
+
+              Values are the RAW abbreviated conference names the schedule artifact
+              actually emits (ACC, BIG 12, BIG 10, SEC, American, CUSA, MAC, MWC,
+              PAC 12, SBC, FBS Independent) -- NOT the English group labels below.
+              Matching on the English names would silently fail to filter 7 of the
+              11 conferences; see applyConferenceFilter() and the data-conference
+              attribute ScheduleGrid.astro stamps on every row for how these values
+              are consumed.
+
+              The VALUES stay literal here on purpose -- they are the contract with the
+              artifact and belong where a reader can see them. Only the LABELS come from
+              src/lib/conferences.ts, so renaming a conference there cannot leave this
+              dropdown quietly saying the old thing.
             */}
-            <p class="table-footnote">* Neutral-site game</p>
+            <select class="filter-select" id="conference-select" aria-label="Conference" hidden>
+              <option value="all">All Conferences</option>
+              <optgroup label="Power 4">
+                <option value="ACC">{conferenceFilterLabel("ACC")}</option>
+                <option value="BIG 12">{conferenceFilterLabel("BIG 12")}</option>
+                <option value="BIG 10">{conferenceFilterLabel("BIG 10")}</option>
+                <option value="SEC">{conferenceFilterLabel("SEC")}</option>
+              </optgroup>
+              <option value="FBS Independent">{conferenceFilterLabel("FBS Independent")}</option>
+              <optgroup label="Group of 6">
+                <option value="American">{conferenceFilterLabel("American")}</option>
+                <option value="CUSA">{conferenceFilterLabel("CUSA")}</option>
+                <option value="MAC">{conferenceFilterLabel("MAC")}</option>
+                <option value="MWC">{conferenceFilterLabel("MWC")}</option>
+                <option value="PAC 12">{conferenceFilterLabel("PAC 12")}</option>
+                <option value="SBC">{conferenceFilterLabel("SBC")}</option>
+              </optgroup>
+            </select>
           </div>
-        </>
+          <div class="tab-switch" id="view-tab-switch">
+              <span class="tab-switch-label is-active" data-tab-label="rankings">Rankings</span>
+              <button
+                type="button"
+                class="tab-switch-control"
+                id="tab-switch-control"
+                role="switch"
+                aria-checked="false"
+                aria-label="Switch between Rankings and Season Grid views"
+              >
+                <span class="tab-switch-thumb"></span>
+              </button>
+            <span class="tab-switch-label" data-tab-label="schedule">Season Grid</span>
+          </div>
+        </div>
       ) : (
         <div class="panel-empty">
           <h2>Rankings</h2>
@@ -358,6 +337,40 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         </div>
       )}
     </section>
+
+    {hasAnyData && (
+      <>
+        {/* R2: content lives AFTER the control-bar card as siblings inside .project-shell,
+            not nested inside .rankings-panel any more. The rankings tab gets its own glass
+            card whose padding matches .rankings-panel (see .rankings-content below);
+            RankingsTable's own centering is untouched. */}
+        <div id="rankings-tab-panel" class="tab-panel rankings-content reveal glass-card">
+          {hasRankingsData ? (
+            <RankingsTable headers={["Rank", "Team", "Record", "Rating", "\u0394", "Conference"]} rows={rows} />
+          ) : (
+            <div class="panel-empty">
+              <p>Rankings data isn’t available for this selection yet.</p>
+            </div>
+          )}
+        </div>
+
+        {/* R2/K4: full-bleed section, no card, escaping main.container's 1200px cap down to
+            a 1.4rem gutter each side (see .schedule-section below). Deliberately NOT
+            .reveal -- a section this tall fading in on scroll reads worse than not fading
+            at all (see BaseLayout's reveal-on-scroll script). */}
+        <section id="schedule-tab-panel" class="tab-panel schedule-section" hidden>
+          <ScheduleGrid data={schedulePayload} />
+          {/*
+            T13c footnote: outside ScheduleGrid's own shell (#schedule-grid-shell), which
+            the client-side season re-render clears and rebuilds wholesale -- keeping this
+            paragraph out of that subtree means it survives every re-render for free, no
+            client-side mirror needed. Static and always shown on this tab; it doesn't
+            depend on whether the current season/filter selection has a neutral-site game.
+          */}
+          <p class="table-footnote">* Neutral-site game</p>
+        </section>
+      </>
+    )}
   </section>
 
   <style>
@@ -499,25 +512,40 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       padding: 1.05rem;
     }
 
+    /* T1/R2: the rankings tab's own card, sibling of .rankings-panel now that the tab
+       content lives outside the control-bar card -- same padding as .rankings-panel so
+       the card reads consistently with the control bar above it. */
+    .rankings-content {
+      padding: 1.05rem;
+    }
+
+    /* Screen-reader-only: keeps #panel-title in the DOM (setActiveTab()'s own tab-switch
+       text swap, in the script below, still targets it by id) without taking any visual
+       space or affecting .panel-head's layout -- absolute positioning removes it from flex flow,
+       so justify-content: space-between below runs across .panel-filters and .tab-switch
+       alone. Standard sr-only pattern; the site had no existing utility for it. */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* T1/R1: one row -- selectors left, toggle right -- now that the title is gone.
+       #panel-title is visually hidden (see .visually-hidden) so it takes no flex space;
+       space-between then runs across .panel-filters and .tab-switch, the two visible
+       children. */
     .panel-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.8rem;
       flex-wrap: wrap;
-      /* The h2 swaps between "Rankings" and "Season Grid" on every tab change.
-         Reserving the row's height keeps the toggle pinned: without it a shorter
-         title could let the row collapse slightly and drag the toggle up with it. */
-      min-height: 2.4rem;
-      margin-bottom: 0.9rem;
-    }
-
-    .panel-head h2 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: 1.55rem;
-      line-height: 1;
-      letter-spacing: -0.03em;
     }
 
     .panel-empty h2 {
@@ -534,17 +562,17 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       font-size: 0.9rem;
     }
 
-    /* The selectors sit on their own row BELOW the title/toggle row, left-aligned.
-       Previously they shared a right-aligned flex row with the tab toggle, so hiding
-       the week selector on the Season Grid tab narrowed the group and slid the toggle
-       sideways. Left-aligned and on its own line, hiding the week selector moves
-       nothing: the season selector is first in the row, and the toggle is in a
-       different row entirely. */
+    /* Selectors group, now a flex child of .panel-head sharing its row with the toggle
+       (T1/R1) rather than a row of its own. Hiding the week selector on the Season Grid
+       tab still moves nothing else in this group: the season selector is first, and the
+       toggle lives in a different flex item entirely. flex-wrap so the selects themselves
+       can wrap onto a second line before the whole row is forced to stack (the 640px
+       stack below is the deliberate, larger break). */
     .panel-filters {
       display: flex;
-      justify-content: flex-start;
+      align-items: center;
+      flex-wrap: wrap;
       gap: 0.55rem;
-      margin-bottom: 0.9rem;
     }
 
     /* iOS-style tab switch (T7 tokens: --tab-switch-track-on/-off/-thumb).
@@ -637,6 +665,39 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       font-family: var(--font-mono);
     }
 
+    /* T1/R2/K4: full-bleed breakout. main.container caps at 1200px with a 1.4rem
+       side padding (BaseLayout ~102-106) and .project-shell has no width of its own, so
+       this section's un-breakout width would be capped there too. Both width and margin
+       are expressed in terms of the SAME 100vw/50vw so the two stay in lockstep instead
+       of drifting off two independent guesses:
+
+       width:        min(100vw - 2 * 1.4rem, 2400px)   -- viewport minus both gutters, capped
+       margin-left:  the shift from this element's natural (contained) position out to a
+                     1.4rem gutter from the viewport edge -- max()'d against the constant
+                     that centers a capped 2400px box once the viewport is wide enough that
+                     100vw - 2.8rem would otherwise exceed it (2400px + 2*1.4rem = beyond
+                     ~2444.8px viewport width; the constant is -(1200px/2 + 1.4rem), i.e.
+                     half of main.container's own 1200px cap plus one gutter -- see the
+                     margin-left algebra: for viewport widths at or below the container's
+                     own breakpoint, .project-shell's content box is pinned at 1200px minus
+                     its padding, which makes the "50%" term in the dynamic half of this
+                     formula a constant too, and the two halves work out to leave this
+                     section's edges exactly 1.4rem from the true viewport edges).
+
+       Deliberately NOT overflow-x: clip here (the risk notes' other suggested mitigation):
+       #schedule-tab-panel is this same element, and T2 adds a position: sticky pinned
+       header as ITS direct child -- any overflow value other than visible on this element
+       would (per the CSS overflow spec's paired-axis rule) force overflow-y to a
+       non-visible computed value too, making this section the sticky header's nearest
+       scroll container instead of the viewport, breaking the pin. Verified by measurement
+       instead (see the T1 report) that the vw-based math alone keeps
+       document.documentElement.scrollWidth === clientWidth at 1440/1920/390 without it. */
+    .schedule-section {
+      width: min(calc(100vw - 2.8rem), 150rem);
+      margin-left: max(calc(50% - 50vw + 1.4rem), -38.9rem);
+      margin-right: max(calc(50% - 50vw + 1.4rem), -38.9rem);
+    }
+
     @media (max-width: 920px) {
       .project-hero {
         grid-template-columns: 1fr;
@@ -660,15 +721,47 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         align-items: flex-start;
       }
 
-      /* Stacked, the title sits ABOVE the toggle, so a title that wraps to two lines on one
-         tab and one on the other moves the toggle on every tab switch. Both titles are now
-         single-line ("Rankings" / "Season Grid"), which makes this reservation inert at
-         today's strings -- kept because it costs one line and the alternative is the toggle
-         jumping the next time a longer title is introduced. The reservation has to sit on
-         the title itself: a column-flex container's own min-height pads below its last
-         child, so it can never hold an earlier child still. */
-      .panel-head h2 {
-        min-height: 2lh;
+      /* SHOULD-FIX #4 (PR #25 review): width: auto + margin-inline: -1.4rem, not the
+         100vw/50vw formula the desktop rule above uses. At this width main.container is
+         never capped (viewport is always under its 1200px max-width here), so it always
+         spans the full viewport, and its own side padding is the SAME constant 1.4rem at
+         every width (BaseLayout's .container rule) -- .schedule-section sits inside that
+         padding with none of its own, so a NEGATIVE margin of exactly that constant
+         reaches flush with main.container's own edge (= the viewport edge here) without
+         referencing the viewport at all. width: auto lets the browser solve the box's
+         width from that margin the normal way a block element already works, rather than
+         restating "the viewport, minus what the negative margins already account for" a
+         second time via 100vw.
+
+         The desktop rule's own 100vw/50vw formula doesn't have this option -- it also
+         has to express the 2400px CAP and RE-CENTER once main.container's own cap binds,
+         which a constant negative margin cannot do (main.container's width stops being
+         "the viewport" past 1200px, so a margin defined relative to ITS OWN padding can't
+         also track the viewport-relative cap) -- but neither is needed below 640px (R5:
+         no cap ever binds there), so the simpler, non-vw technique applies cleanly.
+         Verified at a 600px NON-mobile window (where the vw-based formula measurably
+         overflowed: scrollWidth 593 vs clientWidth 585, section left -7.5px on a
+         classic-scrollbar profile mobile emulation can't reproduce): overflow 0. Still
+         edge to edge at 390 mobile:true.
+
+         min-width: 0 is required alongside width: auto here: .project-shell (this
+         section's parent) is display: grid with no explicit grid-template-columns, so
+         this section is an implicit grid item, and grid items default to
+         min-width: auto -- a content-based floor (like the min-width: 0 fix already
+         used elsewhere in this codebase for 1fr grid tracks), NOT zero. The desktop
+         rule above never hit this because its width is a definite value (min(...)),
+         which overrides that floor; width: auto here does not, so without min-width: 0
+         the section's own box grows to the schedule table's full unwrapped content
+         width once the tab is switched to Season Grid at mobile widths, dragging the
+         whole document with it. Verified by measurement: without min-width: 0, at 390
+         mobile:true after switching to the Season Grid tab, #schedule-tab-panel's own
+         rendered width was 2118px (document scrollWidth 2118 vs clientWidth 390,
+         window.innerWidth even reflowing to 1560) -- with it, both collapse back to
+         390/0 overflow. */
+      .schedule-section {
+        width: auto;
+        min-width: 0;
+        margin-inline: -1.4rem;
       }
     }
 
@@ -677,7 +770,8 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         padding: 1rem;
       }
 
-      .rankings-panel {
+      .rankings-panel,
+      .rankings-content {
         padding: 1rem;
       }
 
@@ -697,6 +791,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       // string pairs that would drift silently the first time a conference is renamed.
       conferenceFullNames: CONFERENCE_FULL_NAMES,
       conferenceShortNames: CONFERENCE_SHORT_NAMES,
+      conferenceCompactNames: CONFERENCE_COMPACT_NAMES,
       rankingsSeasonsForClient,
       rankingsSeasonList,
       scheduleSeasonList,
@@ -738,6 +833,12 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       const schedulePanel = document.getElementById("schedule-tab-panel");
       const tableBody = document.querySelector("#rankings-tab-panel .rankings-shell tbody");
       const scheduleShell = document.getElementById("schedule-grid-shell");
+      // T2: the pinned header and its chevrons -- all optional (schedule data can be
+      // entirely absent, in which case ScheduleGrid.astro renders none of this).
+      const pinnedHeader = document.getElementById("sg-pinned");
+      const pinnedTable = document.getElementById("sg-pinned-table");
+      const scrollArrowLeft = document.getElementById("sg-scroll-left");
+      const scrollArrowRight = document.getElementById("sg-scroll-right");
 
       if (!seasonSelect || !weekSelect) return;
 
@@ -840,6 +941,12 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
       function fullConference(token) {
         return lookupConference(conferenceFullNames, token);
+      }
+
+      // Mirrors conferenceCompactName() in src/lib/conferences.ts (T3 commit B) -- same
+      // reasoning as shortConference()/fullConference() above.
+      function compactConference(token) {
+        return lookupConference(conferenceCompactNames, token);
       }
 
       function renderRows(rankings) {
@@ -1062,12 +1169,19 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         };
       }
 
+      // Mirrors formatRecord() in ScheduleGrid.astro -- see that file's own comment for why
+      // this now returns both conference-name forms instead of one formatted string (T3
+      // commit B).
       function formatRecord(team, confName) {
         const { wins, losses } = team.record;
         if (team.conf_record) {
-          return `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} ${shortConference(confName)}`;
+          return {
+            text: `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} `,
+            confLong: shortConference(confName),
+            confShort: compactConference(confName)
+          };
         }
-        return `${wins}-${losses}`;
+        return { text: `${wins}-${losses}`, confLong: null, confShort: null };
       }
 
       function el(tag, className, text) {
@@ -1152,6 +1266,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           const empty = el("div", "sg-empty");
           empty.appendChild(el("p", null, "Season Grid data isn’t available for this selection yet."));
           scheduleShell.appendChild(empty);
+          // T2: no #schedule-grid-table exists in this branch -- nothing to pin/clone,
+          // so hide the pinned header rather than leave it showing stale columns.
+          syncPinnedHeader();
           return;
         }
 
@@ -1162,6 +1279,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
         const table = document.createElement("table");
         table.id = "schedule-grid-table";
+        // T2/K2: shared geometry class with the pinned header's cloned table -- see
+        // ScheduleGrid.astro's .sg-table comment.
+        table.className = "sg-table";
 
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
@@ -1242,7 +1362,13 @@ const hasAnyData = hasRankingsData || hasScheduleData;
               nameLine.appendChild(rankNode);
             }
             nameBlock.appendChild(nameLine);
-            nameBlock.appendChild(el("span", "sg-team-record", formatRecord(team, conf.name)));
+            const record = formatRecord(team, conf.name);
+            const recordSpan = el("span", "sg-team-record", record.text);
+            if (record.confLong !== null) {
+              recordSpan.appendChild(el("span", "sg-conf-long", record.confLong));
+              recordSpan.appendChild(el("span", "sg-conf-short", record.confShort));
+            }
+            nameBlock.appendChild(recordSpan);
             teamCell.appendChild(nameBlock);
             teamTd.appendChild(teamCell);
             row.appendChild(teamTd);
@@ -1271,6 +1397,11 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           if (!present.has(confSelect.value)) confSelect.value = "all";
         }
         applyConferenceFilter();
+        // T2/K1: the pinned header is a clone of the real thead, rebuilt after every
+        // render -- this table (and its thead) is a fresh element every time, so the
+        // clone (and the IntersectionObserver-free visibility check, which re-queries
+        // #schedule-grid-table each time it runs) has to be redone here too.
+        syncPinnedHeader();
       }
 
       // T14 conference filter. Applied by hiding DOM rows rather than re-rendering a
@@ -1286,6 +1417,206 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         const rows = scheduleShell.querySelectorAll("[data-conference]");
         rows.forEach((row) => {
           row.hidden = value !== "all" && row.dataset.conference !== value;
+        });
+      }
+
+      // ---------------------------------------------------------------------
+      // T2/R4: pinned header. K1 -- a clone of the real <thead>, rebuilt after
+      // every renderScheduleGrid() (both branches, see above) and once on init
+      // below, since the real table (and its thead) is a brand new element
+      // each time. K5 governs when it's actually shown; this section only
+      // keeps it in sync with the real table's content, width and scroll
+      // position, whether or not it's currently visible.
+      // ---------------------------------------------------------------------
+      let scheduleScrollRaf = null;
+      let windowScrollRaf = null;
+
+      // SHOULD-FIX #6 (PR #25 review): initRankingsSelector() runs again on every
+      // astro:page-load (this site uses Astro's ClientRouter -- see this function's own
+      // header comment), including every View Transition back into this same page, but
+      // `window` itself is never replaced across a same-document transition the way a
+      // page-scoped element is -- so a plain window.addEventListener below would stack a
+      // fresh listener on top of the previous generation's every time, never removing it
+      // (verified: getEventListeners(window) counted 1 -> 2 -> 3 over two round trips).
+      // scheduleShell's own "scroll" listener further down doesn't need this same
+      // treatment: that element IS page-scoped, discarded with the rest of this page's
+      // DOM on transition, taking its listener with it.
+      //
+      // One AbortController per call, scoped to the two window listeners it registers;
+      // aborting it removes both at once. astro:before-swap fires immediately before
+      // Astro tears down the current page's DOM for the next navigation -- the right
+      // moment to retire THIS generation's listeners, whether the swap is leaving this
+      // page or just reloading it. `{ once: true }` on the before-swap listener itself
+      // matters here too: each call to this function adds another one, and without
+      // `once` those would ALSO accumulate across transitions, just one layer removed
+      // from the bug this exists to fix.
+      const windowListenerController = new AbortController();
+      document.addEventListener("astro:before-swap", () => windowListenerController.abort(), { once: true });
+
+      // K6: measures the section's TRUE on-screen gutter (rather than assuming the
+      // nominal 1.4rem the width formula in .schedule-section targets) and publishes it
+      // as --sg-gutter for the arrows in ScheduleGrid.astro to size themselves against --
+      // see that file's .sg-scroll-arrow comment for why the nominal value alone
+      // overflowed the page by a measured 7px. documentElement.clientWidth (not
+      // window.innerWidth) is the scrollbar-excluded true viewport width, matching what
+      // actually determines document-level horizontal overflow.
+      function syncGutterWidth() {
+        const section = document.querySelector(".schedule-section");
+        if (!section) return;
+        const rect = section.getBoundingClientRect();
+        const trueViewportWidth = document.documentElement.clientWidth;
+        const leftGutter = Math.max(0, rect.left);
+        const rightGutter = Math.max(0, trueViewportWidth - rect.right);
+        document.documentElement.style.setProperty("--sg-gutter", `${Math.min(leftGutter, rightGutter)}px`);
+      }
+
+      // Re-clones the real thead into the pinned table and re-measures its width.
+      // Safe to call with no real table at all (empty state / no schedule data):
+      // it just clears the clone and hides the pinned header, matching K5's "not
+      // shown while there's nothing to pin" for free rather than as a special case.
+      function syncPinnedHeader() {
+        if (!pinnedTable) return;
+        const realTable = document.getElementById("schedule-grid-table");
+        const realThead = realTable ? realTable.querySelector("thead") : null;
+        const oldClone = pinnedTable.querySelector("thead");
+        if (oldClone) oldClone.remove();
+        if (realThead) {
+          pinnedTable.appendChild(realThead.cloneNode(true));
+          // table-layout: fixed (shared via .sg-table, K2) distributes a KNOWN width
+          // across columns -- it can't size an otherwise-unconstrained table to match
+          // another element, so the clone's width is copied from the real table's
+          // measured offsetWidth every time this runs.
+          pinnedTable.style.width = `${realTable.offsetWidth}px`;
+        }
+        applyPinnedTransform();
+        updateArrowState();
+        updatePinnedVisibility();
+      }
+
+      // Keeps the clone in horizontal lockstep with the real table's own scroll --
+      // see .sg-pinned-viewport's comment in ScheduleGrid.astro for why this is a
+      // transform rather than a second independent scroll position.
+      function applyPinnedTransform() {
+        if (!pinnedTable || !scheduleShell) return;
+        pinnedTable.style.transform = `translateX(${-scheduleShell.scrollLeft}px)`;
+      }
+
+      // K6: three week-columns' worth, read from a live cell so a future width change
+      // to .sg-th (T2/K2's --sg-col1-width sibling doesn't cover week columns, but the
+      // same "don't hand-copy a measurement" reasoning applies) is followed automatically
+      // rather than re-hardcoding 96px (6rem) here.
+      function weekColumnStep() {
+        const weekTh = document.querySelector("#schedule-grid-table .sg-th:not(.sg-corner)");
+        const width = weekTh ? weekTh.offsetWidth : 96;
+        return width * 3;
+      }
+
+      function updateArrowState() {
+        if (!scheduleShell || !scrollArrowLeft || !scrollArrowRight) return;
+        const maxScrollLeft = scheduleShell.scrollWidth - scheduleShell.clientWidth;
+        scrollArrowLeft.disabled = scheduleShell.scrollLeft <= 0;
+        // 1px epsilon: sub-pixel layout can leave scrollLeft a fraction short of
+        // maxScrollLeft even when the shell is genuinely scrolled all the way.
+        scrollArrowRight.disabled = scheduleShell.scrollLeft >= maxScrollLeft - 1;
+      }
+
+      // K5: shown only once the real header row has scrolled above the viewport --
+      // checked directly against the real thead's own rendered position (a passive
+      // scroll check) rather than an IntersectionObserver, since the real thead is a
+      // brand new element after every render and an observer would need the same
+      // re-attach-on-every-render handling this function's callers already do anyway.
+      function isRealTheadAboveViewport() {
+        const realTable = document.getElementById("schedule-grid-table");
+        const realThead = realTable ? realTable.querySelector("thead") : null;
+        if (!realThead) return false;
+        return realThead.getBoundingClientRect().bottom <= 0;
+      }
+
+      function updatePinnedVisibility() {
+        if (!pinnedHeader) return;
+        const shouldShow = activeTab === "schedule" && isRealTheadAboveViewport();
+        // NIT (PR #25 review): a keyboard user focused on one of the arrows loses their
+        // place to <body> the instant this hides them (an ancestor going hidden clears
+        // focus with nowhere else to land) -- move focus to the shell first, the
+        // nearest still-visible thing that was "under" the bar. Checked before writing
+        // `hidden`, since afterwards .contains() can no longer see what was focused.
+        //
+        // SHOULD-FIX (PR #25 focused re-check): no runtime setAttribute("tabindex", "-1")
+        // here any more -- the shell now carries a PERMANENT tabindex="0" in its own
+        // server markup (ScheduleGrid.astro), so it's already focusable every time this
+        // runs; conditionally adding "-1" here used to retract the shell's *implicit*
+        // fallback Tab-stop status (browsers make a non-focusable-descendant scrollable
+        // region a Tab stop on their own, but only until something gives it an EXPLICIT
+        // tabindex) for the rest of the visit after the very first handoff, which is what
+        // made a second keyboard user lose the grid entirely. See that markup comment for
+        // the full reasoning and the reviewer's verification numbers.
+        //
+        // { preventScroll: true } (the reviewer's other nit on this fix): .focus() on an
+        // element that isn't fully in view scrolls it into view by default -- with the
+        // shell just below the viewport top at this exact moment (that's WHY the bar is
+        // hiding), a plain .focus() call would itself move scrollY, fighting the very
+        // scroll position isRealTheadAboveViewport() just read. preventScroll keeps this
+        // a pure focus move.
+        if (!shouldShow && !pinnedHeader.hidden && pinnedHeader.contains(document.activeElement)) {
+          if (scheduleShell) scheduleShell.focus({ preventScroll: true });
+        }
+        pinnedHeader.hidden = !shouldShow;
+      }
+
+      if (scheduleShell) {
+        // rAF-throttled: scroll fires far more often than a frame renders.
+        scheduleShell.addEventListener("scroll", () => {
+          if (scheduleScrollRaf) return;
+          scheduleScrollRaf = requestAnimationFrame(() => {
+            scheduleScrollRaf = null;
+            applyPinnedTransform();
+            updateArrowState();
+          });
+        });
+      }
+
+      // R4/K5: the PAGE scrolls now (R3), not the shell, so visibility tracks WINDOW
+      // scroll -- separate from the shell's own horizontal scroll listener above, which
+      // only ever affects the transform/arrow state, never visibility.
+      window.addEventListener("scroll", () => {
+        if (windowScrollRaf) return;
+        windowScrollRaf = requestAnimationFrame(() => {
+          windowScrollRaf = null;
+          updatePinnedVisibility();
+        });
+      }, { signal: windowListenerController.signal });
+
+      window.addEventListener("resize", () => {
+        // Width and disabled-state can both change with the viewport even with no
+        // new render (e.g. rotating a phone); visibility can too (the thead's own
+        // position shifts when reflow changes row heights).
+        if (pinnedTable) {
+          const realTable = document.getElementById("schedule-grid-table");
+          if (realTable) pinnedTable.style.width = `${realTable.offsetWidth}px`;
+        }
+        syncGutterWidth();
+        updateArrowState();
+        updatePinnedVisibility();
+      }, { signal: windowListenerController.signal });
+
+      // SHOULD-FIX #5 (PR #25 review): no `behavior: "smooth"` option here -- passed
+      // directly to scrollBy(), it ignores the user's prefers-reduced-motion setting
+      // entirely (verified under emulated `reduce`: still animated 0 -> 2 -> 321).
+      // Smoothness instead comes from `scroll-behavior: smooth` in CSS on
+      // .schedule-grid-shell (ScheduleGrid.astro), which a
+      // `@media (prefers-reduced-motion: reduce)` override there turns back to `auto` --
+      // the same reduced-motion pattern BaseLayout's own CSS already uses, so a user who
+      // has asked for less motion gets it from ONE mechanism site-wide instead of this
+      // control needing its own opt-out.
+      if (scrollArrowLeft) {
+        scrollArrowLeft.addEventListener("click", () => {
+          if (scheduleShell) scheduleShell.scrollBy({ left: -weekColumnStep() });
+        });
+      }
+
+      if (scrollArrowRight) {
+        scrollArrowRight.addEventListener("click", () => {
+          if (scheduleShell) scheduleShell.scrollBy({ left: weekColumnStep() });
         });
       }
 
@@ -1389,6 +1720,24 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         } else if (!isSchedule && Number(seasonSelect.value) !== loadedRankingsSeason) {
           syncRankingsToSeason(seasonSelect.value);
         }
+
+        // A hidden ancestor (schedulePanel.hidden above, or the initial page-load state
+        // before any tab switch) collapses #schedule-grid-table's own layout box, so any
+        // clone/width/arrow-extent measurement taken while hidden reads everything as 0
+        // -- re-measure now that the panel's hidden attribute has just been cleared
+        // above and the browser has a real layout to read (querying layout properties
+        // forces a synchronous reflow, so this does not need to wait a frame).
+        if (isSchedule) {
+          syncGutterWidth();
+          syncPinnedHeader();
+        }
+        // K5: hidden outright whenever the schedule tab isn't the active one, on top of
+        // the scroll-position check inside updatePinnedVisibility -- switching to
+        // Rankings must hide it even if the window happens to be scrolled past where the
+        // (now-hidden) real thead sits. syncPinnedHeader() above already calls this too,
+        // but only on the isSchedule branch; this unconditional call is what actually
+        // hides it on the Rankings branch.
+        updatePinnedVisibility();
       }
 
       if (tabSwitch) {
@@ -1424,6 +1773,10 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       // solely on the season-change path, since the initial schedule-tab-panel grid
       // is server-rendered and never passes through renderScheduleGrid().
       applyConferenceFilter();
+      // Same reasoning as applyConferenceFilter() above, for the same reason: the
+      // initial grid is server-rendered and never passes through renderScheduleGrid(),
+      // so the pinned header needs its own first clone+measure here.
+      syncPinnedHeader();
     }
 
     document.addEventListener("astro:page-load", initRankingsSelector);

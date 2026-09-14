@@ -65,6 +65,32 @@ export const CONFERENCE_FILTER_LABELS: Record<string, string> = {
   "FBS Independent": "FBS Independents",
 };
 
+/**
+ * Even more compact than CONFERENCE_SHORT_NAMES, for the Season Grid's per-team record
+ * line specifically at phone widths (season-grid-layout T3, commit B). CONFERENCE_SHORT_NAMES's
+ * own values ("Big 12", "Mountain West") were sized for that line's DESKTOP column (12rem,
+ * team name on one line); at 6.375rem, with the name now free to wrap onto a second line
+ * instead of ellipsising, the record line is the one piece of that cell still fighting for
+ * width, and "6-3 Mountain West" does not fit a column meant for the SEC's three letters.
+ * This is not a replacement for CONFERENCE_SHORT_NAMES -- the desktop record line keeps using
+ * that map unchanged; this is an additional, narrower-purpose variant swapped in by CSS only
+ * at 640px, same pattern as the record line's own two spans (.sg-conf-long/.sg-conf-short) in
+ * ScheduleGrid.astro and index.astro's client mirror.
+ */
+export const CONFERENCE_COMPACT_NAMES: Record<string, string> = {
+  ACC: "ACC",
+  "BIG 12": "B12",
+  "BIG 10": "B10",
+  SEC: "SEC",
+  "FBS Independent": "Ind",
+  American: "AAC",
+  CUSA: "CUSA",
+  MAC: "MAC",
+  MWC: "MWC",
+  "PAC 12": "P12",
+  SBC: "SBC",
+};
+
 // Object.hasOwn, not `MAP[token] ?? token`: these maps are object literals, so they inherit
 // Object.prototype, and a token of "constructor" or "toString" would return the inherited
 // FUNCTION instead of falling through to the token. Not reachable with any real conference
@@ -84,4 +110,8 @@ export function conferenceShortName(token: string): string {
 
 export function conferenceFilterLabel(token: string): string {
   return lookup(CONFERENCE_FILTER_LABELS, token);
+}
+
+export function conferenceCompactName(token: string): string {
+  return lookup(CONFERENCE_COMPACT_NAMES, token);
 }

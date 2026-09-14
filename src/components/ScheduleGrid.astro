@@ -22,7 +22,7 @@
 // image at all. No placeholder-initial badge (confirmed there is no precedent
 // for one anywhere in this codebase).
 
-import { conferenceFullName, conferenceShortName } from "../lib/conferences";
+import { conferenceFullName, conferenceShortName, conferenceCompactName } from "../lib/conferences";
 
 interface WeekCell {
   slot_id: string;
@@ -287,12 +287,26 @@ function buildCellView(cell: WeekCell): CellView {
 // reading "Big Ten Conference", leaving "2-0, 2-0 BIG 10" underneath it looks like a bug
 // rather than a deliberate abbreviation. Short rather than full because this line is 0.6rem
 // secondary text inside a 12rem column -- "2-0, 2-0 Southeastern Conference" would not fit.
-function formatRecord(team: TeamEntry, confName: string): string {
+//
+// T3 commit B: returns BOTH the short (desktop, unchanged) and compact (phone-only) conference
+// forms rather than a single formatted string -- the template renders both as sibling spans
+// (.sg-conf-long/.sg-conf-short) and a 640px CSS rule picks one, so there is no re-render on
+// resize and no risk of the two ever showing at once. confLong/confShort are null together
+// with the same Independent-shaped record for the same reason the old single-string version
+// omitted the suffix entirely: no conf_record, nothing to attribute a conference number to.
+function formatRecord(
+  team: TeamEntry,
+  confName: string
+): { text: string; confLong: string | null; confShort: string | null } {
   const { wins, losses } = team.record;
   if (team.conf_record) {
-    return `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} ${conferenceShortName(confName)}`;
+    return {
+      text: `${wins}-${losses}, ${team.conf_record.wins}-${team.conf_record.losses} `,
+      confLong: conferenceShortName(confName),
+      confShort: conferenceCompactName(confName),
+    };
   }
-  return `${wins}-${losses}`;
+  return { text: `${wins}-${losses}`, confLong: null, confShort: null };
 }
 
 // T15: which team indexes within a conference get a division sub-heading above them.
@@ -332,9 +346,89 @@ const columns: Array<{ slot_id: string; label: string }> =
   data?.conferences[0]?.teams[0]?.weeks.map((w) => ({ slot_id: w.slot_id, label: w.label })) ?? [];
 ---
 
-<div class="schedule-grid-shell" id="schedule-grid-shell">
+{/*
+  T2/R4: the pinned header. A sibling of #schedule-grid-shell (not a descendant),
+  server-rendered here so both come out of this ONE component call as siblings inside
+  index.astro's #schedule-tab-panel -- see this file's header comment on why the
+  component owns markup index.astro's own <script> only wires up. Server-rendered empty
+  (no thead) and always hidden until JS runs: the client has to rebuild it from the real
+  thead on every render anyway (K1), including the very first one, so there is nothing
+  useful to pre-render inside .sg-pinned-table -- doing so would just be a second copy
+  for the client to immediately discard.
+
+  Structure: two chevrons (K6) as direct children of .sg-pinned so they pin with it,
+  each width = the gutter and positioned into it via a negative offset (this section is
+  full-bleed via margin, not padding -- see .schedule-section in index.astro -- so the
+  gutter is space OUTSIDE this element's own box, not inside it); a viewport
+  (overflow: hidden) holding the cloned <thead> as a real .sg-table so it shares exact
+  column geometry with the real table (K2); and a separate, non-transformed
+  .sg-pinned-corner div overlaid on the viewport's left edge, opaque, so the cloned
+  table's own corner cell can slide underneath it uniformly with the rest of the clone
+  during horizontal scroll (translateX applies to the whole cloned table, corner
+  included) without ever being visibly off-register -- see that class's own comment.
+*/}
+{data && columns.length > 0 ? (
+  /* MUST-FIX (PR #25 review): #sg-pinned used to BE the sticky element, still in normal
+     flow -- un-hiding it inserted its own height (30px desktop / 41px phone) above the
+     shell, pushing the real thead down by that much, which the visibility check then
+     read as "scrolled less far", hiding the bar again, un-pushing the thead, showing it
+     again... a self-triggering loop across the exact scroll band where the thead's edge
+     sits within one bar-height of the viewport top. Reproduced by the reviewer via
+     window.scrollTo sweeps landing on alternating hidden/shown with scrollY jittering by
+     the bar's own height each toggle.
+
+     Fix: .sg-pinned-anchor is the thing that's actually position: sticky -- and it is
+     height: 0, ALWAYS, in both bar states, because it never contains the bar's own
+     content in normal flow. #sg-pinned itself is position: absolute inside it instead
+     (top/left/right: 0, sized by the anchor's own box, same as it used to be sized by
+     being in flow at the top of #schedule-tab-panel) -- an absolutely positioned
+     element contributes nothing to its containing block's height whether it's
+     display: none or not, so showing/hiding it can no longer move anything. */
+  <div class="sg-pinned-anchor" id="sg-pinned-anchor">
+    <div class="sg-pinned" id="sg-pinned" hidden>
+      <button type="button" class="sg-scroll-arrow sg-scroll-arrow--left" id="sg-scroll-left" aria-label="Scroll grid left" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </button>
+      {/* SHOULD-FIX #2 (PR #25 review): aria-hidden goes on the VIEWPORT, not on #sg-pinned
+          itself -- the arrows are real, independently operable controls and must stay
+          reachable to assistive tech; only the cloned table (a visual-only duplicate of
+          the real one, K1) should be hidden from it. */}
+      <div class="sg-pinned-viewport" id="sg-pinned-viewport" aria-hidden="true">
+        <table class="sg-table sg-pinned-table" id="sg-pinned-table">
+          <thead></thead>
+        </table>
+        <div class="sg-pinned-corner" aria-hidden="true">Team</div>
+      </div>
+      <button type="button" class="sg-scroll-arrow sg-scroll-arrow--right" id="sg-scroll-right" aria-label="Scroll grid right" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+) : null}
+
+{/* SHOULD-FIX (PR #25 focused re-check): tabindex="0" + role="region" + aria-label are
+    permanent, set here in server markup rather than toggled at runtime -- with the
+    default season the grid can have ZERO focusable descendants (.sg-game-name's own
+    tabindex="0" only exists for no-logo opponents: 92 rows in 2025, 0 in 2026), and on a
+    fully non-focusable scrollable region Chrome 130+/Firefox make the region itself the
+    Tab stop and route arrow keys to it -- but only as an IMPLICIT fallback, which a
+    runtime-added tabindex="-1" (the focus-handoff NIT's original fix, index.astro) wiped
+    out for the rest of the visit the instant it ran once (reviewer verified with real key
+    events: Tab landed on the shell before any handoff, on <body> after one). A permanent,
+    real tabindex="0" makes the shell an explicit, stable Tab stop instead of a fallback
+    that a single unrelated DOM write can retract. role="region" + aria-label give that
+    stop a name, since a bare scrollable div with no accessible name is otherwise
+    announced as nothing. The client-side season re-render (index.astro's
+    renderScheduleGrid) only ever does scheduleShell.textContent = "" and re-appends
+    children -- it never replaces #schedule-grid-shell itself, so these attributes survive
+    every season change untouched. */}
+<div class="schedule-grid-shell" id="schedule-grid-shell" tabindex="0" role="region" aria-label="Season grid, scrolls sideways">
   {data && columns.length > 0 ? (
-    <table id="schedule-grid-table">
+    <table id="schedule-grid-table" class="sg-table">
       <thead>
         <tr>
           <th class="sg-th sg-corner">Team</th>
@@ -359,6 +453,7 @@ const columns: Array<{ slot_id: string; label: string }> =
               // generically, so no filter change was needed.
               const showDivisionHeader = divisionHeaders.has(teamIndex);
               const division = team.division ?? null;
+              const record = formatRecord(team, conf.name);
               return (
               <>
               {showDivisionHeader ? (
@@ -385,7 +480,18 @@ const columns: Array<{ slot_id: string; label: string }> =
                           <span class="sg-team-rank" role="img" aria-label={`Rank ${team.rank}`}>{team.rank}</span>
                         ) : null}
                       </span>
-                      <span class="sg-team-record">{formatRecord(team, conf.name)}</span>
+                      <span class="sg-team-record">
+                        {record.text}
+                        {record.confLong !== null ? (
+                          <>
+                            {/* T3 commit B: both forms always render; a 640px CSS rule
+                                (see .sg-conf-long/.sg-conf-short below) picks one --
+                                see formatRecord()'s own comment for why. */}
+                            <span class="sg-conf-long">{record.confLong}</span>
+                            <span class="sg-conf-short">{record.confShort}</span>
+                          </>
+                        ) : null}
+                      </span>
                     </span>
                   </span>
                 </td>
@@ -478,10 +584,13 @@ const columns: Array<{ slot_id: string; label: string }> =
     Mirrors RankingsTable.astro's own is:global rationale exactly.
   */
   .schedule-grid-shell {
+    /* T2/R3: no max-height any more -- the grid lays out at full height and the PAGE
+       scrolls vertically (the shell used to cap at 82vh and scroll its own content,
+       which is exactly the scroll-trapping R3 exists to fix). Horizontal scroll stays:
+       overflow-x is still needed for a viewport narrower than the table's min-width,
+       and overflow-y along with it since this rule sets `overflow` on both axes at once
+       and a y-value of `auto` is harmless with no height cap to make it engage. */
     overflow: auto;
-    /* Was 70vh with much taller rows, which capped the view at ~9-10 teams -- fewer
-       than any conference has, so no conference could be read without scrolling. */
-    max-height: 82vh;
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     /* Solid, matching .sg-team-col below (T10): this shell is the backdrop behind
@@ -497,6 +606,24 @@ const columns: Array<{ slot_id: string; label: string }> =
        pseudo-elements below cover Chrome/Safari, since neither alone covers both. */
     scrollbar-color: rgba(173, 196, 221, 0.35) rgba(255, 255, 255, 0.04);
     scrollbar-width: thin;
+    /* SHOULD-FIX #5 (PR #25 review): the arrows' smooth scroll lives here instead of a
+       `behavior: "smooth"` option on scrollBy() (index.astro) -- that option ignores
+       prefers-reduced-motion entirely, verified under emulated `reduce` (still animated).
+       CSS scroll-behavior respects it via the override just below, matching the pattern
+       BaseLayout's own reduced-motion CSS already uses.
+       Note for later: this makes ANY future programmatic write to this element's
+       scrollLeft animate, not just the two arrow clicks above -- there is no such write
+       today besides those, but it bit the PR #25 reviewer's own test harness (a direct
+       scrollLeft assignment landed short until it waited out the animation), so budget
+       for it (or set scrollLeft via `{ behavior: "instant" }` where supported) before
+       adding one. */
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .schedule-grid-shell {
+      scroll-behavior: auto;
+    }
   }
 
   .schedule-grid-shell::-webkit-scrollbar {
@@ -524,7 +651,27 @@ const columns: Array<{ slot_id: string; label: string }> =
     font-size: 0.9rem;
   }
 
-  #schedule-grid-table {
+  /* T2/K2: column 1's width, shared by every element that has to agree on it --
+     .sg-corner and .sg-team-col (the real table) and .sg-pinned-corner (the pinned
+     clone's non-transformed overlay, see below). T3 overrides this one custom property
+     at 640px instead of three separate literals, so the three stay in lockstep by
+     construction rather than by three people remembering to edit together. */
+  :root {
+    --sg-col1-width: 12rem;
+  }
+
+  /* T2/K2: geometry-determining rules (widths, padding, border, table sizing) live on
+     this class, carried by BOTH the real table (#schedule-grid-table, server-rendered
+     here and client-rebuilt in index.astro) and the pinned header's cloned table
+     (.sg-pinned-table) -- so a clone that cannot share the real table's ID still gets
+     byte-identical column geometry. This block does NOT receive BaseLayout's scoped
+     `* { box-sizing: border-box }` (that rule is scoped to BaseLayout's own template,
+     not this is:global one -- see this file's header comment), so every cell here
+     computes content-box; sharing the same padding/border on both tables is what keeps
+     that consistent rather than merely coincidental. Purely cosmetic rules (color,
+     font-size, text-transform...) stay bare-class or ID-qualified below as before --
+     only geometry moved, per K2. */
+  .sg-table {
     /* Deliberately NOT width:100%. Stretching the table to fill the shell distributed
        the slack across the week columns, leaving a wide gap after every score. Sizing
        to content instead lets each week column be as narrow as its widest cell. */
@@ -541,8 +688,8 @@ const columns: Array<{ slot_id: string; label: string }> =
     table-layout: fixed;
   }
 
-  #schedule-grid-table th,
-  #schedule-grid-table td {
+  .sg-table th,
+  .sg-table td {
     padding: 0.22rem 0.3rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     border-right: 1px solid rgba(255, 255, 255, 0.06);
@@ -558,18 +705,18 @@ const columns: Array<{ slot_id: string; label: string }> =
      score), measured in a real browser render; the sole thing that used to be
      wider, the no-logo opponent-name fallback, already self-truncates via its own
      max-width + ellipsis (see .sg-opp-fallback) so it no longer drives column
-     width. .sg-corner and .sg-team-col keep their own separate 9.75rem, and the
-     postseason columns (Conference Championship / Bowls / CFP slots) share this
+     width. .sg-corner and .sg-team-col keep their own separate width (--sg-col1-width),
+     and the postseason columns (Conference Championship / Bowls / CFP slots) share this
      same width rather than a distinct one: their header <th> carries no marker
      that distinguishes them from a plain week column, and the client-side mirror
-     in index.astro (out of this task's owned scope) creates every non-corner
-     header with the identical "sg-th" class, so any new class added only here
-     would silently stop applying the moment a season switch rebuilds the table
-     client-side -- the same hazard this file's own header comment warns about.
-     Sharing the width is a safe, always-in-sync default; the task's constraint
-     only requires week columns to match each other, not to differ from these. */
+     in index.astro creates every non-corner header with the identical "sg-th" class,
+     so any new class added only here would silently stop applying the moment a season
+     switch rebuilds the table client-side -- the same hazard this file's own header
+     comment warns about. Sharing the width is a safe, always-in-sync default; the
+     task's constraint only requires week columns to match each other, not to differ
+     from these. */
   .sg-th:not(.sg-corner),
-  #schedule-grid-table td:not(.sg-team-col) {
+  .sg-table td:not(.sg-team-col) {
     /* min and max, not width alone. table-layout: fixed above is NOT sufficient on its
        own: Chromium falls back to auto layout when the table's own width is auto (this
        table is deliberately content-sized, not width:100%), so a bare `width` becomes a
@@ -589,21 +736,22 @@ const columns: Array<{ slot_id: string; label: string }> =
     max-width: 6rem;
   }
 
-  /* Sticky header row. Selector is qualified with the table's ID (rather than
-     plain .sg-th) so its white-space: normal actually beats the higher-specificity
-     #schedule-grid-table th, td { white-space: nowrap } above -- a bare class
-     selector cannot out-rank an ID selector regardless of source order. Wrapping
-     lets a label like "Conference Championship" fall onto a second line now that
-     every header cell shares one fixed width instead of growing to fit its text. */
-  #schedule-grid-table .sg-th {
+  /* T2/K3: no longer top-sticky -- the page scrolls now (R3), not the shell, so a
+     top:0 sticky-to-the-shell header would be inert at best (the shell never gets tall
+     enough to scroll its own content) and confusing at worst. The pinned clone header
+     (.sg-pinned below) replaces what top-stickiness used to do, sticking to the WINDOW
+     instead of the shell. Selector stays qualified with .sg-table (rather than plain
+     .sg-th) so its white-space: normal actually beats the higher-specificity
+     .sg-table th, td { white-space: nowrap } above -- two classes still out-ranks one
+     class + one type regardless of source order. Wrapping lets a label like
+     "Conference Championship" fall onto a second line now that every header cell
+     shares one fixed width instead of growing to fit its text. */
+  .sg-table .sg-th {
     /* Column names centred over their columns, matching RankingsTable.astro. Scoped to
        .sg-th rather than to `th`: the conference and division heading rows are also <th>
        cells, and those are section labels down the left edge, not column names -- centring
        them would push each conference name into the middle of the sticky first column. */
     text-align: center;
-    position: sticky;
-    top: 0;
-    z-index: 2;
     background: rgba(10, 15, 20, 0.96);
     color: var(--muted);
     font-size: 0.64rem;
@@ -613,30 +761,222 @@ const columns: Array<{ slot_id: string; label: string }> =
     white-space: normal;
   }
 
-  /* Sticky corner cell: both top AND left, above every other sticky layer, with
-     its own explicit opaque background so scrolled content never bleeds through
-     the intersection -- no existing component in this codebase combines both.
-     Selector is qualified with the table ID, matching #schedule-grid-table
-     .sg-th above (same reason: a bare .sg-corner class cannot out-rank that
-     ID-qualified rule, which also targets this element since it also carries
-     "sg-th" -- without the qualification here, .sg-th's z-index: 2 and header
-     background would silently win over this cell's z-index: 4 and background). */
-  #schedule-grid-table .sg-corner {
+  /* T2/K3: left-sticky only now (top-stickiness dropped, same as .sg-th above) --
+     still needs its own opaque background so horizontally-scrolled columns don't bleed
+     through underneath it, and its own z-index so it paints above the non-sticky header
+     cells sliding past it (position: sticky already paints above position: static
+     siblings by default; the explicit value matches the same tier as .sg-team-col /
+     .sg-conf-header--sticky / .sg-div-header--sticky below it, z-index: 1, rather than
+     the old z-index: 4 that existed only for the now-removed top+left intersection). */
+  .sg-table .sg-corner {
     position: sticky;
-    top: 0;
     left: 0;
-    z-index: 4;
+    z-index: 1;
     background: rgba(10, 15, 20, 0.98);
     /* table-layout: fixed (above) sizes every column from the header row's <th>
        widths alone -- matches .sg-team-col's own min/max-width below so the two
-       stay in lockstep. */
-    width: 12rem;
+       stay in lockstep via the shared --sg-col1-width custom property. */
+    width: var(--sg-col1-width);
   }
 
+  /* MUST-FIX (PR #25 review): the actually-sticky element. height: 0 in BOTH states of
+     the bar it anchors -- #sg-pinned (below) is position: absolute inside it, which
+     never contributes to a containing block's height, so toggling the bar's hidden
+     attribute cannot change this element's own box, which is what makes the real
+     thead's position (what the visibility check reads) independent of the bar's own
+     visibility. See the markup comment for the failure mode this replaces. */
+  .sg-pinned-anchor {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: 0;
+  }
+
+  /* T2/R4/K5: the pinned header itself. position: absolute inside .sg-pinned-anchor
+     (above) rather than position: sticky directly -- see that rule's comment for why.
+     Same opaque background as .schedule-grid-shell so page content passing underneath
+     while pinned never bleeds through. Visibility (hidden attribute) is driven entirely
+     by index.astro's script, per K5 -- never CSS alone, since it depends on scroll
+     position and which tab is active. */
+  .sg-pinned {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* Fully opaque -- NOT rgba(16, 23, 32, 0.98), the "opaque" value used for
+       .schedule-grid-shell / .sg-team-col elsewhere in this file. That 2% see-through
+       is imperceptible everywhere else it's used, because what sits behind THOSE
+       elements is just more of the same dark page background. This element is
+       different: an actively translateX'd copy of the real table sits directly behind
+       it, so what's 2% visible through this background is bright header text and
+       colored team logos sliding past underneath, not a uniform color -- verified by
+       pixel-sampling a zoomed screenshot: forcing this to fully opaque was the one
+       change that made the ghosting disappear; the corner overlay already spans this
+       element's full height with no gap (see .sg-pinned-corner below, also fixed for
+       the same reason), so the bug was the alpha channel, not coverage. */
+    background: rgb(16, 23, 32);
+  }
+
+  .sg-pinned[hidden] {
+    display: none;
+  }
+
+  /* K2: real geometry, fake scroll. overflow: hidden crops .sg-pinned-table to this
+     box's width -- the actual horizontal "scrolling" is a translateX the script applies
+     to .sg-pinned-table itself (see syncPinnedHeader/applyPinnedTransform in
+     index.astro), kept in lockstep with #schedule-grid-shell's real scrollLeft, rather
+     than this viewport having its own independent scroll position to keep in sync.
+     position: relative anchors .sg-pinned-corner (below) to this box's own edges. */
+  .sg-pinned-viewport {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* The clone's own width is set from the real table's measured offsetWidth by the
+     script (table-layout: fixed alone can't size an unconstrained table to match another
+     element -- it only distributes a KNOWN width across columns). padding-left: 1px
+     matches #schedule-grid-shell's own 1px border (this stylesheet is content-box, see
+     the .sg-table comment, so that border sits between the shell's outer edge and its
+     table's first pixel of content) -- without it every pinned th would sit 1px left of
+     its real column, failing the alignment check by exactly the shell's border width. */
+  .sg-pinned-table {
+    padding-left: 1px;
+  }
+
+  /* T2/K2: a separate, non-transformed opaque cell standing in for the corner. The
+     cloned table's OWN corner <th> (inside .sg-pinned-table, sharing .sg-table .sg-corner
+     above) still exists and still carries position: sticky/left: 0 from that rule, but
+     .sg-pinned-viewport never actually scrolls (see its own comment) so that stickiness
+     never engages -- the cloned corner just slides left with the rest of the row under
+     the script's translateX, same as every other cloned header cell. This div sits on
+     top of that motion at a fixed position instead: same width as the real corner
+     (--sg-col1-width, T2/K2/T3 lockstep), same opaque background, so the moving cloned
+     corner (and whatever column has scrolled into that same screen position) passes
+     underneath it unseen. */
+  .sg-pinned-corner {
+    position: absolute;
+    top: 0;
+    /* 1px, not 0: matches #schedule-grid-shell's own 1px border the same way
+       .sg-pinned-table's padding-left does (see its comment), but a padding on this
+       element's own parent (.sg-pinned-viewport) would NOT have had the same effect --
+       an absolutely positioned child's `left` offset is measured from the containing
+       block's PADDING edge regardless of how much padding that ancestor has, so the
+       compensation has to live directly on this offset instead. Measured: -1px without
+       this (the .sg-team-col comparison this exists to stand in for). */
+    left: 1px;
+    width: var(--sg-col1-width);
+    height: 100%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* SHOULD-FIX #1 (PR #25 review): matches .sg-table th/td's own horizontal padding --
+       without it this overlay renders 9.6px (0.3rem each side) NARROWER than the real
+       corner cell it's supposed to fully cover (measured: overlay right edge 208.9px vs
+       the cell's 218.5px at 1440), leaving a gap the cloned table's own moving content
+       (e.g. "Week 0") was passing through and briefly becoming visible in, at just over
+       half of a wide scrollLeft sweep. box-sizing stays content-box at desktop (matching
+       .sg-table's own is:global default, see that class's comment) so this padding
+       correctly WIDENS the box to 202.6px, matching the real cell; at 640px both this
+       element and .sg-table's cells are border-box (T3), where padding is absorbed into
+       the already-equal declared width instead, so it doesn't need separate handling
+       there. */
+    padding: 0 0.3rem;
+    /* Fully opaque, same reasoning as .sg-pinned's own background above -- this overlay
+       sits directly on top of the cloned table's own (moving) corner cell, which is
+       exactly the case where a 2% see-through stopped being invisible. */
+    background: rgb(10, 15, 20);
+    color: var(--muted);
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* K6: chevron buttons, children of .sg-pinned so they pin with it. Positioned into
+     the section's own gutter -- the space OUTSIDE .sg-pinned's box (this section is
+     full-bleed via negative margin, not padding, see .schedule-section in index.astro)
+     -- via a negative offset sized to exactly the gutter width, so each button fills the
+     gutter without extending past the true viewport edge. T3 repositions these on top of
+     the header instead (mobile has no gutter to sit in).
+
+     Width comes from --sg-gutter (set by syncGutterWidth() in index.astro's script, with
+     the nominal 1.4rem as a fallback before that script runs), NOT a bare 1.4rem: the
+     section's own gutter (.schedule-section's width formula, T1) is only nominally
+     1.4rem -- browsers that reserve on-screen space for a scrollbar make CSS's own
+     100vw a few pixels wider than the actual, scrollbar-excluded viewport
+     (documentElement.clientWidth), so the section's TRUE rendered gutter comes out
+     narrower than 1.4rem by half that discrepancy. An arrow hardcoded to the nominal
+     1.4rem then overflows the true viewport edge by the difference -- measured: 7px of
+     page-level horizontal overflow on a desktop Chromium profile with a reserved-space
+     scrollbar. Reading the real gutter from .schedule-section's own rendered position
+     (rather than re-deriving the scrollbar width) keeps this correct without having to
+     mirror T1's breakout math a second time. */
+  .sg-scroll-arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: var(--sg-gutter, 1.4rem);
+    /* Above .sg-pinned-corner's z-index: 2 -- at desktop the two never overlap (the
+       arrows sit outside .sg-pinned-viewport entirely, in the gutter), but at 640px
+       (T3) they become overlays ON TOP of the header instead, at which point DOM order
+       alone would put the viewport's later-painted corner above the left arrow (which
+       comes first in markup) without this. */
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: rgba(16, 23, 32, 0.98);
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: color 180ms ease, opacity 180ms ease;
+  }
+
+  .sg-scroll-arrow svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .sg-scroll-arrow:hover:not(:disabled) {
+    color: var(--text);
+  }
+
+  .sg-scroll-arrow:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .sg-scroll-arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .sg-scroll-arrow--left {
+    left: calc(-1 * var(--sg-gutter, 1.4rem));
+  }
+
+  .sg-scroll-arrow--right {
+    right: calc(-1 * var(--sg-gutter, 1.4rem));
+  }
+
+  /* SHOULD-FIX #3 (PR #25 review): no font-size declared here (there used to be one,
+     0.68rem) -- on main, that value was ALREADY dead: the shared cell rule this file's
+     .sg-table comment describes was #schedule-grid-table th, td there, ID-qualified
+     (1,0,1), which beats this rule's two bare classes (0,2,0) regardless of source
+     order, so main always rendered this band at THAT rule's 0.75rem (12px) and this
+     property never took visible effect. Converting the shared rule to .sg-table th, td
+     (K2, needed so the pinned clone can share it without the real table's ID) dropped it
+     to (0,1,1), which two classes DOES outrank -- so this 0.68rem started actually
+     applying, a real, measured regression (10.88px vs main's 12px) nobody intended.
+     Removing the property restores 12px by letting .sg-table th, td's own font-size
+     cascade through uncontested, without re-adding ID-qualification to that shared rule
+     (which would defeat the reason it was generalized in the first place). */
   .sg-conf-row .sg-conf-header {
     background: rgba(125, 211, 252, 0.08);
     color: var(--text);
-    font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -647,8 +987,14 @@ const columns: Array<{ slot_id: string; label: string }> =
      stops them.
 
      They sit in column 1 alongside .sg-team-col, and their white-space: normal above never
-     applied: #schedule-grid-table th, td sets nowrap with an ID in the selector, which the
-     bare class rules above cannot out-rank. Unbreakable text has a min-content width equal to
+     applied on main: the shared cell rule was #schedule-grid-table th, td there,
+     ID-qualified, which the bare class rules above (.sg-conf-row .sg-conf-header) could not
+     out-rank. That base rule is .sg-table th, td now (K2, generalized so the pinned clone can
+     share it -- see that class's own comment), which .sg-conf-row .sg-conf-header's two
+     classes WOULD now out-rank on its own -- this rule stays ID-qualified anyway, both so the
+     outcome doesn't depend on that class-count comparison holding forever and because
+     .sg-div-header just below needs the identical treatment for a change (overflow-wrap) the
+     bare rule doesn't attempt at all. Unbreakable text has a min-content width equal to
      the whole string, and a cell's min-content wins over any declared width in auto table
      layout -- which is the layout actually in force here, because Chromium falls back to it
      when the table's own width is auto (see the .sg-th width rule below for the same trap).
@@ -694,14 +1040,18 @@ const columns: Array<{ slot_id: string; label: string }> =
      the conference rather than as a second conference.
 
      Selector is qualified with the table's ID, unlike .sg-conf-row .sg-conf-header
-     above. That is not cosmetic: #schedule-grid-table th, td sets font-size, padding
-     and white-space with an ID in the selector, which a bare class selector cannot
-     out-rank at any source position. Measured in a browser -- the unqualified form of
-     this rule left the sub-heading at the shared 0.75rem/0.3rem, visually identical to
-     the conference header it is supposed to sit beneath. (The conference header rule
-     loses the same three properties for the same reason; that is pre-existing rendered
-     behavior and deliberately left alone here, so the two headings still differ by the
-     properties this rule does win -- size, weight, tint and indent.) */
+     above. That is not cosmetic: the shared cell rule (.sg-table th, td, K2 -- see that
+     class's own comment) sets font-size, padding and white-space, and even though it
+     lost its own ID-qualification when generalized for the pinned clone, it is STILL one
+     class + one type (0,1,1) -- a bare class selector by itself still cannot out-rank
+     that (0,1,0), only an ID-qualified one reliably can regardless of how many classes
+     it stacks. Measured in a browser -- the unqualified form of this rule left the
+     sub-heading at the shared 0.75rem/0.3rem, visually identical to the conference
+     header it is supposed to sit beneath, so the two headings still need to differ by
+     the properties this rule wins here -- size, weight, tint and indent. (The conference
+     header rule's OWN font-size doesn't need the same treatment any more -- see
+     .sg-conf-row .sg-conf-header's comment for the regression that specific property hit
+     and why removing it, not ID-qualifying it, was the fix.) */
   #schedule-grid-table .sg-div-header {
     background: rgba(125, 211, 252, 0.035);
     color: var(--muted);
@@ -741,9 +1091,10 @@ const columns: Array<{ slot_id: string; label: string }> =
        recover the full name. Measured by ablation (hide the rank spans, re-measure
        scrollWidth vs clientWidth): 11 names truncated with the rank present, 0 without, and
        the widest name needs 130px. 12rem clears that with room to spare, and .sg-corner
-       above carries the same value. Re-measure this if anything is added to that line. */
-    min-width: 12rem;
-    max-width: 12rem;
+       above carries the same value via --sg-col1-width (T2/K2). Re-measure this if
+       anything is added to that line. */
+    min-width: var(--sg-col1-width);
+    max-width: var(--sg-col1-width);
     white-space: normal;
   }
 
@@ -817,6 +1168,13 @@ const columns: Array<{ slot_id: string; label: string }> =
     font-size: 0.6rem;
     line-height: 1.2;
     letter-spacing: 0;
+  }
+
+  /* T3 commit B: both conference-name forms are always in the DOM (see formatRecord()'s
+     own comment); .sg-conf-short is the one hidden by default (desktop keeps today's
+     text, unchanged), swapped for .sg-conf-long at 640px below. */
+  .sg-conf-short {
+    display: none;
   }
 
   /* Cell status coloring -- full-cell background on every played game, not
@@ -903,7 +1261,7 @@ const columns: Array<{ slot_id: string; label: string }> =
      are set directly on THIS element, not inherited from the td's own white-space: nowrap
      -- inherited properties are only a fallback when nothing targets the element
      directly, so this rule needs no ID qualification to win; it isn't competing with the
-     `#schedule-grid-table th, td` rule at all, it's simply the first rule that DOES target
+     `.sg-table th, td` rule at all, it's simply the first rule that DOES target
      .sg-game-name specifically. flex: 1 1 auto + min-width: 0 let it shrink below its
      content's natural width inside .sg-game-name-row so the ellipsis can actually engage
      next to a badge. */
@@ -962,11 +1320,19 @@ const columns: Array<{ slot_id: string; label: string }> =
   }
 
   /* The tooltip above escapes .sg-game-name's own box, but its ancestor <td> still has
-     overflow: hidden (ID-qualified, further up this file) -- without lifting that too,
+     overflow: hidden (from .sg-table th, td, the shared cell rule -- see that class's
+     own comment for why it's class- not ID-qualified now) -- without lifting that too,
      the popup would be clipped by the very cell it describes the instant it crossed the
-     cell's edge. Must be ID-qualified for the same reason as every other override in this
-     file: a bare .sg-cell:has(...) cannot out-rank #schedule-grid-table th, td's own
-     overflow: hidden. :has() already has precedent in this codebase
+     cell's edge. Kept ID-qualified here even though it no longer needs to be to win: per
+     Selectors 4, :has() takes the specificity of its OWN argument, not just the
+     pseudo-class itself -- `td:has(.sg-game-name:hover)` is td (0,0,1) PLUS
+     `.sg-game-name:hover`'s own (0,2,0) (one class, one pseudo-class), for (0,2,1) total,
+     which already beats .sg-table th, td's (0,1,1) outright (verified empirically:
+     `td:has(.sg-blank:not(.zz))` placed BEFORE `.sg-table td` in source still wins). The
+     ID stays anyway for the same reason every other override in this file keeps one: a
+     guaranteed win independent of which rule the cascade happens to favor today, rather
+     than one that's provably true now but would need re-deriving by hand the next time
+     either selector changes. :has() already has precedent in this codebase
      (projects/index.astro's .project-tile__inner:has(...)). */
   #schedule-grid-table td:has(.sg-game-name:hover),
   #schedule-grid-table td:has(.sg-game-name:focus-visible) {
@@ -1082,5 +1448,234 @@ const columns: Array<{ slot_id: string; label: string }> =
   tbody tr:hover td.sg-cell--bye,
   tbody tr:hover td.sg-cell--muted {
     background-color: rgb(21, 32, 43);
+  }
+
+  /* T3/R5: phone. The lockstep in --sg-col1-width (K2) means overriding this ONE custom
+     property here re-widths .sg-corner, .sg-team-col AND .sg-pinned-corner together --
+     the same three places the desktop value had to stay in sync across, now impossible
+     to drift apart since none of them hardcodes its own width any more. */
+  @media (max-width: 640px) {
+    /* 6.375rem (102px), not 6.4rem: 102 + 3 * 96 = 390px exactly, with NOTHING left to
+       subtract -- the border-box fix below already makes a cell's declared width its
+       full rendered width, and the shell's own side borders (which used to eat 2px out
+       of that 390, see .schedule-grid-shell below) are removed at this width instead of
+       budgeted around. The original 6.4rem/390.4px accounting missed both: measured
+       short by ~2.4px (three weeks' right edge past the shell's clientWidth) before
+       this pair of fixes, 0px after -- see the T3 follow-up report for the numbers. */
+    :root {
+      --sg-col1-width: 6.375rem;
+    }
+
+    /* R5's own arithmetic (column widths summing to exactly 390px) only holds if a
+       cell's declared width IS its rendered width. This block is content-box outside
+       this media query (see .sg-table's own comment: BaseLayout's scoped
+       box-sizing: border-box rule never reaches an is:global block), so padding and
+       border normally add on top of the declared width instead of living inside it.
+       Scoped to cells inside this 640px block only -- desktop stays content-box
+       (R5: "Desktop column widths are unchanged"). */
+    .sg-table th,
+    .sg-table td {
+      box-sizing: border-box;
+    }
+
+    /* Edge to edge below 640px (.schedule-section's own gutter drops to 0), so the
+       shell's left/right border used to sit right on the screen edge and read as a
+       stray line rather than a frame -- dropped, along with the corner radii a
+       left/right-less border would otherwise round into nothing. Top/bottom stay: the
+       shell still visually separates the grid from the page above and below it. */
+    .schedule-grid-shell {
+      border-left: none;
+      border-right: none;
+      border-radius: 0;
+    }
+
+    /* T2's 1px compensations (padding-left / left, see each rule's own comment) exist
+       ONLY because of #schedule-grid-shell's 1px border eating into its content's start
+       position -- with that border removed above, the compensation would itself become
+       a 1px error instead of correcting one. */
+    .sg-pinned-table {
+      padding-left: 0;
+    }
+
+    .sg-pinned-corner {
+      left: 0;
+      /* Matches the border-box cells above: without this, the corner overlay's own
+         1px border-right would render 1px wider than --sg-col1-width instead of
+         within it, same reasoning as the .sg-table th/td rule just above. Doesn't
+         affect K2 alignment (a right-edge-only difference), but keeps this element
+         sized consistently with .sg-team-col at this width regardless. */
+      box-sizing: border-box;
+    }
+
+    /* REVISED (T3 commit B): wrap, not ellipsis. The initial 6.4rem/nowrap/ellipsis pass
+       (see this file's git history) traded readability for a one-line row -- fine for
+       "Cincinnati" or "Kansas", unreadable for "Arizona State" ("Arizon...") or "Oklahoma
+       State" ("Oklah..."). overflow: hidden and text-overflow: ellipsis are still set at
+       the base rule above but have nothing left to truncate once white-space allows
+       wrapping -- text-overflow: clip here is explicit insurance against that combination
+       ever rendering a stray ellipsis character in some browser's edge case, not a
+       behavior change on its own. overflow-wrap: anywhere (rather than the default
+       break-word) is required for a genuinely un-splittable long single word to still
+       wrap rather than overflow the column -- the same reasoning as the conference
+       header's OWN overflow-wrap: anywhere below, a separate rule for a separate element,
+       untouched here. Rows now grow only for the names that need it.
+
+       REVISED AGAIN (T3 commit C): grid-area: name, not a bare flex child any more -- see
+       .sg-team-name-block below for why. Confirmed by measurement, not assumed (the
+       report's own instruction): the "rank reserves space even with none present"
+       hypothesis in the report did NOT hold up -- with no rank in the row,
+       .sg-team-name-block already had its full ~68px to itself, and "Cincinnati" alone
+       measures 58px at this font/weight, comfortably under that. It still broke mid-word.
+       Isolated by bisection instead: at this width, WITHIN this exact nesting (table,
+       table-layout: fixed, a flex row, then this grid), overflow-wrap: anywhere plus
+       white-space: normal was wrapping single words several pixels before their own
+       measured natural width should have required it, and widening the immediate
+       container alone (tested up to 150px, well past any single word's real need) did not
+       change that -- only the TD's own final rendered width mattered, and every word in
+       the report's test list needed several pixels more of it than 102px had to give
+       (bisected per-word: 108px for the 10-letter names, 123px for "Northwestern").
+       Moving the rank onto the record line and reclaiming the logo's width (see
+       .sg-team-logo's own comment below) is what actually closes that gap -- this rule's
+       job is narrower: grid-area: name plus a grid item's default stretch is what lets
+       the name actually USE the full width those other two changes free up, since a
+       lone flex child does not stretch to fill unclaimed space the same way. */
+    .sg-team-name {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      text-overflow: clip;
+      grid-area: name;
+      min-width: 0;
+    }
+
+    /* T3 commit C: the logo no longer shares the row with the name at this width -- "the
+       name line gets the full cell content width" (the request's own words) turns out to
+       mean this literally, confirmed by measurement rather than assumed: even after
+       freeing the rank off the name line (below) and fixing the grid-sizing bug that
+       followed from that (also below), the logo + its flex gap were still the difference
+       between every one of the request's eight test names fitting on one line and not.
+       Bisected empirically: "Cincinnati" through "Vanderbilt" (10 letters) needed the
+       team column ~6px wider than its 102px budget allows to stop wrapping; "Northwestern"
+       (12) needed ~21px more -- both figures that would have meant widening
+       --sg-col1-width past what leaves room for three week columns at 390px (R5's other
+       hard requirement). Hiding the logo and its gap instead reclaims exactly the width
+       the name needs without touching that budget: verified, all eight names render at
+       getClientRects/height indicating one line once this rule is in effect, none did
+       with the logo still present. Empty-logo placeholders (.sg-team-logo--empty, T15's
+       own alignment spacer) are included -- there is no second column left for them to
+       keep two teams' name starts aligned against once the logo column itself is gone. */
+    .sg-team-logo,
+    .sg-team-logo--empty {
+      display: none;
+    }
+
+    .sg-team-cell {
+      gap: 0;
+    }
+
+    /* T3 commit C: the name/rank/record trio becomes a 2-column grid instead of flex
+       (flex column of [name-line, record-line], where name-line was itself a flex row of
+       [name, rank]) -- grid-template-areas keeps the exact same VISUAL result the
+       original nested-flex structure was going for (name on its own full-width row, rank
+       trailing the record on the row below) but without a flex item's default
+       non-stretching width behavior, which is what actually broke long single-word names
+       (see .sg-team-name's own comment). display: contents on .sg-team-name-line (below)
+       dissolves that now-redundant wrapper so .sg-team-name and .sg-team-rank -- still
+       nested inside it in the DOM, same markup as desktop, both renderers unchanged --
+       become direct grid items of THIS element instead, without a markup change in either
+       renderer. .sg-team-record was already this element's other direct child. The "auto"
+       rank column collapses to 0 width on a row with no rank (nothing assigns it that
+       grid-area), so "record" claims the full row via its own 1fr track instead of
+       leaving a dead gap where a rank would have been. */
+    .sg-team-name-block {
+      display: grid;
+      /* minmax(0, 1fr), not a bare 1fr -- confirmed by measurement (rendering the fix as
+         first written): a bare 1fr's IMPLICIT minimum is "auto", which for a grid track
+         holding text resolves to that content's own natural, unwrapped width unless
+         something tells it otherwise. .sg-team-record's text has no overflow-wrap of its
+         own (nothing forces it to shrink below "11-2, 7-2 B12"'s ~75px), so the 1fr track
+         sized itself to that instead of to whatever room was actually left after the auto
+         (rank) column -- measured: computed grid-template-columns "75px 12.5px" (87.5px
+         total) inside a 68.2px container, .sg-team-rank rendered with its right edge at
+         ~120px against a 102px-wide <td>, 18px past the cell's own boundary. minmax(0, 1fr)
+         is the standard grid fix for exactly this (the grid equivalent of a flex item's
+         min-width: 0) -- it allows the record/name track to actually shrink to whatever
+         width the auto column leaves it, at the cost of the record line wrapping to a
+         second line in the rare row where a long record breakdown AND a rank both have to
+         share it (same "grow only the rows that need it" trade this file already makes for
+         team names, not a new inconsistency). */
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "name name"
+        "record rank";
+      column-gap: 0.3rem;
+    }
+
+    .sg-team-name-line {
+      display: contents;
+    }
+
+    .sg-team-record {
+      grid-area: record;
+      /* min-width: 0 is already implied by the track's own minmax(0, 1fr) above, but
+         explicit here too: an item's own automatic minimum size can independently widen
+         its track even when the track's minimum is 0, if the item itself still computes
+         a non-zero intrinsic minimum. */
+      min-width: 0;
+      /* Confirmed by measurement, not assumed: this element's COMPUTED white-space was
+         nowrap, not the normal its declared font-size/color rule would suggest -- it
+         inherits from #schedule-grid-shell's <td>, where .sg-team-col's OWN attempt at
+         white-space: normal (a bare class selector) already loses to .sg-table td's
+         white-space: nowrap (one MORE type-selector component, so higher specificity
+         regardless of source order) -- a pre-existing quirk in this file, not introduced
+         by this commit (.sg-team-name needed the exact same explicit override in commit
+         B, for the same underlying reason). Without this, a record+rank row too tight to
+         fit on one line (see .sg-team-name-block's own comment on minmax(0, 1fr)) would
+         overflow past .sg-team-rank instead of wrapping under it. */
+      white-space: normal;
+    }
+
+    .sg-team-rank {
+      grid-area: rank;
+      /* margin-left: auto (the base rule, T15) was how a FLEX row right-aligned the rank
+         against the name -- meaningless once this element is a grid item in its own
+         "rank" column instead; justify-self: end is the grid equivalent, and align-self
+         keeps it vertically centered against the record text's line box now that the two
+         sit side by side instead of the name. */
+      margin-left: 0;
+      justify-self: end;
+      align-self: center;
+    }
+
+    /* T3 commit B: the record line's conference tag swaps to the more compact form --
+       see formatRecord()'s own comment for why CONFERENCE_SHORT_NAMES's values ("Big 12",
+       "Mountain West") don't fit this column's width, and CONFERENCE_COMPACT_NAMES's do. */
+    .sg-conf-long {
+      display: none;
+    }
+
+    .sg-conf-short {
+      display: inline;
+    }
+
+    /* K6: at 640px the arrows have no gutter to sit in (the section is edge-to-edge
+       below), so they move from the gutter into overlays on the pinned header's own
+       edges instead -- same element, same click handlers, just repositioned and
+       reskinned. A gradient (the shell's own opaque colour fading to transparent)
+       rather than a hard-edged solid block, so the chevron doesn't read as a stray tile
+       dropped on top of the first/last visible column. */
+    .sg-scroll-arrow {
+      width: 1.75rem;
+      background: none;
+    }
+
+    .sg-scroll-arrow--left {
+      left: 0;
+      background: linear-gradient(to right, rgba(16, 23, 32, 0.98) 60%, transparent);
+    }
+
+    .sg-scroll-arrow--right {
+      right: 0;
+      background: linear-gradient(to left, rgba(16, 23, 32, 0.98) 60%, transparent);
+    }
   }
 </style>
