@@ -1,0 +1,85 @@
+artifact: requirements
+feature: "season-grid-layout"
+mode: "bounded-feature"
+
+objective: >-
+  Make the Season Grid usable as a full-page spreadsheet-style view on a computer while keeping
+  it usable on a phone: no inner scroll box, the grid as wide as the screen allows, the column
+  header pinned to the window, the team column always visible. The card that holds the
+  selectors and the toggle becomes a control bar; each tab's content renders below it.
+  Approved design: https://claude.ai/code/artifact/b2460d25-2f88-49ba-af5e-6ba0e6538d00
+
+requirements:
+  - id: R1
+    title: "Control bar"
+    statement: >-
+      The .rankings-panel glass card contains only the season selector, the week/conference
+      selector and the Rankings/Season Grid toggle. No visible title. A visually-hidden h2 keeps
+      id="panel-title" so heading navigation and the existing text swap keep working.
+    acceptance:
+      - "Selectors left, toggle right, on one row at desktop; stacked below 640px as today."
+      - "All selector behaviour unchanged: shared season selector, week selector Rankings-only, conference filter Season-Grid-only."
+      - "The .panel-head title-height reservation and its 640px rule are removed with the title they existed for."
+
+  - id: R2
+    title: "Content below the card"
+    statement: >-
+      #rankings-tab-panel and #schedule-tab-panel become siblings AFTER the control-bar card,
+      not children of it. The rankings panel is wrapped in its own glass card in the 1200px
+      column with the table centered exactly as today. The schedule panel is a full-bleed
+      section that escapes the 1200px column to a 1.4rem gutter each side, capped at 2400px
+      and centered beyond that.
+    acceptance:
+      - "Rankings tab is visually near-identical to today apart from the card split."
+      - "Season changes on both tabs still re-render; the '* Neutral-site game' footnote still survives a grid re-render."
+      - "BaseLayout's .glass-card is untouched."
+
+  - id: R3
+    title: "Full-height grid"
+    statement: >-
+      .schedule-grid-shell no longer caps its height; the grid lays out fully on the page and
+      the PAGE scrolls vertically. The shell still scrolls horizontally with its existing
+      scrollbar styling.
+    acceptance:
+      - "No vertical scrollbar on the shell at any viewport; the document scrolls."
+      - "On a phone, a vertical swipe over the grid scrolls the page (this is the fix for scroll trapping)."
+
+  - id: R4
+    title: "Header pinned to the window, team column sticky"
+    statement: >-
+      Once the grid's own header row scrolls above the viewport, an identical header stays
+      pinned at the top of the window, horizontally in step with the grid. The team column keeps
+      its existing sticky-left behaviour. Chevron controls at the pinned header's left and
+      right edges scroll the grid sideways by a column-ish step and disable at the extents; on
+      desktop they sit in the page gutters, on the phone they overlay the header's edges on a
+      fade.
+    acceptance:
+      - "Pinned header appears only after the real header row has left the viewport; never doubled at page top."
+      - "Header/body column edges align to within 1px at 1440, 1920 and 390 widths, measured by script, at scrollLeft 0 and mid-scroll."
+      - "The pinned header's labels update after a season change (it is rebuilt from the real thead after every render)."
+      - "The pinned header is not shown while the Rankings tab is active."
+      - "Trackpad and touch sideways scrolling are unchanged."
+
+  - id: R5
+    title: "Widths"
+    statement: >-
+      Desktop column widths are unchanged (12rem team, 6rem weeks). Below 640px the grid is
+      edge to edge, the team column is ~6.4rem so three 6rem weeks fit a 390px screen, and team
+      names ellipsise with the full name in a title attribute.
+    acceptance:
+      - "1440 viewport shows 12 full week columns; 1920 shows weeks 0-14 + CCG + Army-Navy with no sideways scroll."
+      - "390 viewport shows the team column plus three full week columns."
+      - "No cell that fits today clips after the change."
+
+non_requirements:
+  - "No change to what the grid shows: cells, statuses, columns, conference filter, division rows."
+  - "No change to the cfb-rankings repo or the payload."
+  - "No change to the rankings table's content or centering."
+  - "No new dependencies. Verification tooling that needs a browser driver lives in the scratchpad, not in package.json."
+  - "No touch-action rule that blocks vertical page scrolling over the grid."
+
+constraints:
+  - "Never commit to main; user merges the PR."
+  - "Commits authored as Wyatt Entrekin <wmentrekin@gmail.com> with the Co-Authored-By: Claude Fable 5.1 and Claude-Session trailers."
+  - "Independent review before handoff."
+  - "npm run build works without R2 credentials via the existing-data fallback (verified); do not seek credentials."

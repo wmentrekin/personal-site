@@ -1,0 +1,167 @@
+artifact: plan
+feature: "season-grid-layout"
+mode: "bounded-feature"
+
+objective: "Land R1-R5 in one PR against personal-site."
+
+branching:
+  branch_name: "claude/georgia-tech-schedule-viz-aqy1ay"
+  base: "origin/main @ 6c8a33c"
+  worktrees: []
+  rationale: "T1-T3 all touch index.astro (the client renderer lives in its script) and ScheduleGrid.astro; sequential on one branch, one agent, one commit per task."
+
+key_decisions:
+  - id: K1
+    decision: "The pinned header is a CLONE of the real <thead>, rebuilt after every grid render."
+    rationale: >-
+      renderScheduleGrid() clears #schedule-grid-shell and rebuilds the whole table including
+      <thead> (index.astro:1149, 1163-1173). A header kept outside the shell survives that
+      structurally but its labels would go stale. Cloning the rendered thead after each render
+      keeps it in step with BOTH renderers (server Astro + client JS) with no shared column
+      array to drift.
+  - id: K2
+    decision: "Header/body geometry aligns by construction via shared class selectors, verified by measurement."
+    rationale: >-
+      Cell widths are ID-qualified today (#schedule-grid-table .sg-th etc.) and the is:global
+      block does not receive BaseLayout's scoped box-sizing rule, so the cells are content-box.
+      The clone table cannot share the id, so the width/padding/border rules that determine
+      column geometry are generalised to a class both tables carry. The tester measures th vs td
+      left edges; if drift appears, the fallback is a runtime pass that copies each real th's
+      measured width onto the clone -- allowed, but only if measurement shows it is needed.
+  - id: K3
+    decision: "The in-shell header loses its top-sticky rules."
+    rationale: >-
+      .sg-th and .sg-corner are top:0 sticky relative to the shell. Once the shell no longer
+      scrolls vertically they are inert at best and confusing at worst. The corner keeps
+      left-sticky (it is also the team column's header)."
+  - id: K4
+    decision: "Breakout width is min(100vw - 2*1.4rem, 2400px), centered; gutter drops to 0 below 640px."
+    rationale: "Matches the mockup and the page's existing 640px breakpoint."
+  - id: K5
+    decision: "Pinned header visibility is driven by the real thead's position (IntersectionObserver or a rAF-throttled scroll check), and hidden whenever the schedule tab is hidden."
+    rationale: "Never doubled at page top; never visible on the Rankings tab."
+  - id: K6
+    decision: "Gutter arrows scroll by three columns (3 x 6rem) with smooth behaviour; disabled state derived from scrollLeft vs scrollWidth - clientWidth on every scroll/resize."
+    rationale: "A column-ish step that is meaningful on a 1440 laptop; the extent check is cheap."
+  - id: K7
+    decision: "No separate plan-critique agent."
+    rationale: "The layout was designed with the user against real data and mockups over the last two turns and approved; the user is the critique at the checkpoint. Review effort goes to the code."
+
+execution_batches:
+  - batch: 1
+    tasks:
+      - id: T1
+        title: "R1 + R2: control bar; content as siblings; rankings card; full-bleed schedule section"
+        assigned_domain: "frontend-engineer"
+        parallelizable: false
+        owned_scope:
+          - "src/pages/projects/cfb-rankings/index.astro (markup + <style>; the <script> only where the DOM moves require it)"
+        detail: >-
+          Replace the visible <h2 id="panel-title"> with a visually-hidden one (keep the id;
+          the JS text swap at ~1383 keeps working). Remove the .panel-head min-height reservation
+          and the 640px h2 rule. Move #rankings-tab-panel and #schedule-tab-panel out of
+          .rankings-panel to be its following siblings inside .project-shell. Wrap the rankings
+          panel in a `glass-card reveal` card matching .rankings-panel's padding. Make the
+          schedule panel a full-bleed section per K4, no card; keep the footnote as a sibling of
+          <ScheduleGrid> inside it. Keep every id. Verify the tab switch, both selectors, and
+          both season re-renders in a built site.
+        task_profile: implementation
+        uncertainty: low
+        consequence: medium
+        scope_size: bounded
+        determinism: deterministic
+        model_tier: balanced
+        reasoning: medium
+        provider_model: "Claude Sonnet 5"
+
+      - id: T2
+        title: "R3 + R4: full-height shell; pinned cloned header with scrollLeft sync; gutter arrows"
+        assigned_domain: "frontend-engineer"
+        parallelizable: false
+        depends_on: [T1]
+        owned_scope:
+          - "src/components/ScheduleGrid.astro (markup + is:global CSS)"
+          - "src/pages/projects/cfb-rankings/index.astro (the <script>: pinned-header sync hooked after renderScheduleGrid and on init; tab switch hides it)"
+        detail: >-
+          Remove max-height from .schedule-grid-shell (keep overflow-x: auto and the scrollbar
+          styling). Drop top-sticky from .sg-th/.sg-corner (K3). Add, INSIDE #schedule-tab-panel
+          but OUTSIDE #schedule-grid-shell, a pinned header element: position: sticky; top: 0;
+          full width of the section; containing an overflow-hidden viewport with a
+          <table class="sg-pinned-table"> whose thead is cloned from the real one (K1). A scroll
+          listener on the shell applies translateX(-scrollLeft) to the clone. Generalise the
+          th/td geometry rules to a shared class both tables carry (K2). Visibility per K5.
+          Two chevron buttons per K6, absolutely positioned in the gutters (width = the gutter),
+          aria-labels, disabled at extents. Verify in a built site at 1440 and 1920: alignment
+          by measurement (see T4's method -- run it yourself before reporting), no doubled
+          header, labels update after a season change, hidden on the Rankings tab.
+        task_profile: implementation
+        uncertainty: medium
+        consequence: high
+        scope_size: bounded
+        determinism: interpretive
+        model_tier: balanced
+        reasoning: medium
+        provider_model: "Claude Sonnet 5"
+        escalation_policy: "One tier increase to frontier if alignment cannot be made exact by construction and the K2 runtime fallback is needed; return measurements first."
+
+      - id: T3
+        title: "R5: phone rules"
+        assigned_domain: "frontend-engineer"
+        parallelizable: false
+        depends_on: [T2]
+        owned_scope:
+          - "src/components/ScheduleGrid.astro (is:global CSS, one @media (max-width: 640px) block)"
+          - "src/pages/projects/cfb-rankings/index.astro (<style>: the schedule section's gutter at <=640px)"
+        detail: >-
+          Below 640px: section gutter 0 (edge to edge); .sg-corner and .sg-team-col width
+          6.4rem in lockstep; .sg-team-name white-space: nowrap + text-overflow: ellipsis with the
+          full name in title= (reconcile with the existing overflow-wrap: anywhere on the
+          conference header, which stays); arrows overlay the header edges on a fade instead of
+          sitting in gutters. Verify at 390: three full week columns beside the team column.
+        task_profile: implementation
+        uncertainty: low
+        consequence: medium
+        scope_size: narrow
+        determinism: deterministic
+        model_tier: balanced
+        reasoning: medium
+        provider_model: "Claude Sonnet 5"
+
+  - batch: 2
+    tasks:
+      - id: T4
+        title: "Verification: build, screenshots, measured alignment, behaviour checks"
+        assigned_domain: "tester"
+        parallelizable: false
+        depends_on: [T1, T2, T3]
+        owned_scope: ["scratchpad only -- nothing committed except a report"]
+        detail: >-
+          npm run build (fallback path). Serve dist (astro preview or a static server). Drive
+          Chromium (/opt/pw-browsers/chromium-1194/chrome-linux/chrome) via the DevTools
+          Protocol from a scratchpad Node script (Node 22 has a global WebSocket; no repo
+          dependency): for each of 1440x900, 1920x1000, 390x844 -- switch to the Season Grid tab,
+          capture at page top, scroll down 1500px and capture, scroll the shell right by 3
+          columns and capture; measure getBoundingClientRect().left of every pinned th vs the
+          matching body td in the first team row and assert |delta| <= 1px; assert the pinned
+          header is hidden at page top and visible after scrolling; switch season and assert the
+          pinned labels changed; switch to Rankings and assert the pinned header is hidden and
+          the table is centered in its card; assert the footnote exists after a season change;
+          assert arrow disabled states at both extents. Report a table plus the screenshots.
+        task_profile: test_design
+        uncertainty: medium
+        consequence: high
+        scope_size: bounded
+        determinism: interpretive
+        model_tier: balanced
+        reasoning: medium
+        provider_model: "Claude Sonnet 5"
+
+risks:
+  - "Content-box cells in the is:global block: the clone must get identical padding/border or columns drift by 2x border. Mitigated by K2 + measurement."
+  - "The reveal-on-scroll script in BaseLayout: the new rankings card gets .reveal; the grid section deliberately does not (a 5000px section fading in is worse than none)."
+  - "position: sticky on the pinned header requires no overflow other than visible on ITS ancestors up to the document: .project-shell, main.container, the schedule section. Verify none of them clip."
+  - "Horizontal page overflow: the full-bleed section must not widen the document (100vw includes the vertical scrollbar in some browsers); use the section's own width with overflow-x: clip on it if needed, never on body."
+
+verification:
+  - "T4 tester report with measurements and screenshots."
+  - "Reviewer (frontier) on the PR: sticky/overflow correctness, the clone-sync lifecycle, accessibility of the arrows and the hidden heading, mobile."
