@@ -391,7 +391,11 @@ const columns: Array<{ slot_id: string; label: string }> =
           <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
       </button>
-      <div class="sg-pinned-viewport" id="sg-pinned-viewport">
+      {/* SHOULD-FIX #2 (PR #25 review): aria-hidden goes on the VIEWPORT, not on #sg-pinned
+          itself -- the arrows are real, independently operable controls and must stay
+          reachable to assistive tech; only the cloned table (a visual-only duplicate of
+          the real one, K1) should be hidden from it. */}
+      <div class="sg-pinned-viewport" id="sg-pinned-viewport" aria-hidden="true">
         <table class="sg-table sg-pinned-table" id="sg-pinned-table">
           <thead></thead>
         </table>
@@ -586,6 +590,18 @@ const columns: Array<{ slot_id: string; label: string }> =
        pseudo-elements below cover Chrome/Safari, since neither alone covers both. */
     scrollbar-color: rgba(173, 196, 221, 0.35) rgba(255, 255, 255, 0.04);
     scrollbar-width: thin;
+    /* SHOULD-FIX #5 (PR #25 review): the arrows' smooth scroll lives here instead of a
+       `behavior: "smooth"` option on scrollBy() (index.astro) -- that option ignores
+       prefers-reduced-motion entirely, verified under emulated `reduce` (still animated).
+       CSS scroll-behavior respects it via the override just below, matching the pattern
+       BaseLayout's own reduced-motion CSS already uses. */
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .schedule-grid-shell {
+      scroll-behavior: auto;
+    }
   }
 
   .schedule-grid-shell::-webkit-scrollbar {
@@ -832,6 +848,18 @@ const columns: Array<{ slot_id: string; label: string }> =
     display: flex;
     align-items: center;
     justify-content: center;
+    /* SHOULD-FIX #1 (PR #25 review): matches .sg-table th/td's own horizontal padding --
+       without it this overlay renders 9.6px (0.3rem each side) NARROWER than the real
+       corner cell it's supposed to fully cover (measured: overlay right edge 208.9px vs
+       the cell's 218.5px at 1440), leaving a gap the cloned table's own moving content
+       (e.g. "Week 0") was passing through and briefly becoming visible in, at just over
+       half of a wide scrollLeft sweep. box-sizing stays content-box at desktop (matching
+       .sg-table's own is:global default, see that class's comment) so this padding
+       correctly WIDENS the box to 202.6px, matching the real cell; at 640px both this
+       element and .sg-table's cells are border-box (T3), where padding is absorbed into
+       the already-equal declared width instead, so it doesn't need separate handling
+       there. */
+    padding: 0 0.3rem;
     /* Fully opaque, same reasoning as .sg-pinned's own background above -- this overlay
        sits directly on top of the cloned table's own (moving) corner cell, which is
        exactly the case where a 2% see-through stopped being invisible. */
@@ -912,10 +940,21 @@ const columns: Array<{ slot_id: string; label: string }> =
     right: calc(-1 * var(--sg-gutter, 1.4rem));
   }
 
+  /* SHOULD-FIX #3 (PR #25 review): no font-size declared here (there used to be one,
+     0.68rem) -- on main, that value was ALREADY dead: the shared cell rule this file's
+     .sg-table comment describes was #schedule-grid-table th, td there, ID-qualified
+     (1,0,1), which beats this rule's two bare classes (0,2,0) regardless of source
+     order, so main always rendered this band at THAT rule's 0.75rem (12px) and this
+     property never took visible effect. Converting the shared rule to .sg-table th, td
+     (K2, needed so the pinned clone can share it without the real table's ID) dropped it
+     to (0,1,1), which two classes DOES outrank -- so this 0.68rem started actually
+     applying, a real, measured regression (10.88px vs main's 12px) nobody intended.
+     Removing the property restores 12px by letting .sg-table th, td's own font-size
+     cascade through uncontested, without re-adding ID-qualification to that shared rule
+     (which would defeat the reason it was generalized in the first place). */
   .sg-conf-row .sg-conf-header {
     background: rgba(125, 211, 252, 0.08);
     color: var(--text);
-    font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -926,8 +965,14 @@ const columns: Array<{ slot_id: string; label: string }> =
      stops them.
 
      They sit in column 1 alongside .sg-team-col, and their white-space: normal above never
-     applied: #schedule-grid-table th, td sets nowrap with an ID in the selector, which the
-     bare class rules above cannot out-rank. Unbreakable text has a min-content width equal to
+     applied on main: the shared cell rule was #schedule-grid-table th, td there,
+     ID-qualified, which the bare class rules above (.sg-conf-row .sg-conf-header) could not
+     out-rank. That base rule is .sg-table th, td now (K2, generalized so the pinned clone can
+     share it -- see that class's own comment), which .sg-conf-row .sg-conf-header's two
+     classes WOULD now out-rank on its own -- this rule stays ID-qualified anyway, both so the
+     outcome doesn't depend on that class-count comparison holding forever and because
+     .sg-div-header just below needs the identical treatment for a change (overflow-wrap) the
+     bare rule doesn't attempt at all. Unbreakable text has a min-content width equal to
      the whole string, and a cell's min-content wins over any declared width in auto table
      layout -- which is the layout actually in force here, because Chromium falls back to it
      when the table's own width is auto (see the .sg-th width rule below for the same trap).
@@ -973,14 +1018,18 @@ const columns: Array<{ slot_id: string; label: string }> =
      the conference rather than as a second conference.
 
      Selector is qualified with the table's ID, unlike .sg-conf-row .sg-conf-header
-     above. That is not cosmetic: #schedule-grid-table th, td sets font-size, padding
-     and white-space with an ID in the selector, which a bare class selector cannot
-     out-rank at any source position. Measured in a browser -- the unqualified form of
-     this rule left the sub-heading at the shared 0.75rem/0.3rem, visually identical to
-     the conference header it is supposed to sit beneath. (The conference header rule
-     loses the same three properties for the same reason; that is pre-existing rendered
-     behavior and deliberately left alone here, so the two headings still differ by the
-     properties this rule does win -- size, weight, tint and indent.) */
+     above. That is not cosmetic: the shared cell rule (.sg-table th, td, K2 -- see that
+     class's own comment) sets font-size, padding and white-space, and even though it
+     lost its own ID-qualification when generalized for the pinned clone, it is STILL one
+     class + one type (0,1,1) -- a bare class selector by itself still cannot out-rank
+     that (0,1,0), only an ID-qualified one reliably can regardless of how many classes
+     it stacks. Measured in a browser -- the unqualified form of this rule left the
+     sub-heading at the shared 0.75rem/0.3rem, visually identical to the conference
+     header it is supposed to sit beneath, so the two headings still need to differ by
+     the properties this rule wins here -- size, weight, tint and indent. (The conference
+     header rule's OWN font-size doesn't need the same treatment any more -- see
+     .sg-conf-row .sg-conf-header's comment for the regression that specific property hit
+     and why removing it, not ID-qualifying it, was the fix.) */
   #schedule-grid-table .sg-div-header {
     background: rgba(125, 211, 252, 0.035);
     color: var(--muted);
@@ -1190,7 +1239,7 @@ const columns: Array<{ slot_id: string; label: string }> =
      are set directly on THIS element, not inherited from the td's own white-space: nowrap
      -- inherited properties are only a fallback when nothing targets the element
      directly, so this rule needs no ID qualification to win; it isn't competing with the
-     `#schedule-grid-table th, td` rule at all, it's simply the first rule that DOES target
+     `.sg-table th, td` rule at all, it's simply the first rule that DOES target
      .sg-game-name specifically. flex: 1 1 auto + min-width: 0 let it shrink below its
      content's natural width inside .sg-game-name-row so the ellipsis can actually engage
      next to a badge. */
@@ -1249,11 +1298,16 @@ const columns: Array<{ slot_id: string; label: string }> =
   }
 
   /* The tooltip above escapes .sg-game-name's own box, but its ancestor <td> still has
-     overflow: hidden (ID-qualified, further up this file) -- without lifting that too,
+     overflow: hidden (from .sg-table th, td, the shared cell rule -- see that class's
+     own comment for why it's class- not ID-qualified now) -- without lifting that too,
      the popup would be clipped by the very cell it describes the instant it crossed the
-     cell's edge. Must be ID-qualified for the same reason as every other override in this
-     file: a bare .sg-cell:has(...) cannot out-rank #schedule-grid-table th, td's own
-     overflow: hidden. :has() already has precedent in this codebase
+     cell's edge. Kept ID-qualified here even though a bare `td:has(...)` (one type +
+     one pseudo-class, (0,1,1)) would now TIE .sg-table th, td's own specificity rather
+     than lose outright as it did against the old ID-qualified base rule -- a tie falls
+     to source order, which would happen to work today given where this rule sits in the
+     file, but only by accident of position. ID-qualifying it removes that dependency
+     the same way every other override in this file does, guaranteed regardless of
+     source order or any future reshuffle. :has() already has precedent in this codebase
      (projects/index.astro's .project-tile__inner:has(...)). */
   #schedule-grid-table td:has(.sg-game-name:hover),
   #schedule-grid-table td:has(.sg-game-name:focus-visible) {

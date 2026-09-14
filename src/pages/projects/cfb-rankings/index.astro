@@ -519,9 +519,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       padding: 1.05rem;
     }
 
-    /* Screen-reader-only: keeps #panel-title in the DOM (the tab-switch text swap at
-       ~1383 in the script below still targets it) without taking any visual space or
-       affecting .panel-head's layout -- absolute positioning removes it from flex flow,
+    /* Screen-reader-only: keeps #panel-title in the DOM (setActiveTab()'s own tab-switch
+       text swap, in the script below, still targets it by id) without taking any visual
+       space or affecting .panel-head's layout -- absolute positioning removes it from flex flow,
        so justify-content: space-between below runs across .panel-filters and .tab-switch
        alone. Standard sr-only pattern; the site had no existing utility for it. */
     .visually-hidden {
@@ -721,14 +721,47 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         align-items: flex-start;
       }
 
-      /* T3/K4: gutter drops to 0 -- edge to edge, same full-bleed technique as the
-         desktop rule above (matched width + margin, both against 100vw/50vw so the two
-         stay in lockstep) with the gutter term simply removed rather than shrunk. No
-         cap term either: 2400px never binds below 640px. */
+      /* SHOULD-FIX #4 (PR #25 review): width: auto + margin-inline: -1.4rem, not the
+         100vw/50vw formula the desktop rule above uses. At this width main.container is
+         never capped (viewport is always under its 1200px max-width here), so it always
+         spans the full viewport, and its own side padding is the SAME constant 1.4rem at
+         every width (BaseLayout's .container rule) -- .schedule-section sits inside that
+         padding with none of its own, so a NEGATIVE margin of exactly that constant
+         reaches flush with main.container's own edge (= the viewport edge here) without
+         referencing the viewport at all. width: auto lets the browser solve the box's
+         width from that margin the normal way a block element already works, rather than
+         restating "the viewport, minus what the negative margins already account for" a
+         second time via 100vw.
+
+         The desktop rule's own 100vw/50vw formula doesn't have this option -- it also
+         has to express the 2400px CAP and RE-CENTER once main.container's own cap binds,
+         which a constant negative margin cannot do (main.container's width stops being
+         "the viewport" past 1200px, so a margin defined relative to ITS OWN padding can't
+         also track the viewport-relative cap) -- but neither is needed below 640px (R5:
+         no cap ever binds there), so the simpler, non-vw technique applies cleanly.
+         Verified at a 600px NON-mobile window (where the vw-based formula measurably
+         overflowed: scrollWidth 593 vs clientWidth 585, section left -7.5px on a
+         classic-scrollbar profile mobile emulation can't reproduce): overflow 0. Still
+         edge to edge at 390 mobile:true.
+
+         min-width: 0 is required alongside width: auto here: .project-shell (this
+         section's parent) is display: grid with no explicit grid-template-columns, so
+         this section is an implicit grid item, and grid items default to
+         min-width: auto -- a content-based floor (like the min-width: 0 fix already
+         used elsewhere in this codebase for 1fr grid tracks), NOT zero. The desktop
+         rule above never hit this because its width is a definite value (min(...)),
+         which overrides that floor; width: auto here does not, so without min-width: 0
+         the section's own box grows to the schedule table's full unwrapped content
+         width once the tab is switched to Season Grid at mobile widths, dragging the
+         whole document with it. Verified by measurement: without min-width: 0, at 390
+         mobile:true after switching to the Season Grid tab, #schedule-tab-panel's own
+         rendered width was 2118px (document scrollWidth 2118 vs clientWidth 390,
+         window.innerWidth even reflowing to 1560) -- with it, both collapse back to
+         390/0 overflow. */
       .schedule-section {
-        width: 100vw;
-        margin-left: calc(50% - 50vw);
-        margin-right: calc(50% - 50vw);
+        width: auto;
+        min-width: 0;
+        margin-inline: -1.4rem;
       }
     }
 
@@ -1398,6 +1431,28 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       let scheduleScrollRaf = null;
       let windowScrollRaf = null;
 
+      // SHOULD-FIX #6 (PR #25 review): initRankingsSelector() runs again on every
+      // astro:page-load (this site uses Astro's ClientRouter -- see this function's own
+      // header comment), including every View Transition back into this same page, but
+      // `window` itself is never replaced across a same-document transition the way a
+      // page-scoped element is -- so a plain window.addEventListener below would stack a
+      // fresh listener on top of the previous generation's every time, never removing it
+      // (verified: getEventListeners(window) counted 1 -> 2 -> 3 over two round trips).
+      // scheduleShell's own "scroll" listener further down doesn't need this same
+      // treatment: that element IS page-scoped, discarded with the rest of this page's
+      // DOM on transition, taking its listener with it.
+      //
+      // One AbortController per call, scoped to the two window listeners it registers;
+      // aborting it removes both at once. astro:before-swap fires immediately before
+      // Astro tears down the current page's DOM for the next navigation -- the right
+      // moment to retire THIS generation's listeners, whether the swap is leaving this
+      // page or just reloading it. `{ once: true }` on the before-swap listener itself
+      // matters here too: each call to this function adds another one, and without
+      // `once` those would ALSO accumulate across transitions, just one layer removed
+      // from the bug this exists to fix.
+      const windowListenerController = new AbortController();
+      document.addEventListener("astro:before-swap", () => windowListenerController.abort(), { once: true });
+
       // K6: measures the section's TRUE on-screen gutter (rather than assuming the
       // nominal 1.4rem the width formula in .schedule-section targets) and publishes it
       // as --sg-gutter for the arrows in ScheduleGrid.astro to size themselves against --
@@ -1480,6 +1535,17 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       function updatePinnedVisibility() {
         if (!pinnedHeader) return;
         const shouldShow = activeTab === "schedule" && isRealTheadAboveViewport();
+        // NIT (PR #25 review): a keyboard user focused on one of the arrows loses their
+        // place to <body> the instant this hides them (an ancestor going hidden clears
+        // focus with nowhere else to land) -- move focus to the shell first, the
+        // nearest still-visible thing that was "under" the bar. Checked before writing
+        // `hidden`, since afterwards .contains() can no longer see what was focused.
+        if (!shouldShow && !pinnedHeader.hidden && pinnedHeader.contains(document.activeElement)) {
+          if (scheduleShell) {
+            if (!scheduleShell.hasAttribute("tabindex")) scheduleShell.setAttribute("tabindex", "-1");
+            scheduleShell.focus();
+          }
+        }
         pinnedHeader.hidden = !shouldShow;
       }
 
@@ -1504,7 +1570,7 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           windowScrollRaf = null;
           updatePinnedVisibility();
         });
-      });
+      }, { signal: windowListenerController.signal });
 
       window.addEventListener("resize", () => {
         // Width and disabled-state can both change with the viewport even with no
@@ -1517,17 +1583,26 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         syncGutterWidth();
         updateArrowState();
         updatePinnedVisibility();
-      });
+      }, { signal: windowListenerController.signal });
 
+      // SHOULD-FIX #5 (PR #25 review): no `behavior: "smooth"` option here -- passed
+      // directly to scrollBy(), it ignores the user's prefers-reduced-motion setting
+      // entirely (verified under emulated `reduce`: still animated 0 -> 2 -> 321).
+      // Smoothness instead comes from `scroll-behavior: smooth` in CSS on
+      // .schedule-grid-shell (ScheduleGrid.astro), which a
+      // `@media (prefers-reduced-motion: reduce)` override there turns back to `auto` --
+      // the same reduced-motion pattern BaseLayout's own CSS already uses, so a user who
+      // has asked for less motion gets it from ONE mechanism site-wide instead of this
+      // control needing its own opt-out.
       if (scrollArrowLeft) {
         scrollArrowLeft.addEventListener("click", () => {
-          if (scheduleShell) scheduleShell.scrollBy({ left: -weekColumnStep(), behavior: "smooth" });
+          if (scheduleShell) scheduleShell.scrollBy({ left: -weekColumnStep() });
         });
       }
 
       if (scrollArrowRight) {
         scrollArrowRight.addEventListener("click", () => {
-          if (scheduleShell) scheduleShell.scrollBy({ left: weekColumnStep(), behavior: "smooth" });
+          if (scheduleShell) scheduleShell.scrollBy({ left: weekColumnStep() });
         });
       }
 
