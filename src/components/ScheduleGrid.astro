@@ -368,23 +368,41 @@ const columns: Array<{ slot_id: string; label: string }> =
   included) without ever being visibly off-register -- see that class's own comment.
 */}
 {data && columns.length > 0 ? (
-  <div class="sg-pinned" id="sg-pinned" hidden>
-    <button type="button" class="sg-scroll-arrow sg-scroll-arrow--left" id="sg-scroll-left" aria-label="Scroll grid left" disabled>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
-      </svg>
-    </button>
-    <div class="sg-pinned-viewport" id="sg-pinned-viewport">
-      <table class="sg-table sg-pinned-table" id="sg-pinned-table">
-        <thead></thead>
-      </table>
-      <div class="sg-pinned-corner" aria-hidden="true">Team</div>
+  /* MUST-FIX (PR #25 review): #sg-pinned used to BE the sticky element, still in normal
+     flow -- un-hiding it inserted its own height (30px desktop / 41px phone) above the
+     shell, pushing the real thead down by that much, which the visibility check then
+     read as "scrolled less far", hiding the bar again, un-pushing the thead, showing it
+     again... a self-triggering loop across the exact scroll band where the thead's edge
+     sits within one bar-height of the viewport top. Reproduced by the reviewer via
+     window.scrollTo sweeps landing on alternating hidden/shown with scrollY jittering by
+     the bar's own height each toggle.
+
+     Fix: .sg-pinned-anchor is the thing that's actually position: sticky -- and it is
+     height: 0, ALWAYS, in both bar states, because it never contains the bar's own
+     content in normal flow. #sg-pinned itself is position: absolute inside it instead
+     (top/left/right: 0, sized by the anchor's own box, same as it used to be sized by
+     being in flow at the top of #schedule-tab-panel) -- an absolutely positioned
+     element contributes nothing to its containing block's height whether it's
+     display: none or not, so showing/hiding it can no longer move anything. */
+  <div class="sg-pinned-anchor" id="sg-pinned-anchor">
+    <div class="sg-pinned" id="sg-pinned" hidden>
+      <button type="button" class="sg-scroll-arrow sg-scroll-arrow--left" id="sg-scroll-left" aria-label="Scroll grid left" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </button>
+      <div class="sg-pinned-viewport" id="sg-pinned-viewport">
+        <table class="sg-table sg-pinned-table" id="sg-pinned-table">
+          <thead></thead>
+        </table>
+        <div class="sg-pinned-corner" aria-hidden="true">Team</div>
+      </div>
+      <button type="button" class="sg-scroll-arrow sg-scroll-arrow--right" id="sg-scroll-right" aria-label="Scroll grid right" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </button>
     </div>
-    <button type="button" class="sg-scroll-arrow sg-scroll-arrow--right" id="sg-scroll-right" aria-label="Scroll grid right" disabled>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
-      </svg>
-    </button>
   </div>
 ) : null}
 
@@ -723,20 +741,30 @@ const columns: Array<{ slot_id: string; label: string }> =
     width: var(--sg-col1-width);
   }
 
-  /* T2/R4/K5: the pinned header itself. position: sticky to the WINDOW -- this element's
-     only ancestors are #schedule-tab-panel/.schedule-section, .project-shell and
-     main.container, none of which may set a non-visible overflow (see the comment on
-     .schedule-section in index.astro) or this would stick to the nearest one of THEM
-     instead. Same opaque background as .schedule-grid-shell so page content passing
-     underneath while pinned never bleeds through. Visibility (hidden attribute) is
-     driven entirely by index.astro's script, per K5 -- never CSS alone, since it depends
-     on scroll position and which tab is active. z-index above the grid's own sticky
-     corner/columns (1) and above .sg-pinned-corner's own stacking (which only needs to
-     beat this element's OWN children, not the grid). */
-  .sg-pinned {
+  /* MUST-FIX (PR #25 review): the actually-sticky element. height: 0 in BOTH states of
+     the bar it anchors -- #sg-pinned (below) is position: absolute inside it, which
+     never contributes to a containing block's height, so toggling the bar's hidden
+     attribute cannot change this element's own box, which is what makes the real
+     thead's position (what the visibility check reads) independent of the bar's own
+     visibility. See the markup comment for the failure mode this replaces. */
+  .sg-pinned-anchor {
     position: sticky;
     top: 0;
     z-index: 5;
+    height: 0;
+  }
+
+  /* T2/R4/K5: the pinned header itself. position: absolute inside .sg-pinned-anchor
+     (above) rather than position: sticky directly -- see that rule's comment for why.
+     Same opaque background as .schedule-grid-shell so page content passing underneath
+     while pinned never bleeds through. Visibility (hidden attribute) is driven entirely
+     by index.astro's script, per K5 -- never CSS alone, since it depends on scroll
+     position and which tab is active. */
+  .sg-pinned {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     /* Fully opaque -- NOT rgba(16, 23, 32, 0.98), the "opaque" value used for
        .schedule-grid-shell / .sg-team-col elsewhere in this file. That 2% see-through
        is imperceptible everywhere else it's used, because what sits behind THOSE
