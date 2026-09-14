@@ -251,106 +251,84 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
     <section class="rankings-panel reveal glass-card">
       {hasAnyData ? (
-        <>
-          <div class="panel-head">
-            <h2 id="panel-title">Rankings</h2>
-            <div class="tab-switch" id="view-tab-switch">
-                <span class="tab-switch-label is-active" data-tab-label="rankings">Rankings</span>
-                <button
-                  type="button"
-                  class="tab-switch-control"
-                  id="tab-switch-control"
-                  role="switch"
-                  aria-checked="false"
-                  aria-label="Switch between Rankings and Season Grid views"
-                >
-                  <span class="tab-switch-thumb"></span>
-                </button>
-              <span class="tab-switch-label" data-tab-label="schedule">Season Grid</span>
-            </div>
-          </div>
-
+        <div class="panel-head">
+          {/* Visually hidden (R1): no visible title any more, but the id stays so the
+              text-swap in the script below keeps working, and the tab content keeps an
+              accessible heading to be announced around. */}
+          <h2 id="panel-title" class="visually-hidden">Rankings</h2>
           <div class="panel-filters">
-                <select class="filter-select" id="season-select" aria-label="Season">
-                  {
-                    seasonsForClient.map((season) => (
-                      <option value={season} selected={season === defaultSeason}>
-                        {season}
-                      </option>
-                    ))
-                  }
-                </select>
-                <select class="filter-select" id="week-select" aria-label="Week">
-                  {
-                    weeksForLatestSeason.map((week) => (
-                      <option value={week} selected={week === latestWeek}>
-                        Week {week}
-                      </option>
-                    ))
-                  }
-                </select>
-                {/*
-                  T14: conference filter. Occupies the week selector's slot -- the week
-                  selector is Rankings-only and already hides on Season Grid, so this is
-                  the free slot for a Season-Grid-only control. `hidden` here matches the
-                  page's default active tab (Rankings); setActiveTab() reconciles hidden
-                  and disabled on load and on every tab switch.
-
-                  Values are the RAW abbreviated conference names the schedule artifact
-                  actually emits (ACC, BIG 12, BIG 10, SEC, American, CUSA, MAC, MWC,
-                  PAC 12, SBC, FBS Independent) -- NOT the English group labels below.
-                  Matching on the English names would silently fail to filter 7 of the
-                  11 conferences; see applyConferenceFilter() and the data-conference
-                  attribute ScheduleGrid.astro stamps on every row for how these values
-                  are consumed.
-
-                  The VALUES stay literal here on purpose -- they are the contract with the
-                  artifact and belong where a reader can see them. Only the LABELS come from
-                  src/lib/conferences.ts, so renaming a conference there cannot leave this
-                  dropdown quietly saying the old thing.
-                */}
-                <select class="filter-select" id="conference-select" aria-label="Conference" hidden>
-                  <option value="all">All Conferences</option>
-                  <optgroup label="Power 4">
-                    <option value="ACC">{conferenceFilterLabel("ACC")}</option>
-                    <option value="BIG 12">{conferenceFilterLabel("BIG 12")}</option>
-                    <option value="BIG 10">{conferenceFilterLabel("BIG 10")}</option>
-                    <option value="SEC">{conferenceFilterLabel("SEC")}</option>
-                  </optgroup>
-                  <option value="FBS Independent">{conferenceFilterLabel("FBS Independent")}</option>
-                  <optgroup label="Group of 6">
-                    <option value="American">{conferenceFilterLabel("American")}</option>
-                    <option value="CUSA">{conferenceFilterLabel("CUSA")}</option>
-                    <option value="MAC">{conferenceFilterLabel("MAC")}</option>
-                    <option value="MWC">{conferenceFilterLabel("MWC")}</option>
-                    <option value="PAC 12">{conferenceFilterLabel("PAC 12")}</option>
-                    <option value="SBC">{conferenceFilterLabel("SBC")}</option>
-                  </optgroup>
-                </select>
-          </div>
-
-          <div id="rankings-tab-panel" class="tab-panel">
-            {hasRankingsData ? (
-              <RankingsTable headers={["Rank", "Team", "Record", "Rating", "\u0394", "Conference"]} rows={rows} />
-            ) : (
-              <div class="panel-empty">
-                <p>Rankings data isn’t available for this selection yet.</p>
-              </div>
-            )}
-          </div>
-
-          <div id="schedule-tab-panel" class="tab-panel" hidden>
-            <ScheduleGrid data={schedulePayload} />
+            <select class="filter-select" id="season-select" aria-label="Season">
+              {
+                seasonsForClient.map((season) => (
+                  <option value={season} selected={season === defaultSeason}>
+                    {season}
+                  </option>
+                ))
+              }
+            </select>
+            <select class="filter-select" id="week-select" aria-label="Week">
+              {
+                weeksForLatestSeason.map((week) => (
+                  <option value={week} selected={week === latestWeek}>
+                    Week {week}
+                  </option>
+                ))
+              }
+            </select>
             {/*
-              T13c footnote: outside ScheduleGrid's own shell (#schedule-grid-shell), which
-              the client-side season re-render clears and rebuilds wholesale -- keeping this
-              paragraph out of that subtree means it survives every re-render for free, no
-              client-side mirror needed. Static and always shown on this tab; it doesn't
-              depend on whether the current season/filter selection has a neutral-site game.
+              T14: conference filter. Occupies the week selector's slot -- the week
+              selector is Rankings-only and already hides on Season Grid, so this is
+              the free slot for a Season-Grid-only control. `hidden` here matches the
+              page's default active tab (Rankings); setActiveTab() reconciles hidden
+              and disabled on load and on every tab switch.
+
+              Values are the RAW abbreviated conference names the schedule artifact
+              actually emits (ACC, BIG 12, BIG 10, SEC, American, CUSA, MAC, MWC,
+              PAC 12, SBC, FBS Independent) -- NOT the English group labels below.
+              Matching on the English names would silently fail to filter 7 of the
+              11 conferences; see applyConferenceFilter() and the data-conference
+              attribute ScheduleGrid.astro stamps on every row for how these values
+              are consumed.
+
+              The VALUES stay literal here on purpose -- they are the contract with the
+              artifact and belong where a reader can see them. Only the LABELS come from
+              src/lib/conferences.ts, so renaming a conference there cannot leave this
+              dropdown quietly saying the old thing.
             */}
-            <p class="table-footnote">* Neutral-site game</p>
+            <select class="filter-select" id="conference-select" aria-label="Conference" hidden>
+              <option value="all">All Conferences</option>
+              <optgroup label="Power 4">
+                <option value="ACC">{conferenceFilterLabel("ACC")}</option>
+                <option value="BIG 12">{conferenceFilterLabel("BIG 12")}</option>
+                <option value="BIG 10">{conferenceFilterLabel("BIG 10")}</option>
+                <option value="SEC">{conferenceFilterLabel("SEC")}</option>
+              </optgroup>
+              <option value="FBS Independent">{conferenceFilterLabel("FBS Independent")}</option>
+              <optgroup label="Group of 6">
+                <option value="American">{conferenceFilterLabel("American")}</option>
+                <option value="CUSA">{conferenceFilterLabel("CUSA")}</option>
+                <option value="MAC">{conferenceFilterLabel("MAC")}</option>
+                <option value="MWC">{conferenceFilterLabel("MWC")}</option>
+                <option value="PAC 12">{conferenceFilterLabel("PAC 12")}</option>
+                <option value="SBC">{conferenceFilterLabel("SBC")}</option>
+              </optgroup>
+            </select>
           </div>
-        </>
+          <div class="tab-switch" id="view-tab-switch">
+              <span class="tab-switch-label is-active" data-tab-label="rankings">Rankings</span>
+              <button
+                type="button"
+                class="tab-switch-control"
+                id="tab-switch-control"
+                role="switch"
+                aria-checked="false"
+                aria-label="Switch between Rankings and Season Grid views"
+              >
+                <span class="tab-switch-thumb"></span>
+              </button>
+            <span class="tab-switch-label" data-tab-label="schedule">Season Grid</span>
+          </div>
+        </div>
       ) : (
         <div class="panel-empty">
           <h2>Rankings</h2>
@@ -358,6 +336,40 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         </div>
       )}
     </section>
+
+    {hasAnyData && (
+      <>
+        {/* R2: content lives AFTER the control-bar card as siblings inside .project-shell,
+            not nested inside .rankings-panel any more. The rankings tab gets its own glass
+            card whose padding matches .rankings-panel (see .rankings-content below);
+            RankingsTable's own centering is untouched. */}
+        <div id="rankings-tab-panel" class="tab-panel rankings-content reveal glass-card">
+          {hasRankingsData ? (
+            <RankingsTable headers={["Rank", "Team", "Record", "Rating", "\u0394", "Conference"]} rows={rows} />
+          ) : (
+            <div class="panel-empty">
+              <p>Rankings data isn’t available for this selection yet.</p>
+            </div>
+          )}
+        </div>
+
+        {/* R2/K4: full-bleed section, no card, escaping main.container's 1200px cap down to
+            a 1.4rem gutter each side (see .schedule-section below). Deliberately NOT
+            .reveal -- a section this tall fading in on scroll reads worse than not fading
+            at all (see BaseLayout's reveal-on-scroll script). */}
+        <section id="schedule-tab-panel" class="tab-panel schedule-section" hidden>
+          <ScheduleGrid data={schedulePayload} />
+          {/*
+            T13c footnote: outside ScheduleGrid's own shell (#schedule-grid-shell), which
+            the client-side season re-render clears and rebuilds wholesale -- keeping this
+            paragraph out of that subtree means it survives every re-render for free, no
+            client-side mirror needed. Static and always shown on this tab; it doesn't
+            depend on whether the current season/filter selection has a neutral-site game.
+          */}
+          <p class="table-footnote">* Neutral-site game</p>
+        </section>
+      </>
+    )}
   </section>
 
   <style>
@@ -499,25 +511,40 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       padding: 1.05rem;
     }
 
+    /* T1/R2: the rankings tab's own card, sibling of .rankings-panel now that the tab
+       content lives outside the control-bar card -- same padding as .rankings-panel so
+       the card reads consistently with the control bar above it. */
+    .rankings-content {
+      padding: 1.05rem;
+    }
+
+    /* Screen-reader-only: keeps #panel-title in the DOM (the tab-switch text swap at
+       ~1383 in the script below still targets it) without taking any visual space or
+       affecting .panel-head's layout -- absolute positioning removes it from flex flow,
+       so justify-content: space-between below runs across .panel-filters and .tab-switch
+       alone. Standard sr-only pattern; the site had no existing utility for it. */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* T1/R1: one row -- selectors left, toggle right -- now that the title is gone.
+       #panel-title is visually hidden (see .visually-hidden) so it takes no flex space;
+       space-between then runs across .panel-filters and .tab-switch, the two visible
+       children. */
     .panel-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.8rem;
       flex-wrap: wrap;
-      /* The h2 swaps between "Rankings" and "Season Grid" on every tab change.
-         Reserving the row's height keeps the toggle pinned: without it a shorter
-         title could let the row collapse slightly and drag the toggle up with it. */
-      min-height: 2.4rem;
-      margin-bottom: 0.9rem;
-    }
-
-    .panel-head h2 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: 1.55rem;
-      line-height: 1;
-      letter-spacing: -0.03em;
     }
 
     .panel-empty h2 {
@@ -534,17 +561,17 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       font-size: 0.9rem;
     }
 
-    /* The selectors sit on their own row BELOW the title/toggle row, left-aligned.
-       Previously they shared a right-aligned flex row with the tab toggle, so hiding
-       the week selector on the Season Grid tab narrowed the group and slid the toggle
-       sideways. Left-aligned and on its own line, hiding the week selector moves
-       nothing: the season selector is first in the row, and the toggle is in a
-       different row entirely. */
+    /* Selectors group, now a flex child of .panel-head sharing its row with the toggle
+       (T1/R1) rather than a row of its own. Hiding the week selector on the Season Grid
+       tab still moves nothing else in this group: the season selector is first, and the
+       toggle lives in a different flex item entirely. flex-wrap so the selects themselves
+       can wrap onto a second line before the whole row is forced to stack (the 640px
+       stack below is the deliberate, larger break). */
     .panel-filters {
       display: flex;
-      justify-content: flex-start;
+      align-items: center;
+      flex-wrap: wrap;
       gap: 0.55rem;
-      margin-bottom: 0.9rem;
     }
 
     /* iOS-style tab switch (T7 tokens: --tab-switch-track-on/-off/-thumb).
@@ -637,6 +664,39 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       font-family: var(--font-mono);
     }
 
+    /* T1/R2/K4: full-bleed breakout. main.container caps at 1200px with a 1.4rem
+       side padding (BaseLayout ~102-106) and .project-shell has no width of its own, so
+       this section's un-breakout width would be capped there too. Both width and margin
+       are expressed in terms of the SAME 100vw/50vw so the two stay in lockstep instead
+       of drifting off two independent guesses:
+
+       width:        min(100vw - 2 * 1.4rem, 2400px)   -- viewport minus both gutters, capped
+       margin-left:  the shift from this element's natural (contained) position out to a
+                     1.4rem gutter from the viewport edge -- max()'d against the constant
+                     that centers a capped 2400px box once the viewport is wide enough that
+                     100vw - 2.8rem would otherwise exceed it (2400px + 2*1.4rem = beyond
+                     ~2444.8px viewport width; the constant is -(1200px/2 + 1.4rem), i.e.
+                     half of main.container's own 1200px cap plus one gutter -- see the
+                     margin-left algebra: for viewport widths at or below the container's
+                     own breakpoint, .project-shell's content box is pinned at 1200px minus
+                     its padding, which makes the "50%" term in the dynamic half of this
+                     formula a constant too, and the two halves work out to leave this
+                     section's edges exactly 1.4rem from the true viewport edges).
+
+       Deliberately NOT overflow-x: clip here (the risk notes' other suggested mitigation):
+       #schedule-tab-panel is this same element, and T2 adds a position: sticky pinned
+       header as ITS direct child -- any overflow value other than visible on this element
+       would (per the CSS overflow spec's paired-axis rule) force overflow-y to a
+       non-visible computed value too, making this section the sticky header's nearest
+       scroll container instead of the viewport, breaking the pin. Verified by measurement
+       instead (see the T1 report) that the vw-based math alone keeps
+       document.documentElement.scrollWidth === clientWidth at 1440/1920/390 without it. */
+    .schedule-section {
+      width: min(calc(100vw - 2.8rem), 150rem);
+      margin-left: max(calc(50% - 50vw + 1.4rem), -38.9rem);
+      margin-right: max(calc(50% - 50vw + 1.4rem), -38.9rem);
+    }
+
     @media (max-width: 920px) {
       .project-hero {
         grid-template-columns: 1fr;
@@ -659,17 +719,6 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         flex-direction: column;
         align-items: flex-start;
       }
-
-      /* Stacked, the title sits ABOVE the toggle, so a title that wraps to two lines on one
-         tab and one on the other moves the toggle on every tab switch. Both titles are now
-         single-line ("Rankings" / "Season Grid"), which makes this reservation inert at
-         today's strings -- kept because it costs one line and the alternative is the toggle
-         jumping the next time a longer title is introduced. The reservation has to sit on
-         the title itself: a column-flex container's own min-height pads below its last
-         child, so it can never hold an earlier child still. */
-      .panel-head h2 {
-        min-height: 2lh;
-      }
     }
 
     @media (max-width: 480px) {
@@ -677,7 +726,8 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         padding: 1rem;
       }
 
-      .rankings-panel {
+      .rankings-panel,
+      .rankings-content {
         padding: 1rem;
       }
 
