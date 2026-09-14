@@ -711,7 +711,18 @@ const columns: Array<{ slot_id: string; label: string }> =
     position: sticky;
     top: 0;
     z-index: 5;
-    background: rgba(16, 23, 32, 0.98);
+    /* Fully opaque -- NOT rgba(16, 23, 32, 0.98), the "opaque" value used for
+       .schedule-grid-shell / .sg-team-col elsewhere in this file. That 2% see-through
+       is imperceptible everywhere else it's used, because what sits behind THOSE
+       elements is just more of the same dark page background. This element is
+       different: an actively translateX'd copy of the real table sits directly behind
+       it, so what's 2% visible through this background is bright header text and
+       colored team logos sliding past underneath, not a uniform color -- verified by
+       pixel-sampling a zoomed screenshot: forcing this to fully opaque was the one
+       change that made the ghosting disappear; the corner overlay already spans this
+       element's full height with no gap (see .sg-pinned-corner below, also fixed for
+       the same reason), so the bug was the alpha channel, not coverage. */
+    background: rgb(16, 23, 32);
   }
 
   .sg-pinned[hidden] {
@@ -767,7 +778,10 @@ const columns: Array<{ slot_id: string; label: string }> =
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(10, 15, 20, 0.98);
+    /* Fully opaque, same reasoning as .sg-pinned's own background above -- this overlay
+       sits directly on top of the cloned table's own (moving) corner cell, which is
+       exactly the case where a 2% see-through stopped being invisible. */
+    background: rgb(10, 15, 20);
     color: var(--muted);
     font-size: 0.64rem;
     font-weight: 600;
