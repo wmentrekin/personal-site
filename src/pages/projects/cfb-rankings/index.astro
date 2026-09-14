@@ -1540,11 +1540,25 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         // focus with nowhere else to land) -- move focus to the shell first, the
         // nearest still-visible thing that was "under" the bar. Checked before writing
         // `hidden`, since afterwards .contains() can no longer see what was focused.
+        //
+        // SHOULD-FIX (PR #25 focused re-check): no runtime setAttribute("tabindex", "-1")
+        // here any more -- the shell now carries a PERMANENT tabindex="0" in its own
+        // server markup (ScheduleGrid.astro), so it's already focusable every time this
+        // runs; conditionally adding "-1" here used to retract the shell's *implicit*
+        // fallback Tab-stop status (browsers make a non-focusable-descendant scrollable
+        // region a Tab stop on their own, but only until something gives it an EXPLICIT
+        // tabindex) for the rest of the visit after the very first handoff, which is what
+        // made a second keyboard user lose the grid entirely. See that markup comment for
+        // the full reasoning and the reviewer's verification numbers.
+        //
+        // { preventScroll: true } (the reviewer's other nit on this fix): .focus() on an
+        // element that isn't fully in view scrolls it into view by default -- with the
+        // shell just below the viewport top at this exact moment (that's WHY the bar is
+        // hiding), a plain .focus() call would itself move scrollY, fighting the very
+        // scroll position isRealTheadAboveViewport() just read. preventScroll keeps this
+        // a pure focus move.
         if (!shouldShow && !pinnedHeader.hidden && pinnedHeader.contains(document.activeElement)) {
-          if (scheduleShell) {
-            if (!scheduleShell.hasAttribute("tabindex")) scheduleShell.setAttribute("tabindex", "-1");
-            scheduleShell.focus();
-          }
+          if (scheduleShell) scheduleShell.focus({ preventScroll: true });
         }
         pinnedHeader.hidden = !shouldShow;
       }

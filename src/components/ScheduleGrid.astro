@@ -410,7 +410,23 @@ const columns: Array<{ slot_id: string; label: string }> =
   </div>
 ) : null}
 
-<div class="schedule-grid-shell" id="schedule-grid-shell">
+{/* SHOULD-FIX (PR #25 focused re-check): tabindex="0" + role="region" + aria-label are
+    permanent, set here in server markup rather than toggled at runtime -- with the
+    default season the grid can have ZERO focusable descendants (.sg-game-name's own
+    tabindex="0" only exists for no-logo opponents: 92 rows in 2025, 0 in 2026), and on a
+    fully non-focusable scrollable region Chrome 130+/Firefox make the region itself the
+    Tab stop and route arrow keys to it -- but only as an IMPLICIT fallback, which a
+    runtime-added tabindex="-1" (the focus-handoff NIT's original fix, index.astro) wiped
+    out for the rest of the visit the instant it ran once (reviewer verified with real key
+    events: Tab landed on the shell before any handoff, on <body> after one). A permanent,
+    real tabindex="0" makes the shell an explicit, stable Tab stop instead of a fallback
+    that a single unrelated DOM write can retract. role="region" + aria-label give that
+    stop a name, since a bare scrollable div with no accessible name is otherwise
+    announced as nothing. The client-side season re-render (index.astro's
+    renderScheduleGrid) only ever does scheduleShell.textContent = "" and re-appends
+    children -- it never replaces #schedule-grid-shell itself, so these attributes survive
+    every season change untouched. */}
+<div class="schedule-grid-shell" id="schedule-grid-shell" tabindex="0" role="region" aria-label="Season grid, scrolls sideways">
   {data && columns.length > 0 ? (
     <table id="schedule-grid-table" class="sg-table">
       <thead>
@@ -594,7 +610,13 @@ const columns: Array<{ slot_id: string; label: string }> =
        `behavior: "smooth"` option on scrollBy() (index.astro) -- that option ignores
        prefers-reduced-motion entirely, verified under emulated `reduce` (still animated).
        CSS scroll-behavior respects it via the override just below, matching the pattern
-       BaseLayout's own reduced-motion CSS already uses. */
+       BaseLayout's own reduced-motion CSS already uses.
+       Note for later: this makes ANY future programmatic write to this element's
+       scrollLeft animate, not just the two arrow clicks above -- there is no such write
+       today besides those, but it bit the PR #25 reviewer's own test harness (a direct
+       scrollLeft assignment landed short until it waited out the animation), so budget
+       for it (or set scrollLeft via `{ behavior: "instant" }` where supported) before
+       adding one. */
     scroll-behavior: smooth;
   }
 
@@ -1301,13 +1323,16 @@ const columns: Array<{ slot_id: string; label: string }> =
      overflow: hidden (from .sg-table th, td, the shared cell rule -- see that class's
      own comment for why it's class- not ID-qualified now) -- without lifting that too,
      the popup would be clipped by the very cell it describes the instant it crossed the
-     cell's edge. Kept ID-qualified here even though a bare `td:has(...)` (one type +
-     one pseudo-class, (0,1,1)) would now TIE .sg-table th, td's own specificity rather
-     than lose outright as it did against the old ID-qualified base rule -- a tie falls
-     to source order, which would happen to work today given where this rule sits in the
-     file, but only by accident of position. ID-qualifying it removes that dependency
-     the same way every other override in this file does, guaranteed regardless of
-     source order or any future reshuffle. :has() already has precedent in this codebase
+     cell's edge. Kept ID-qualified here even though it no longer needs to be to win: per
+     Selectors 4, :has() takes the specificity of its OWN argument, not just the
+     pseudo-class itself -- `td:has(.sg-game-name:hover)` is td (0,0,1) PLUS
+     `.sg-game-name:hover`'s own (0,2,0) (one class, one pseudo-class), for (0,2,1) total,
+     which already beats .sg-table th, td's (0,1,1) outright (verified empirically:
+     `td:has(.sg-blank:not(.zz))` placed BEFORE `.sg-table td` in source still wins). The
+     ID stays anyway for the same reason every other override in this file keeps one: a
+     guaranteed win independent of which rule the cascade happens to favor today, rather
+     than one that's provably true now but would need re-deriving by hand the next time
+     either selector changes. :has() already has precedent in this codebase
      (projects/index.astro's .project-tile__inner:has(...)). */
   #schedule-grid-table td:has(.sg-game-name:hover),
   #schedule-grid-table td:has(.sg-game-name:focus-visible) {
