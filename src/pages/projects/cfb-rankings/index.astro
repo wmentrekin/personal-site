@@ -788,6 +788,12 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       const schedulePanel = document.getElementById("schedule-tab-panel");
       const tableBody = document.querySelector("#rankings-tab-panel .rankings-shell tbody");
       const scheduleShell = document.getElementById("schedule-grid-shell");
+      // T2: the pinned header and its chevrons -- all optional (schedule data can be
+      // entirely absent, in which case ScheduleGrid.astro renders none of this).
+      const pinnedHeader = document.getElementById("sg-pinned");
+      const pinnedTable = document.getElementById("sg-pinned-table");
+      const scrollArrowLeft = document.getElementById("sg-scroll-left");
+      const scrollArrowRight = document.getElementById("sg-scroll-right");
 
       if (!seasonSelect || !weekSelect) return;
 
@@ -1202,6 +1208,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           const empty = el("div", "sg-empty");
           empty.appendChild(el("p", null, "Season Grid data isn’t available for this selection yet."));
           scheduleShell.appendChild(empty);
+          // T2: no #schedule-grid-table exists in this branch -- nothing to pin/clone,
+          // so hide the pinned header rather than leave it showing stale columns.
+          syncPinnedHeader();
           return;
         }
 
@@ -1212,6 +1221,9 @@ const hasAnyData = hasRankingsData || hasScheduleData;
 
         const table = document.createElement("table");
         table.id = "schedule-grid-table";
+        // T2/K2: shared geometry class with the pinned header's cloned table -- see
+        // ScheduleGrid.astro's .sg-table comment.
+        table.className = "sg-table";
 
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
@@ -1321,6 +1333,11 @@ const hasAnyData = hasRankingsData || hasScheduleData;
           if (!present.has(confSelect.value)) confSelect.value = "all";
         }
         applyConferenceFilter();
+        // T2/K1: the pinned header is a clone of the real thead, rebuilt after every
+        // render -- this table (and its thead) is a fresh element every time, so the
+        // clone (and the IntersectionObserver-free visibility check, which re-queries
+        // #schedule-grid-table each time it runs) has to be redone here too.
+        syncPinnedHeader();
       }
 
       // T14 conference filter. Applied by hiding DOM rows rather than re-rendering a
@@ -1336,6 +1353,150 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         const rows = scheduleShell.querySelectorAll("[data-conference]");
         rows.forEach((row) => {
           row.hidden = value !== "all" && row.dataset.conference !== value;
+        });
+      }
+
+      // ---------------------------------------------------------------------
+      // T2/R4: pinned header. K1 -- a clone of the real <thead>, rebuilt after
+      // every renderScheduleGrid() (both branches, see above) and once on init
+      // below, since the real table (and its thead) is a brand new element
+      // each time. K5 governs when it's actually shown; this section only
+      // keeps it in sync with the real table's content, width and scroll
+      // position, whether or not it's currently visible.
+      // ---------------------------------------------------------------------
+      let scheduleScrollRaf = null;
+      let windowScrollRaf = null;
+
+      // K6: measures the section's TRUE on-screen gutter (rather than assuming the
+      // nominal 1.4rem the width formula in .schedule-section targets) and publishes it
+      // as --sg-gutter for the arrows in ScheduleGrid.astro to size themselves against --
+      // see that file's .sg-scroll-arrow comment for why the nominal value alone
+      // overflowed the page by a measured 7px. documentElement.clientWidth (not
+      // window.innerWidth) is the scrollbar-excluded true viewport width, matching what
+      // actually determines document-level horizontal overflow.
+      function syncGutterWidth() {
+        const section = document.querySelector(".schedule-section");
+        if (!section) return;
+        const rect = section.getBoundingClientRect();
+        const trueViewportWidth = document.documentElement.clientWidth;
+        const leftGutter = Math.max(0, rect.left);
+        const rightGutter = Math.max(0, trueViewportWidth - rect.right);
+        document.documentElement.style.setProperty("--sg-gutter", `${Math.min(leftGutter, rightGutter)}px`);
+      }
+
+      // Re-clones the real thead into the pinned table and re-measures its width.
+      // Safe to call with no real table at all (empty state / no schedule data):
+      // it just clears the clone and hides the pinned header, matching K5's "not
+      // shown while there's nothing to pin" for free rather than as a special case.
+      function syncPinnedHeader() {
+        if (!pinnedTable) return;
+        const realTable = document.getElementById("schedule-grid-table");
+        const realThead = realTable ? realTable.querySelector("thead") : null;
+        const oldClone = pinnedTable.querySelector("thead");
+        if (oldClone) oldClone.remove();
+        if (realThead) {
+          pinnedTable.appendChild(realThead.cloneNode(true));
+          // table-layout: fixed (shared via .sg-table, K2) distributes a KNOWN width
+          // across columns -- it can't size an otherwise-unconstrained table to match
+          // another element, so the clone's width is copied from the real table's
+          // measured offsetWidth every time this runs.
+          pinnedTable.style.width = `${realTable.offsetWidth}px`;
+        }
+        applyPinnedTransform();
+        updateArrowState();
+        updatePinnedVisibility();
+      }
+
+      // Keeps the clone in horizontal lockstep with the real table's own scroll --
+      // see .sg-pinned-viewport's comment in ScheduleGrid.astro for why this is a
+      // transform rather than a second independent scroll position.
+      function applyPinnedTransform() {
+        if (!pinnedTable || !scheduleShell) return;
+        pinnedTable.style.transform = `translateX(${-scheduleShell.scrollLeft}px)`;
+      }
+
+      // K6: three week-columns' worth, read from a live cell so a future width change
+      // to .sg-th (T2/K2's --sg-col1-width sibling doesn't cover week columns, but the
+      // same "don't hand-copy a measurement" reasoning applies) is followed automatically
+      // rather than re-hardcoding 96px (6rem) here.
+      function weekColumnStep() {
+        const weekTh = document.querySelector("#schedule-grid-table .sg-th:not(.sg-corner)");
+        const width = weekTh ? weekTh.offsetWidth : 96;
+        return width * 3;
+      }
+
+      function updateArrowState() {
+        if (!scheduleShell || !scrollArrowLeft || !scrollArrowRight) return;
+        const maxScrollLeft = scheduleShell.scrollWidth - scheduleShell.clientWidth;
+        scrollArrowLeft.disabled = scheduleShell.scrollLeft <= 0;
+        // 1px epsilon: sub-pixel layout can leave scrollLeft a fraction short of
+        // maxScrollLeft even when the shell is genuinely scrolled all the way.
+        scrollArrowRight.disabled = scheduleShell.scrollLeft >= maxScrollLeft - 1;
+      }
+
+      // K5: shown only once the real header row has scrolled above the viewport --
+      // checked directly against the real thead's own rendered position (a passive
+      // scroll check) rather than an IntersectionObserver, since the real thead is a
+      // brand new element after every render and an observer would need the same
+      // re-attach-on-every-render handling this function's callers already do anyway.
+      function isRealTheadAboveViewport() {
+        const realTable = document.getElementById("schedule-grid-table");
+        const realThead = realTable ? realTable.querySelector("thead") : null;
+        if (!realThead) return false;
+        return realThead.getBoundingClientRect().bottom <= 0;
+      }
+
+      function updatePinnedVisibility() {
+        if (!pinnedHeader) return;
+        const shouldShow = activeTab === "schedule" && isRealTheadAboveViewport();
+        pinnedHeader.hidden = !shouldShow;
+      }
+
+      if (scheduleShell) {
+        // rAF-throttled: scroll fires far more often than a frame renders.
+        scheduleShell.addEventListener("scroll", () => {
+          if (scheduleScrollRaf) return;
+          scheduleScrollRaf = requestAnimationFrame(() => {
+            scheduleScrollRaf = null;
+            applyPinnedTransform();
+            updateArrowState();
+          });
+        });
+      }
+
+      // R4/K5: the PAGE scrolls now (R3), not the shell, so visibility tracks WINDOW
+      // scroll -- separate from the shell's own horizontal scroll listener above, which
+      // only ever affects the transform/arrow state, never visibility.
+      window.addEventListener("scroll", () => {
+        if (windowScrollRaf) return;
+        windowScrollRaf = requestAnimationFrame(() => {
+          windowScrollRaf = null;
+          updatePinnedVisibility();
+        });
+      });
+
+      window.addEventListener("resize", () => {
+        // Width and disabled-state can both change with the viewport even with no
+        // new render (e.g. rotating a phone); visibility can too (the thead's own
+        // position shifts when reflow changes row heights).
+        if (pinnedTable) {
+          const realTable = document.getElementById("schedule-grid-table");
+          if (realTable) pinnedTable.style.width = `${realTable.offsetWidth}px`;
+        }
+        syncGutterWidth();
+        updateArrowState();
+        updatePinnedVisibility();
+      });
+
+      if (scrollArrowLeft) {
+        scrollArrowLeft.addEventListener("click", () => {
+          if (scheduleShell) scheduleShell.scrollBy({ left: -weekColumnStep(), behavior: "smooth" });
+        });
+      }
+
+      if (scrollArrowRight) {
+        scrollArrowRight.addEventListener("click", () => {
+          if (scheduleShell) scheduleShell.scrollBy({ left: weekColumnStep(), behavior: "smooth" });
         });
       }
 
@@ -1439,6 +1600,24 @@ const hasAnyData = hasRankingsData || hasScheduleData;
         } else if (!isSchedule && Number(seasonSelect.value) !== loadedRankingsSeason) {
           syncRankingsToSeason(seasonSelect.value);
         }
+
+        // A hidden ancestor (schedulePanel.hidden above, or the initial page-load state
+        // before any tab switch) collapses #schedule-grid-table's own layout box, so any
+        // clone/width/arrow-extent measurement taken while hidden reads everything as 0
+        // -- re-measure now that the panel's hidden attribute has just been cleared
+        // above and the browser has a real layout to read (querying layout properties
+        // forces a synchronous reflow, so this does not need to wait a frame).
+        if (isSchedule) {
+          syncGutterWidth();
+          syncPinnedHeader();
+        }
+        // K5: hidden outright whenever the schedule tab isn't the active one, on top of
+        // the scroll-position check inside updatePinnedVisibility -- switching to
+        // Rankings must hide it even if the window happens to be scrolled past where the
+        // (now-hidden) real thead sits. syncPinnedHeader() above already calls this too,
+        // but only on the isSchedule branch; this unconditional call is what actually
+        // hides it on the Rankings branch.
+        updatePinnedVisibility();
       }
 
       if (tabSwitch) {
@@ -1474,6 +1653,10 @@ const hasAnyData = hasRankingsData || hasScheduleData;
       // solely on the season-change path, since the initial schedule-tab-panel grid
       // is server-rendered and never passes through renderScheduleGrid().
       applyConferenceFilter();
+      // Same reasoning as applyConferenceFilter() above, for the same reason: the
+      // initial grid is server-rendered and never passes through renderScheduleGrid(),
+      // so the pinned header needs its own first clone+measure here.
+      syncPinnedHeader();
     }
 
     document.addEventListener("astro:page-load", initRankingsSelector);
