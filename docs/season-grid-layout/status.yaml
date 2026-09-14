@@ -1,7 +1,7 @@
 artifact: status
 feature: "season-grid-layout"
 mode: "bounded-feature"
-stage: "planning"
+stage: "execution"
 owner_skill: work
 
 objective: >-
@@ -43,8 +43,8 @@ branching:
   notes: "Harness-pinned name; user accepted it on the prior feature rather than renaming."
 
 summary:
-  current_focus: "Discovery: map the page's DOM/JS contract (tab switching, season re-render, footnote) and confirm the local build path."
-  last_completed: "Preflight; branch reset onto merged main; design approved by the user."
+  current_focus: "Execution batch 1: T1 -> T2 -> T3 by one frontend-engineer, one commit each."
+  last_completed: "Requirements + plan written; user approved at the checkpoint."
   current_blocker: ""
 
 artifacts:
@@ -69,7 +69,7 @@ agents:
     routing_enforced: true
     escalation_count: 0
     status: "active"
-    stage: "planning"
+    stage: "execution"
     task: "Coordinate; the design work (layout constraints, sticky-header analysis, mockups) was done before this pass and is treated as discovery input."
     last_update: "2026-09-14T00:00:00Z"
     blocker: ""
@@ -84,7 +84,7 @@ loops:
 
 checkpoint:
   pre_execution_required: true
-  pre_execution_status: awaiting_user
+  pre_execution_status: approved
   options: [proceed, revise_plan, narrow_scope, stop]
 
 blockers: []
@@ -110,4 +110,4 @@ model_routing:
 
 next_action: "Finish discovery, write requirements + plan, stop at the pre-execution checkpoint."
 next_recommended_command: "$work"
-user_input_needed: true
+user_input_needed: false
