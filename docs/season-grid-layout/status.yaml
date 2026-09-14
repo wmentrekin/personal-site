@@ -1,0 +1,113 @@
+artifact: status
+feature: "season-grid-layout"
+mode: "bounded-feature"
+stage: "discovery"
+owner_skill: work
+
+objective: >-
+  Rework the CFB rankings page so the glass card is a control bar only (selectors + toggle, no
+  title) with each tab's content rendered below it: the rankings table centered in its own card
+  in the 1200px column; the Season Grid full-height on the page (no inner scroll box), breaking
+  out of the column to the page edge, with the column header pinned to the window and the team
+  column sticky. Desktop column widths unchanged; phone team column narrowed so three weeks fit.
+  Design approved: https://claude.ai/code/artifact/b2460d25-2f88-49ba-af5e-6ba0e6538d00
+
+repository_sync:
+  completed_before_work: true
+  checked_at: "2026-09-14T00:00:00Z"
+  repositories:
+    - path: "/home/user/personal-site"
+      remote: "https://github.com/wmentrekin/personal-site"
+      relevant_branch: "main"
+      local_commit_before: "440e9e2 (on work/season-grid-postseason-format, 1 behind origin/main by its own merge commit, 0 ahead)"
+      remote_commit_after_fetch: "6c8a33c"
+      local_commit_after: "6c8a33c (feature branch reset onto origin/main)"
+      result: "comparison_only"
+      notes: >-
+        Clean tree. The previous checkout was a fully merged feature branch; not pulled into.
+        The harness-pinned branch claude/georgia-tech-schedule-viz-aqy1ay existed locally and on
+        the remote at c2bb6c9, 38 behind origin/main with zero unique commits, so it was reset to
+        origin/main per the merged-PR rule (force-with-lease on first push).
+    - path: "/home/user/cfb-rankings"
+      remote: "https://github.com/wmentrekin/cfb-rankings"
+      relevant_branch: "main"
+      local_commit_before: "n/a"
+      remote_commit_after_fetch: "n/a"
+      local_commit_after: "n/a"
+      result: "current"
+      notes: "Explicit non-goal: no change to the payload or the rankings repo. Listed for scope completeness only."
+
+branching:
+  branch_name: "claude/georgia-tech-schedule-viz-aqy1ay"
+  base: "origin/main @ 6c8a33c"
+  notes: "Harness-pinned name; user accepted it on the prior feature rather than renaming."
+
+summary:
+  current_focus: "Discovery: map the page's DOM/JS contract (tab switching, season re-render, footnote) and confirm the local build path."
+  last_completed: "Preflight; branch reset onto merged main; design approved by the user."
+  current_blocker: ""
+
+artifacts:
+  requirements: null
+  plan: null
+  implementation_report: null
+
+pr:
+  number: null
+  url: null
+  status: "not_opened"
+
+agents:
+  - id: "orchestrator"
+    role: "orchestrator"
+    task_profile: "orchestration"
+    requested_model_tier: "frontier"
+    requested_reasoning: "high"
+    requested_provider_model: "Claude Fable 5.1"
+    actual_model: "claude-fable-5-1"
+    actual_reasoning: "high"
+    routing_enforced: true
+    escalation_count: 0
+    status: "active"
+    stage: "discovery"
+    task: "Coordinate; the design work (layout constraints, sticky-header analysis, mockups) was done before this pass and is treated as discovery input."
+    last_update: "2026-09-14T00:00:00Z"
+    blocker: ""
+
+loops:
+  planning_review:
+    count: 0
+    max: 2
+  execution_verification:
+    count: 0
+    max: 2
+
+checkpoint:
+  pre_execution_required: true
+  pre_execution_status: pending
+  options: [proceed, revise_plan, narrow_scope, stop]
+
+blockers: []
+
+decisions:
+  - id: D1
+    decision: "Mode = bounded-feature."
+    rationale: "Coupled markup, CSS and JS changes across three components with a hard requirement (pinned header) that needs a sync mechanism and pixel-measured verification."
+  - id: D2
+    decision: "Desktop column widths stay 12rem/6rem."
+    rationale: "Mockup at 5.5rem clipped scores; the site's own comment records 14 clipped cells even at 6rem."
+  - id: D3
+    decision: "Pinned header = a sibling element outside the horizontal scroller, sticky to the page, scrollLeft-synced."
+    rationale: "Any non-visible overflow on an ancestor captures position:sticky in both axes, so a header inside the scroller can never pin to the window."
+
+model_routing:
+  provider: "Claude Code / Anthropic"
+  provider_map_verified_at: "2026-09-07"
+  substitutions:
+    - "Orchestrator runs on Claude Fable 5.1 (session model), above the map's Opus 5 frontier default."
+  unresolved_limitations:
+    - "Subagents inherit the main conversation's extended-thinking setting; per-agent reasoning level is advisory."
+
+next_action: "Finish discovery, write requirements + plan, stop at the pre-execution checkpoint."
+next_recommended_command: "$work"
+user_input_needed: false
