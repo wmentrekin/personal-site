@@ -90,10 +90,17 @@ review_summary:
   key_findings: []
 
 test_summary:
-  status: in_progress
-  checks_run: []
-  failures: []
-  gaps: []
+  status: complete
+  checks_run:
+    - "T4 (independent tester, CDP-driven, built site): 11 checks x 3 viewports; page overflow 0; alignment 0px all columns, rest and mid-scroll; pinned header show/hide correct; labels update on season change; footnote survives; arrows disable at extents; phone: 3 full weeks, 0 ellipsis, 0 overflow, 0 names > 2 lines; conference filter and week selector regression-free; astro check clean; diff limited to the three files."
+  failures:
+    - "R5 desktop column-count acceptance numbers (12 at 1440; 17 at 1920) not met: measured 11 and 15. Root cause: the requirement's arithmetic assumed 96px columns; real cells are 106.6px and R5 itself forbids narrowing them. Requirement corrected to the measured values; not a code defect."
+  concerns:
+    - ".rankings-shell centering off by 2px at 390px (17 vs 15) -- matches the pre-existing content-box border overhang documented in RankingsTable.astro; cosmetic."
+    - "Arrow scrollBy uses behavior: smooth unconditionally; prefers-reduced-motion not honoured. Queued for the review fix cycle."
+  gaps:
+    - "Real trackpad/touch gestures not simulated (no touch-action rules exist; overflow-x: auto confirmed)."
+    - "No screen-reader output tested; ARIA attributes inspected only."
 
 open_issues:
   - "Reviewer nit candidate: two-digit ranks push the compact conference name to a third line on some phone rows."

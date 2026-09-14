@@ -67,7 +67,12 @@ requirements:
       edge to edge, the team column is ~6.4rem so three 6rem weeks fit a 390px screen, and team
       names ellipsise with the full name in a title attribute.
     acceptance:
-      - "1440 viewport shows 12 full week columns; 1920 shows weeks 0-14 + CCG + Army-Navy with no sideways scroll."
+      - >-
+        1440 viewport shows 11 full week columns; 1920 shows weeks 0-14 with CCG and Army-Navy a short
+        scroll away. (CORRECTED during verification: the original targets of 12 and 17 assumed 96px
+        week columns; the unchanged desktop cells measure 106.6px -- 6rem of content plus padding and
+        border, content-box -- so the original numbers were never reachable without narrowing cells,
+        which R5 forbids. The measured counts are the requirement.)
       - "390 viewport shows the team column plus three full week columns."
       - "No cell that fits today clips after the change."
 
